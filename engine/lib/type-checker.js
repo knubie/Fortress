@@ -35,8 +35,6 @@ module.exports = {
         } else {
           argName = arg.constructor.name;
         }
-        console.log(typeclassName);
-        console.log(pair);
         throw new Errors.TypeClassError('Invalid type. Expected ' + typeclassName + ', but got ' + argName + ' instead.');
       }
     }, zip(args, types));

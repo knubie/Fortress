@@ -69,7 +69,7 @@
       //[self showAuthenticationDialogWhenReasonable: viewController];
       NSLog(@"Show auth dialog");
     }
-    else if (localPlayer.isAuthenticated)
+    else if (localPlayer.authenticated)
     {
       //authenticatedPlayer: is an example method name. Create your own method that is called after the local player is authenticated.
       //[self authenticatedPlayer: localPlayer];
