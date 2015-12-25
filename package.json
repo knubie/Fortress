@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "ramda": "^0.18.0",
-    "react-native": "^0.16.0"
+    "react-native": "^0.17.0"
   }
 }
