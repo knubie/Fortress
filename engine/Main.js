@@ -22,7 +22,6 @@ var between = curry(function(start, end) {
 var move = curry(function(distance1, distance2, numMoves, direction, board, piece) {
   check(arguments, [Number, Number, String, String, Board, Piece]);
   var oppositeColor = piece.color === 'white' ? 'black' : 'white';
-  var numMoves = numMoves === 'n' ? 'n' : parseInt(numMoves);
 
   // TODO: Add support for x(n/n).
 
@@ -48,7 +47,7 @@ var move = curry(function(distance1, distance2, numMoves, direction, board, piec
           if (getPieceAtPosition(board, oppositeColor, p)) {
             return p;
           } else {
-            if (numMoves === 'n' || i < numMoves) {
+            if (numMoves === 'n' || i < parseInt(numMoves)) {
               i = i + 1;
               return [p, fn(p)];
             } else {
@@ -141,18 +140,6 @@ var pieceCallbacks = {
                                                         add(''),
                                                         add(1),
                                                         parseInt) })) })),
-                  indexOf(piece, board.pieces))
-      }, board));
-    }
-  },
-  shapeshifter: {
-    // onCapture :: (Piece, Piece, Board) -> Board
-    onCapture: function(piece, capturedPiece, board) {
-      check(arguments, [Piece, Piece, Board]);
-      var newPiece = Piece.of(evolve({color: always(piece.color)}, capturedPiece))
-      return Board.of(evolve({
-        pieces: adjust(
-                  always(newPiece),
                   indexOf(piece, board.pieces))
       }, board));
     }
