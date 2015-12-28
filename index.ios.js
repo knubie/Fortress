@@ -10,7 +10,7 @@ var Fortress = React.createClass({
         initialRoute={{
           component: Home,
           title: 'Home',
-          passProps: { myProp: 'foo' },
+          passProps: { },
         }}
       />
     );

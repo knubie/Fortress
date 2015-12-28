@@ -5,6 +5,7 @@ var MapView = require('./MapView');
 var R = require('ramda');
 //var Board = require('./Board');
 //var Builder = require('./Builder');
+var PlayView = require('./PlayView');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 var GameCenterViewController = React.NativeModules.GameCenterViewController;
@@ -73,9 +74,9 @@ var Home = React.createClass({
       });
     } else {
       this.props.navigator.push({
-        component: Board,
-        title: 'Create your army',
-        passProps: { game: game },
+        component: PlayView,
+        title: 'Play the game',
+        passProps: ({ game, yourTurn }),
       });
     }
   },
