@@ -18,6 +18,10 @@ var {
   ScrollView,
 } = React;
 
+var oppositeColor = function(color) {
+  return color === 'white' ? 'black' : 'white';
+}
+
 var PlayView = React.createClass({
   getInitialState: function() {
     return {
@@ -43,6 +47,7 @@ var PlayView = React.createClass({
     if (R.not(this.yourTurn()) || this.state.selectedPiece == null) {
       this.selectPiece(piece);
     } else {
+      // TODO: Account for moving to other friendly piece.
       if (piece.color === this.state.selectedPiece.color) {
         this.selectPiece(piece);
       } else {
@@ -53,13 +58,21 @@ var PlayView = React.createClass({
                               this.state.game),
           selectedPiece: null
         });
+        // TODO: Get rid of this.
+        if (!this.yourTurn()) {
+          if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
+            alert('You win!');
+            GameCenter.endMatchInTurnWithMatchData(this.state.game);
+          } else {
+            GameCenter.endTurnWithNextParticipants(this.state.game);
+          }
+        }
       }
     }
   },
   clickSquare: function(x, y) {
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
-    // TODO: Account for moving to other friendly piece.
     if (R.not(this.yourTurn())) {
       this.setState({
         possibleMoves: [],
@@ -75,7 +88,12 @@ var PlayView = React.createClass({
       });
       // TODO: Get rid of this.
       if (!this.yourTurn()) {
-        GameCenter.endTurnWithNextParticipants(this.state.game);
+        if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
+          alert('You win!');
+          GameCenter.endMatchInTurnWithMatchData(this.state.game);
+        } else {
+          GameCenter.endTurnWithNextParticipants(this.state.game);
+        }
       }
     }
   },

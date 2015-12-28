@@ -40,6 +40,27 @@ RCT_EXPORT_METHOD(newMatch)
   [rootController presentViewController:mmvc animated:YES completion:nil];
 }
 
+RCT_EXPORT_METHOD(endMatchInTurnWithMatchData:(NSString *)game)
+{
+  NSLog(@"End turn with next participants");
+  if (self.currentMatch.participants[0].player.playerID == self.currentMatch.currentParticipant.player.playerID)
+  {
+    self.currentMatch.participants[0].matchOutcome = 2; // Won
+    self.currentMatch.participants[1].matchOutcome = 3; // Lost
+  } else {
+    self.currentMatch.participants[1].matchOutcome = 2; // Won
+    self.currentMatch.participants[0].matchOutcome = 3; // Lost
+  }
+  
+  NSData * updatedMatchData = [game dataUsingEncoding:NSUTF8StringEncoding]; //Data
+  [self.currentMatch endMatchInTurnWithMatchData:updatedMatchData completionHandler:^(NSError *error) {
+    if (error)
+    {
+      // Handle the error.
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 {
   NSLog(@"End turn with next participants");

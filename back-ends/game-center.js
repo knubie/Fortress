@@ -36,6 +36,9 @@ module.exports = {
   endTurnWithNextParticipants: function(game) {
     GameCenterManager.endTurnWithNextParticipants(encode(game));
   },
+  endMatchInTurnWithMatchData: function(game) {
+    GameCenterManager.endMatchInTurnWithMatchData(encode(game));
+  },
 //decode :: (String(JSON)) -> Game
   decode: R.compose(instantiateObjects, JSON.parse)
 }

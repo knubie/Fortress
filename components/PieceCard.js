@@ -17,6 +17,7 @@ var PieceCard = React.createClass({
           {PieceDisplay.picture[this.props.piece.color][this.props.piece.name]}
         </Text>
         <Text>Name: {this.props.piece.name}</Text>
+        <Text>{this.props.piece.royal ? '✨Royal✨' : ''}</Text>
         <Text>
           Points: {this.props.piece.points}
         </Text>
