@@ -1,7 +1,6 @@
 var R = require('ramda');
 var React = require('react-native');
 var PieceDisplay = require('../lib/piece-display');
-var Pieces = require('../engine/Pieces');
 
 var {
   StyleSheet,
@@ -19,7 +18,7 @@ var PieceCard = React.createClass({
         </Text>
         <Text>Name: {this.props.piece.name}</Text>
         <Text>
-          Points: {Pieces[this.props.piece.name].points}
+          Points: {this.props.piece.points}
         </Text>
         <Text>
           {PieceDisplay.description[this.props.piece.name]}

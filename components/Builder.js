@@ -157,13 +157,13 @@ var Builder = React.createClass({
           progressViewStyle='bar'
           progress={
             R.reduce(function(acc, piece) {
-              return acc + Pieces[piece.name].points;
+              return acc + piece.points;
             }, 0, this.state.pieces) / 43
           }
         />
         <Text>
           Point allotment: {R.reduce(function(acc, piece) {
-            return acc + Pieces[piece.name].points;
+            return acc + piece.points;
           }, 0, this.state.pieces)}
           /43
         </Text>
