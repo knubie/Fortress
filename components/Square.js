@@ -22,9 +22,13 @@ var Square = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
+    var style = this.props.selected ? [styles[this.props.color], styles.square, styles.selected] : [styles[this.props.color], styles.square];
+    if (this.props.selected) {
+      console.log('selected');
+    }
     return (
       <TouchableElement
-        style={[styles[this.props.color], styles.square]}
+        style={style}
         onPress={this.onClick}
         onMoveShouldSetResponder={this._onMoveShouldSetResponder}
       >
@@ -37,7 +41,14 @@ var Square = React.createClass({
 var styles = StyleSheet.create({
   square: { width: 46, height: 46 },
   white: { backgroundColor: 'white' },
-  black: { backgroundColor: '#eee' }
+  black: { backgroundColor: '#eee' },
+  whiteHighlight: { backgroundColor: '#ccd' },
+  blackHighlight: { backgroundColor: '#bbc' },
+  selected: {
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: 'blue'
+  }
 });
 
 module.exports = Square;

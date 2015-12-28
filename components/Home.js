@@ -1,11 +1,7 @@
 var React = require('react-native');
-var Builder = require('./Builder');
-var Board = require('./Board');
-var MapView = require('./MapView');
 var R = require('ramda');
-//var Board = require('./Board');
-//var Builder = require('./Builder');
 var PlayView = require('./PlayView');
+var Builder = require('./Builder');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 var GameCenterViewController = React.NativeModules.GameCenterViewController;
@@ -63,6 +59,10 @@ var Home = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
+  // TODO: keep an eye on API changes.
+  builderRef: function(builderRef) {
+    this._builderRef = builderRef;
+  },
   loadMatch: function(game) {
     console.log(game);
     if (game.plys.length < 2 && yourTurn) {
@@ -70,7 +70,12 @@ var Home = React.createClass({
       this.props.navigator.push({
         component: Builder,
         title: 'Create your army',
-        passProps: { game: game },
+        rightButtonTitle: 'Next',
+        onRightButtonPress: () => {
+          // TODO: keep an eye on API changes.
+          this._builderRef && this._builderRef.next();
+        },
+        passProps: ({ game, ref: this.builderRef }),
       });
     } else {
       this.props.navigator.push({

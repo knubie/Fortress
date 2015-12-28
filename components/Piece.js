@@ -2,6 +2,8 @@ var React = require('react-native');
 var Types = require('../engine/Types');
 var PropTypes = React.PropTypes;
 
+var PieceDisplay = require('../lib/piece-display');
+
 var {
   StyleSheet,
   Text,
@@ -65,39 +67,6 @@ var Piece = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
-    var pieceLookup = {
-      white: {
-        king: '♔',
-        queen: '♕',
-        rook: '♖',
-        bishop: '♗',
-        knight: '♘',
-        pawn: '♙',
-        'nightrider': '🐴',
-        'cannon': '🔫',
-        'bloodlust': '💉',
-        'bomber': 'b',
-        'dabbaba': '🚌',
-        'alfil': '🐘',
-        'wazir': '👳',
-        'ferz': '👷',
-        'archbishop': '👺',
-        'empress': '💁',
-        'berolina': '🐜',
-        'shapeshifter': '👻'
-      },
-      black: {
-        king: '♚',
-        queen: '♛',
-        rook: '♜',
-        bishop: '♝',
-        knight: '♞',
-        pawn: '♟',
-        'nightrider': 'O',
-        'cannon': 'I',
-        'bloodlust': 'B'
-      }
-    }
     var className = "piece";
     return (
       <TouchableElement
@@ -109,7 +78,7 @@ var Piece = React.createClass({
         onResponderRelease={this.resetPosition}
       >
         <Text style={styles.piece}>
-          {pieceLookup[this.props.piece.color][this.props.piece.name]}
+          {PieceDisplay.picture[this.props.piece.color][this.props.piece.name]}
         </Text>
       </TouchableElement>
     );
@@ -118,7 +87,7 @@ var Piece = React.createClass({
 
 var styles = StyleSheet.create({
   piece: {
-    fontSize: 44,
+    fontSize: 34,
   }
 });
 

@@ -1,13 +1,16 @@
 var R = require('ramda');
 var React = require('react-native');
-//var Board = require('./Board');
+var Board = require('./Board');
+var PlayView = require('./PlayView');
 var Piece = require('./Piece');
 var Square = require('./Square');
+var PieceCard = require('./PieceCard.js');
 var Chess = require('../engine/Main');
 var Pieces = require('../engine/Pieces');
 var Types = require('../engine/Types');
 
-var GameCenterManager = React.NativeModules.GameCenterManager;
+var PieceDisplay = require('../lib/piece-display');
+
 var GameCenter = require('../back-ends/game-center')
 
 var {
@@ -25,16 +28,16 @@ var boardSize = 8;
 
 var Builder = React.createClass({
   getInitialState: function() {
-    var _this = this;
     return {
       pieces: [ ],
       points: 0,
       royals: 0,
       selectedPiece: null,
-      allPieces: R.map(function(name) {
+      game: this.props.game,
+      allPieces: R.map( name => {
         return Types.Piece.of({
           name: name,
-          color: _this.props.game.turn,
+          color: this.props.game.turn,
           position: Types.Position.of({x: -1, y: -1})
         });
       }, R.keys(Pieces))
@@ -63,12 +66,19 @@ var Builder = React.createClass({
       board: R.compose(Types.Board.of, R.evolve({
         pieces: R.concat(this.state.pieces)
       }))
-    }, this.props.game));
+    }, this.state.game));
     GameCenter.endTurnWithNextParticipants(game);
+    // TODO: change this from push so user goes back to Home
+    // May need to pop this index
+    this.props.navigator.replace({
+      component: PlayView,
+      title: 'Play the game',
+        rightButtonTitle: '',
+      passProps: ({ game, yourTurn: false }),
+    });
   },
   clickSquare: function(x, y) {
     var piece = this.state.selectedPiece;
-    console.log('click square');
     if (this.state.selectedPiece) {
       this.setState({
         pieces: Chess.addPiece(
@@ -79,15 +89,21 @@ var Builder = React.createClass({
             color: piece.color,
             position: Types.Position.of({x: x, y: y})
           })
-        )
+        ),
+        selectedPiece: null
       });
     }
   },
   clickPiece: function(piece) {
-    console.log('click piece');
-    this.setState({
-      selectedPiece: piece
-    });
+    // Pieces in the piece selection window have position:
+    // x: -1, y: -1
+    if (this.state.selectedPiece && piece.position.x >= 0) {
+      this.clickSquare(piece.position.x, piece.position.y)
+    } else {
+      this.setState({
+        selectedPiece: piece
+      });
+    }
   },
   render: function() {
     var _this = this;
@@ -95,14 +111,13 @@ var Builder = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
-    var returnPiece = function(piece) {
+    var returnPiece = piece => {
       return piece == null ?
                       null :
-                      <Piece piece={piece} onClick={_this.clickPiece}></Piece>;
+                      <Piece piece={piece} onClick={this.clickPiece}></Piece>;
     }
     return (
-      <View>
-        <Text>This is the builder screen</Text>
+      <View style={styles.outerContainer}>
         <ScrollView horizontal={true} contentContainerStyle={styles.container}>
           {R.map(function(piece) {
             return (<Piece
@@ -113,14 +128,14 @@ var Builder = React.createClass({
         </ScrollView>
         <View style={styles.boardContainer}>
           {R.flatten(R.map(function(y) {
-            if (_this.props.game.color === 'white') {
+            if (_this.state.game.turn === 'white') {
               var y = 1 - y;
             } else {
               var y = (boardSize - 2) + y;
             }
             return R.map(function(x) {
-              if (_this.props.game.color === 'black') {
-                var x = (board.size - 1) - x;
+              if (_this.state.game.turn === 'black') {
+                var x = (boardSize - 1) - x;
               }
               var color = (x + y) % 2 === 1 ? 'black' : 'white'
               return (
@@ -128,25 +143,31 @@ var Builder = React.createClass({
                         onDrop={_this.onDrop}
                         onClick={_this.clickSquare}
                         x={x} y={y}>
-                  {returnPiece(R.find(function(piece) {
-                    return (x === piece.position.x && y === piece.position.y);
-                  }, _this.state.pieces))}
+                  {returnPiece(R.find(R.compose(
+                    R.whereEq({x,y}),
+                    R.prop('position')
+                  ), _this.state.pieces))}
                 </Square>
               );
             }, R.range(0, boardSize));
           }, R.range(0, 2)))}
         </View>
-        <ProgressViewIOS progress={
-          R.reduce(function(acc, piece) {
-            return acc + Pieces[piece.name].points;
-          }, 0, this.state.pieces) / 43
-        }/>
+        <ProgressViewIOS
+          style={styles.progress}
+          progressViewStyle='bar'
+          progress={
+            R.reduce(function(acc, piece) {
+              return acc + Pieces[piece.name].points;
+            }, 0, this.state.pieces) / 43
+          }
+        />
         <Text>
           Point allotment: {R.reduce(function(acc, piece) {
             return acc + Pieces[piece.name].points;
           }, 0, this.state.pieces)}
           /43
         </Text>
+        <PieceCard piece={this.state.selectedPiece}></PieceCard>
         <TouchableElement onPress={this.next}>
           <Text>Next</Text>
         </TouchableElement>
@@ -156,12 +177,15 @@ var Builder = React.createClass({
 });
 
 var styles = StyleSheet.create({
+  outerContainer: {
+    paddingTop: 70
+  },
   container: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 100,
+    height: 170,
   },
   boardContainer: {
     flex: 1,
@@ -169,6 +193,14 @@ var styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  progress: {
+    borderColor: '#eee',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginTop: 10,
+    padding: 20,
+    width: 100
   }
 });
 
