@@ -75,11 +75,6 @@ var PlayView = React.createClass({
       });
       // TODO: Get rid of this.
       if (!this.yourTurn()) {
-        this.setState({
-          game: Types.Game.of(R.evolve({
-            plys: R.append([selectedPiece.position, position])
-          }, this.state.game))
-        });
         GameCenter.endTurnWithNextParticipants(this.state.game);
       }
     }
