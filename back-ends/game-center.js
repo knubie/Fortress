@@ -3,9 +3,14 @@ var React = require('react-native');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 
-//  stripParletts :: (Game) -> Object
-var stripParletts = R.evolve({
-  board: R.evolve({ pieces: R.map(R.dissoc('parlett')) })
+//  compressGame :: (Game) -> Object
+var compressGame = R.evolve({
+  board: R.evolve({ pieces: R.map(R.dissoc('parlett')) }),
+  plys: R.map(ply => {
+    if (R.is(Array, ply)) {
+      return '' + ply[0].x + ply[0].y + ply[1].x + ply[1].y;
+    } else { return ply }
+  })
 });
 
 //  instantiateObjects :: (Object) -> Game
@@ -14,11 +19,18 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
     pieces: R.map(R.compose(Types.Piece.of, R.evolve({
       position: Types.Position.of
     })))
-  }))
+  })),
+  plys: R.map(ply => {
+    console.log(ply);
+    if (ply !== 'draft') {
+      return [Types.Position.of({x: parseInt(ply[0]), y: parseInt(ply[1])}),
+              Types.Position.of({x: parseInt(ply[2]), y: parseInt(ply[3])})]
+    } else { return ply }
+  })
 }));
 
 //  encode :: (Game) -> String(JSON)
-var encode = R.compose(JSON.stringify, stripParletts);
+var encode = R.compose(JSON.stringify, compressGame);
 
 module.exports = {
   endTurnWithNextParticipants: function(game) {
