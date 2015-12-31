@@ -2,6 +2,7 @@ var React = require('react-native');
 var R = require('ramda');
 var PlayView = require('./PlayView');
 var Builder = require('./Builder');
+var HowToPlay = require('./HowToPlay');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 var GameCenterViewController = React.NativeModules.GameCenterViewController;
@@ -88,6 +89,12 @@ var Home = React.createClass({
   newGame: function() {
     GameCenterManager.newMatch();
   },
+  howToPlay: function() {
+    this.props.navigator.push({
+      component: HowToPlay,
+      title: 'How to play'
+    });
+  },
   render: function() {
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
@@ -96,9 +103,11 @@ var Home = React.createClass({
     return (
       <View style={styles.container}>
         <TouchableElement style={styles.button} onPress={this.newGame}>
-          <Text>New Game</Text>
+          <Text>Play the Game</Text>
         </TouchableElement>
-        <Text style={styles.button}>How to Play</Text>
+        <TouchableElement style={styles.button} onPress={this.howToPlay}>
+          <Text>How to Play</Text>
+        </TouchableElement>
       </View>
     );
   }
