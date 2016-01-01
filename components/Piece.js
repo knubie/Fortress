@@ -78,7 +78,7 @@ var Piece = React.createClass({
         onResponderRelease={this.resetPosition}
       >
         <Text style={styles.piece}>
-          {PieceDisplay.picture[this.props.piece.color][this.props.piece.name]}
+          {PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
         </Text>
       </TouchableElement>
     );

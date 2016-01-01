@@ -16,20 +16,19 @@ var PieceCard = React.createClass({
     }, '', parlett);
   },
   render: function() {
-    console.log(PieceDisplay);
     return !this.props.piece ? (<View></View>) : (
       <View style={styles.pieceDisplayContainer}>
         <Text style={styles.pieceDisplayPicture}>
-          {PieceDisplay.picture[this.props.piece.color][this.props.piece.name]}
+          {PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
         </Text>
-        <Text>Name: {this.props.piece.name}</Text>
+        <Text style={styles.name}>{PieceDisplay[this.props.piece.name].displayName}</Text>
         <Text>{this.props.piece.royal ? '✨Royal✨' : ''}</Text>
-        <Text>
-          Points: {this.props.piece.points}
+        <Text style={styles.description}>
+          {PieceDisplay[this.props.piece.name].description}
         </Text>
         <Text>Movement: {this.movementText(this.props.piece.parlett)}</Text>
         <Text>
-          {PieceDisplay.description[this.props.piece.name]}
+          Points: {this.props.piece.points}
         </Text>
       </View>
     );
@@ -37,6 +36,13 @@ var PieceCard = React.createClass({
 });
 
 var styles = StyleSheet.create({
+  name: {
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  description: {
+    color: '#999'
+  },
   pieceDisplayContainer: {
     padding: 20
   },
