@@ -9,6 +9,12 @@ var {
 } = React;
 
 var PieceCard = React.createClass({
+  movementText: function(parlett) {
+    return R.reduce((first, second) => {
+      var head = first === '' ? '' : ', ';
+      return first + head + second.distance + '(' + second.movement + ')';
+    }, '', parlett);
+  },
   render: function() {
     console.log(PieceDisplay);
     return !this.props.piece ? (<View></View>) : (
@@ -21,6 +27,7 @@ var PieceCard = React.createClass({
         <Text>
           Points: {this.props.piece.points}
         </Text>
+        <Text>Movement: {this.movementText(this.props.piece.parlett)}</Text>
         <Text>
           {PieceDisplay.description[this.props.piece.name]}
         </Text>
