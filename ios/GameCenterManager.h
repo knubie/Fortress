@@ -10,7 +10,7 @@
 @import GameKit;
 #import "RCTBridgeModule.h"
 
-@interface GameCenterManager : UIViewController <RCTBridgeModule, GKTurnBasedMatchmakerViewControllerDelegate>
+@interface GameCenterManager : UIViewController <RCTBridgeModule, GKLocalPlayerListener, GKTurnBasedMatchmakerViewControllerDelegate>
 
 @property GKTurnBasedMatch *currentMatch;
 
