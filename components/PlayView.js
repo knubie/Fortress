@@ -108,6 +108,7 @@ var PlayView = React.createClass({
           possibleMoves={this.state.possibleMoves}
           playingFromWhitesPerspective={this.state.playerColor === 'white'}
           selectedPiece={this.state.selectedPiece}
+          lastMove={R.head(R.reverse(this.state.game.plys))}
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         >

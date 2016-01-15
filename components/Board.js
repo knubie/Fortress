@@ -23,6 +23,16 @@ var Board = React.createClass({
       height: this.props.height || this.props.board.size
     }
   },
+  getLastMove: function() {
+
+    // FIXME: make this less birttle
+    if (this.props.lastMove === 'draft') {
+      return [Types.Position.of({x: -1, y: -1}),
+              Types.Position.of({x: -1, y: -1})];
+    } else {
+      return this.props.lastMove
+    }
+  },
   render: function() {
     var returnPiece = piece => {
       return piece == null ?
@@ -56,6 +66,9 @@ var Board = React.createClass({
                         R.whereEq({x,y},
                         R.prop('position',
                                (this.props.selectedPiece || {position: {}})))}
+                      highlightLastMove={
+                        R.any(R.whereEq({x, y}), this.getLastMove())
+                      }
                       onClick={this.props.clickSquare}
                       x={x} y={y} key={''+x+y}
               >

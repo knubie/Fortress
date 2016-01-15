@@ -1,3 +1,4 @@
+var R = require('ramda');
 var React = require('react-native');
 
 var {
@@ -22,9 +23,12 @@ var Square = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
-    var style = this.props.selected ? [styles[this.props.color], styles.square, styles.selected] : [styles[this.props.color], styles.square];
+    var style = [styles[this.props.color], styles.square];
     if (this.props.selected) {
-      console.log('selected');
+      style = R.append(styles.selected, style);
+    }
+    if (this.props.highlightLastMove) {
+      style = R.append(styles.lastMove, style);
     }
     return (
       <TouchableElement
@@ -44,6 +48,11 @@ var styles = StyleSheet.create({
   black: { backgroundColor: '#eee' },
   whiteHighlight: { backgroundColor: '#ccd' },
   blackHighlight: { backgroundColor: '#bbc' },
+  lastMove: {
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: 'red'
+  },
   selected: {
     borderStyle: 'dashed',
     borderWidth: 2,
