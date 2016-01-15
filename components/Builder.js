@@ -60,22 +60,31 @@ var Builder = React.createClass({
     var oppositeColor = function(color) {
       return color === 'white' ? 'black' : 'white';
     }
-    var game = Types.Game.of(R.evolve({
-      turn: oppositeColor,
-      plys: R.append('draft'),
-      board: R.compose(Types.Board.of, R.evolve({
-        pieces: R.concat(this.state.pieces)
-      }))
-    }, this.state.game));
-    GameCenter.endTurnWithNextParticipants(game);
-    // TODO: change this from push so user goes back to Home
-    // May need to pop this index
-    this.props.navigator.replace({
-      component: PlayView,
-      title: 'Play the game',
-        rightButtonTitle: '',
-      passProps: ({ game, yourTurn: false }),
-    });
+    if (
+      R.reduce(function(acc, piece) {
+        return acc + piece.points;
+      }, 0, this.state.pieces) > 45
+    ) {
+      alert('You\'ve not enough resources');
+    } else if (R.filter(R.compose(contains('royal'), R.prop('types')), this.state.pieces).length < 1 ) {
+      alert('You need at least one royal piece');
+    } else {
+      var game = Types.Game.of(R.evolve({
+        turn: oppositeColor,
+        plys: R.append('draft'),
+        board: R.compose(Types.Board.of, R.evolve({
+          pieces: R.concat(this.state.pieces)
+        }))
+      }, this.state.game));
+      GameCenter.endTurnWithNextParticipants(game);
+      // TODO: change this from push so user goes back to Home
+      // May need to pop this index
+      this.props.navigator.replace({
+        component: PlayView,
+        title: 'Play the game',
+        passProps: ({ game, yourTurn: false }),
+      });
+    }
   },
   clickSquare: function(x, y) {
     var piece = this.state.selectedPiece;
@@ -157,14 +166,14 @@ var Builder = React.createClass({
           progress={
             R.reduce(function(acc, piece) {
               return acc + piece.points;
-            }, 0, this.state.pieces) / 43
+            }, 0, this.state.pieces) / 45
           }
         />
         <Text>
           Point allotment: {R.reduce(function(acc, piece) {
             return acc + piece.points;
           }, 0, this.state.pieces)}
-          /43
+          /45
         </Text>
         <PieceCard piece={this.state.selectedPiece}></PieceCard>
         <TouchableElement onPress={this.next}>
