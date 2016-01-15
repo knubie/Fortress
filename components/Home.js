@@ -17,6 +17,7 @@ var {
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
+  NativeAppEventEmitter,
 } = React;
 
 var player = {};
@@ -28,7 +29,6 @@ var Home = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
-        console.log(data.match);
         // data.match {
         //   matchID: String
         //   yourTurn: Boolean
@@ -47,7 +47,6 @@ var Home = React.createClass({
             plys: []
           });
         } else {
-          console.log(data.match.matchData);
           game = GameCenter.decode(data.match.matchData);
         }
         if (data.match.yourTurn) {
@@ -56,6 +55,8 @@ var Home = React.createClass({
         this.loadMatch(game);
       }
     );
+    GameCenterManager.clearMatch();
+    // Send method to Native, remove currentMatch
   },
   componentWillUnmount: function() {
     subscription.remove();
@@ -65,10 +66,20 @@ var Home = React.createClass({
     this._builderRef = builderRef;
   },
   loadMatch: function(game) {
-    console.log(game);
+    var method = 'push';
+    if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
+      method = 'push';
+    } else {
+      //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
+      method = 'replace';
+    }
+    // Reset the navigator stack before pushing
+    console.log('THIS GETS CALLED BEFORE NAVIGATOR.PUSH');
+    console.log(this.props.navigator);
+    console.log(this.props.navigator.navigationContext._currentRoute.component.displayName);
     if (game.plys.length < 2 && yourTurn) {
       // Load Builder
-      this.props.navigator.push({
+      this.props.navigator[method]({
         component: Builder,
         title: 'Create your army',
         rightButtonTitle: 'Next',
@@ -76,13 +87,13 @@ var Home = React.createClass({
           // TODO: keep an eye on API changes.
           this._builderRef && this._builderRef.next();
         },
-        passProps: ({ game, ref: this.builderRef }),
+        passProps: ({ game, route: 'Builder', ref: this.builderRef }),
       });
     } else {
-      this.props.navigator.push({
+      this.props.navigator[method]({
         component: PlayView,
         title: 'Play the game',
-        passProps: ({ game, yourTurn }),
+        passProps: ({ game, yourTurn, route: 'PlayView' }),
       });
     }
   },

@@ -68,9 +68,10 @@ var Piece = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
     var className = "piece";
+    console.log(this.props.piece);
     return (
       <TouchableElement
-        style={this.getDragStyle()}
+        style={[this.getDragStyle(), styles.touchable]}
         onPress={this.onClick}
         onStartShouldSetResponder={this._onStartShouldSetResponder}
         onMoveShouldSetResponder={this._onMoveShouldSetResponder}
@@ -86,6 +87,8 @@ var Piece = React.createClass({
 });
 
 var styles = StyleSheet.create({
+  touchable: {
+  },
   piece: {
     fontSize: 34,
   }

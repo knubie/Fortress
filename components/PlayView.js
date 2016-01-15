@@ -16,15 +16,35 @@ var {
   TouchableNativeFeedback,
   ProgressViewIOS,
   ScrollView,
+  NativeAppEventEmitter,
 } = React;
 
 var oppositeColor = function(color) {
   return color === 'white' ? 'black' : 'white';
 }
 
+var subscription;
+
 var PlayView = React.createClass({
+  componentDidMount: function() {
+    subscription = NativeAppEventEmitter.addListener(
+      'updateMatchData',
+      data => {
+        alert('it\'s your turn!');
+        this.setState({
+          game: GameCenter.decode(data.match.matchData)
+        });
+      }
+    );
+  },
+  updateMatch: function(game) {
+  },
+  componentWillUnmount: function() {
+    subscription.remove();
+  },
   getInitialState: function() {
     return {
+      initGame: this.props.game,
       game: this.props.game,
       playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
                    this.props.game.turn === 'black' && !this.props.yourTurn ?
@@ -33,6 +53,13 @@ var PlayView = React.createClass({
       possibleMoves: [ ],
       selectedPiece: null
     }
+  },
+//getCurrentGame :: (Game) -> [Game]
+  getCurrentGame: function(initialGame) {
+    // TODO: ignore first two plys
+    return R.reduce((game, ply) => {
+      return Chess.makePly(ply[0], ply[1], game);
+    }, initialGame, initialGame.plys);
   },
   yourTurn: function() {
     return this.state.game.turn === this.state.playerColor;
@@ -96,6 +123,8 @@ var PlayView = React.createClass({
         }
       }
     }
+  },
+  makePly: function(startingPosition, endingPosition) {
   },
   render: function() {
     return (
