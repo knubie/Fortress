@@ -118,14 +118,14 @@ var Builder = React.createClass({
     }
     return (
       <View style={styles.outerContainer}>
-        <ScrollView horizontal={true} contentContainerStyle={styles.container}>
+        <View horizontal={true} style={styles.container}>
           {R.map(function(piece) {
             return (<Piece
                       piece={piece}
                       onClick={_this.clickPiece}
                     ></Piece>)
           }, this.state.allPieces)}
-        </ScrollView>
+        </View>
         <View style={styles.boardContainer}>
           {R.flatten(R.map(function(y) {
             if (_this.state.game.turn === 'white') {
@@ -154,7 +154,6 @@ var Builder = React.createClass({
         </View>
         <ProgressViewIOS
           style={styles.progress}
-          progressViewStyle='bar'
           progress={
             R.reduce(function(acc, piece) {
               return acc + piece.points;
@@ -181,11 +180,9 @@ var styles = StyleSheet.create({
     paddingTop: 70
   },
   container: {
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 170,
+    flexWrap: 'wrap',
+    alignItems: 'flex-start'
   },
   boardContainer: {
     flex: 1,
@@ -195,11 +192,7 @@ var styles = StyleSheet.create({
     alignItems: 'center',
   },
   progress: {
-    borderColor: '#eee',
-    borderStyle: 'solid',
-    borderWidth: 1,
     marginTop: 10,
-    padding: 20,
     width: 100
   }
 });
