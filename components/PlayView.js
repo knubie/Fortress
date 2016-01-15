@@ -58,7 +58,10 @@ var PlayView = React.createClass({
   getCurrentGame: function(initialGame) {
     // TODO: ignore first two plys
     return R.reduce((game, ply) => {
-      return Chess.makePly(ply[0], ply[1], game);
+      // FIXME: don't hardcode plyType argument
+      return Chess.makePly('move', game, {
+                             startingPosition: ply[0],
+                             targetPosition: ply[1]});
     }, initialGame, initialGame.plys);
   },
   yourTurn: function() {
@@ -80,9 +83,10 @@ var PlayView = React.createClass({
       } else {
         this.setState({
           possibleMoves: [],
-          game: Chess.makePly(this.state.selectedPiece.position,
-                              piece.position,
-                              this.state.game),
+          // FIXME: don't hardcoe plyType
+          game: Chess.makePly('move', this.state.game, {
+            startingPosition: this.state.selectedPiece.position,
+            targetPosition: piece.position}),
           selectedPiece: null
         });
         // TODO: Get rid of this.
@@ -108,9 +112,10 @@ var PlayView = React.createClass({
     } else if (selectedPiece) {
       this.setState({
         possibleMoves: [],
-        game: Chess.makePly(selectedPiece.position,
-                            position,
-                            this.state.game),
+        // FIXME: don't hardcode plyType argument
+        game: Chess.makePly('move', this.state.game, {
+          startingPosition: selectedPiece.position,
+          targetPosition: position}),
         selectedPiece: null
       });
       // TODO: Get rid of this.
