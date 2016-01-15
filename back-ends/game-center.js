@@ -5,8 +5,6 @@ var GameCenterManager = React.NativeModules.GameCenterManager;
 
 //  compressGame :: (Game) -> Object
 var compressGame = R.evolve({
-  // FIXME: this breaks bloodlust
-  board: R.evolve({ pieces: R.map(R.dissoc('parlett')) }),
   plys: R.map(ply => {
     if (R.is(Array, ply)) {
       return '' + ply[0].x + ply[0].y + ply[1].x + ply[1].y;
@@ -21,6 +19,7 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
       position: Types.Position.of
     })))
   })),
+  // TODO: account for plyTypes
   plys: R.map(ply => {
     if (ply !== 'draft') {
       return [Types.Position.of({x: parseInt(ply[0]), y: parseInt(ply[1])}),
