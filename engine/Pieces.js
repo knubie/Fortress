@@ -74,7 +74,7 @@ module.exports = {
       }
     ],
     points: 5,
-    royal: true
+    types: ['royal']
   },
   ///////// Custom pieces //////////
   'cannon': {
@@ -86,13 +86,13 @@ module.exports = {
       },
       {
         conditions: ['c'],
-        moveType: 'gun',
         movement: '1/0',
         direction: 'forwards',
         distance: 'n'
       }
     ],
-    points: 12
+    points: 12,
+    types: ['ranged']
   },
   'bloodlust': {
     parlett: [
@@ -112,6 +112,21 @@ module.exports = {
       parlett: map(evolve({ distance: add(1) }))
     })
   },
+  'shapeshifter': {
+    parlett: [
+      {
+        distance: '1',
+        movement: '1/0',
+        direction: 'forwards'
+      },
+      {
+        distance: '1',
+        movement: '1/1',
+        direction: 'forwards'
+      }
+    ],
+    points: 3
+  },
   'bomber': {
     parlett: [
       {
@@ -126,6 +141,8 @@ module.exports = {
       }
     ],
     points: 5,
+    ability: function(board) {
+    },
     // onCaptureBoard :: Board -> Board
     onCaptureBoard: function(board) {
       return evolve({
@@ -137,6 +154,25 @@ module.exports = {
         )
       }, board);
     }
+  },
+  'wall': {
+    parlett: [
+      {
+        movement: '0/0',
+        distance: '0'
+      }
+    ],
+    points: 2,
+    types: ['invincible']
+  },
+  'mine': {
+    parlett: [
+      {
+        movement: '0/0',
+        distance: '0'
+      }
+    ],
+    points: 5
   },
   ////////// Fairies //////////
   'dabbaba': {

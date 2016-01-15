@@ -18,6 +18,12 @@ var between = curry(function(start, end) {
   return start < end ? range(start + 1, end) : range(end + 1, start);
 });
 
+//  isCapturable :: (Maybe(Piece)) -> Boolean
+var isCapturable = curry(function(piece) {
+  // FIXME: add Maybe support
+  return not(contains('invincible', prop('types', piece || {types: []})));
+});
+
 //  move :: (Number, Number, String, String, Board, Piece) -> [Position]
 var move = curry(function(distance1, distance2, numMoves, direction, board, piece) {
   check(arguments, [Number, Number, String, String, Board, Piece]);
@@ -43,7 +49,10 @@ var move = curry(function(distance1, distance2, numMoves, direction, board, piec
         var wrongDirection = ((((forwards && white) || (backwards && black)) && (p.y <= piece.position.y)) ||
           (((backwards && white) || (forwards && black)) && (p.y >= piece.position.y))  ||
           (sideways && (p.y !== piece.position.y)))
-        if (legalPosition(board, p) && !wrongDirection && !getPieceAtPosition(board, piece.color, p)) {
+        if (legalPosition(board, p) &&
+            !wrongDirection &&
+            !getPieceAtPosition(board, piece.color, p) &&
+            isCapturable(getAnyPieceAtPosition(board, p))) {
           if (getPieceAtPosition(board, oppositeColor, p)) {
             return p;
           } else {
@@ -128,7 +137,7 @@ var getCaptures = curry(function(board, piece) {
 var pieceCallbacks = {
   bloodlust: {
     // onCapture :: (Piece, Piece, Board) -> Board
-    onCapture: function(piece, capturedPiece, board) {
+    onCapture: curry(function(piece, capturedPiece, board) {
       check(arguments, [Piece, Piece, Board]);
       return Board.of(evolve({
         pieces: adjust(
@@ -139,13 +148,27 @@ var pieceCallbacks = {
                       parlett: map(evolve({ distance: compose(
                                                         add(''),
                                                         add(1),
-                                                        parseInt) })) })),
+                                                        parseInt,
+                                                        // FIXME: why is this necessary??
+                                                        add('')) })) })),
                   indexOf(piece, board.pieces))
       }, board));
-    }
+    })
+  },
+  shapeshifter: {
+    // onCapture :: (Piece, Piece, Board) -> Board
+    onCapture: curry(function(piece, capturedPiece, board) {
+      check(arguments, [Piece, Piece, Board]);
+      var newPiece = Piece.of(evolve({color: always(piece.color)}, capturedPiece))
+      return Board.of(evolve({
+        pieces: adjust(
+                  always(newPiece),
+                  indexOf(piece, board.pieces))
+      }, board));
+    })
   },
   bomber: {
-    ability: function(piece, board) {
+    ability: curry(function(piece, board) {
       var surroundingPieces = [];
       return Board.of(evolve({
         pieces: reject(
@@ -153,12 +176,10 @@ var pieceCallbacks = {
                     any(__, surroundingPieces),
                     equals))
       }, board));
-    },
-
-    onCaptured: function(piece, board) {
+    }),
+    onCaptured: curry(function(piece, board) {
       // piece = the captured piece.
       // TODO: Change getMoves to actual blast radius.
-      console.log('on captured bomber');
       return Board.of(evolve({
         pieces: reject(
           compose(
@@ -167,31 +188,67 @@ var pieceCallbacks = {
           )
         )
       }, board));
-    },
+    }),
 
     // onCapture :: (Piece, Piece, Board) -> Board
-    onCapture: function(piece, capturedPiece, board) {
+    onCapture: curry(function(piece, capturedPiece, board) {
       check(arguments, [Piece, Piece, Board]);
       return board;
-    }
+    })
+  },
+  mine: {
+    afterEveryPly: curry(function(game, piece) {
+      var index = piece.color === 'white' ? 0 : 1;
+      return Game.of(evolve({
+        resources: adjust(add(1), index) // Add one to resources of same color as piece.
+      }, game));
+    })
   }
 };
 
-//  makePly :: (Position, Position, Game) -> Game
-var makePly = curry(function(startingPosition, targetPosition, game) {
-  check(arguments, [Position, Position, Game]);
-  var piece = getAnyPieceAtPosition(game.board, startingPosition);
-  if (equals(startingPosition, targetPosition) || not(equals(piece.color, game.turn))) {
-    // TODO: Add message.
-    return game;
-  } else {
-    return Game.of(evolve({
-      board: movePiece(startingPosition, targetPosition),
-      turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-      plys: append([startingPosition, targetPosition])
-    }, game));
+//  makePly :: (String, Game, Object) -> Maybe Game
+var makePly = curry(function(plyType, game, opts) {
+  var newGame = null;
+  switch (plyType) {
+    case 'move':
+      var startingPosition = opts.startingPosition
+        , targetPosition = opts.targetPosition;
+      check([startingPosition, targetPosition], [Position, Position]);
+      var piece = getAnyPieceAtPosition(game.board, startingPosition);
+      if (equals(startingPosition, targetPosition) ||
+          not(equals(piece.color, game.turn)) ||
+          // movePiece returns null if it's not a valid targetPosition
+          not(movePiece(startingPosition, targetPosition, game.board))) {
+        // TODO: Add message.
+        newGame = game;
+      } else {
+        newGame = Game.of(evolve({
+          board: movePiece(startingPosition, targetPosition),
+          turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
+          plys: append([startingPosition, targetPosition])
+        }, game));
+      }
+    case 'ability':
+    case 'draft':
   }
+  var piecesWithAfterEveryPlyCallback = filter(
+    compose(
+      path(__, pieceCallbacks),
+      prepend(__, ['afterEveryPly']),
+      prop('name')
+    )
+  , newGame.board.pieces);
+  var piecesWithAfterEveryPlyCallbackAndColor = filter(
+  propEq('color', game.turn)
+  , piecesWithAfterEveryPlyCallback);
+
+  return reduce(function(game, piece) {
+    return path([piece.name, 'afterEveryPly'], pieceCallbacks)(game, piece);
+  }, newGame, piecesWithAfterEveryPlyCallbackAndColor);
+
+  //return afterEveryPlyCallback(piecesWithAfterEveryPlyCallbackAndColor[0], newGame);
 });
+
 //  movePiece :: (Position, Position, Board) -> Maybe Board
 var movePiece = curry(function(startingPosition, targetPosition, board) {
   check(arguments, [Position, Position, Board]);
@@ -199,16 +256,16 @@ var movePiece = curry(function(startingPosition, targetPosition, board) {
   var piece = getAnyPieceAtPosition(board, startingPosition);
   var capturedPiece = getAnyPieceAtPosition(board, targetPosition);
   var newPosition = always(targetPosition);
-  if (capturedPiece && any(propEq('moveType', 'gun'), piece.parlett)) {
+  if (capturedPiece && contains('ranged', piece.types)) {
     newPosition = always(startingPosition);
   }
 
   var onCapture = capturedPiece &&
                   path([piece.name, 'onCapture'], pieceCallbacks) ||
-                  function(piece, capturedPiece, board) { return board; };
+                  curry(function(piece, capturedPiece, board) { return board; });
   var onCaptured = capturedPiece &&
                    path([capturedPiece.name, 'onCaptured'], pieceCallbacks) ||
-                   function(piece, board) { return board; };
+                   curry(function(piece, board) { return board; });
 
   if (contains(targetPosition, getMoves(board, piece))) {
     var newPiece = Piece.of(evolve({
@@ -222,30 +279,53 @@ var movePiece = curry(function(startingPosition, targetPosition, board) {
                   always(newPiece),
                   indexOf(piece, board.pieces)))
     }, board));
-    var onCaptureBoard = onCapture(newPiece, capturedPiece, newBoard);
-    var onCapturedBoard = onCaptured(capturedPiece, onCaptureBoard);
-    //var finalBoard = compose(onCaptured(capturedPiece),
-                             //onCapture(newPiece, capturedPiece));
-    return onCapturedBoard;
+    return compose(
+      onCaptured(capturedPiece),
+      onCapture(newPiece, capturedPiece)
+    )(newBoard);
   } else {
     // TODO: return message
     return null;
   }
 });
 
-//  isGameOver :: (Board, String) -> Maybe Boolean
+//  isGameOver :: (Board, String) -> Boolean
 var isGameOver = curry(function(board, color) {
   check(arguments, [Board, String]);
-  return not(any(whereEq({
-                   color: color,
-                   royal: true
+  return not(any(where({
+                   color: equals(color),
+                   types: contains('royal')
                  }), board.pieces));
 });
 
 //  addPiece :: ([Piece], Piece) -> [Piece]
 var addPiece = curry(function(pieces, piece) {
   check(arguments, [[Piece], Piece]);
+  //compose(
+    //append(piece),
+    //reject(propEq('position', piece.position))
+  //)
   return append(piece, reject(propEq('position', piece.position), pieces));
+});
+
+//  addPieceToBoard :: (Piece) -> Board
+var addPieceToBoard = curry(function(piece, board) {
+  return Board.of(evolve({
+    pieces: addPiece(__, piece)
+  }, board));
+});
+
+// draftPiece :: (Game, Piece) -> Maybe Game
+var draftPiece = curry(function(piece, game) {
+  var index = piece.color === 'white' ? 0 : 1;
+  if (piece.points <= game.resources[index]) {
+    return Game.of(evolve({
+      board: addPieceToBoard(piece),
+      resources: adjust(subtract(__, piece.points), index)
+    }, game));
+  } else {
+    return null;
+  }
 });
 
 module.exports = {
@@ -255,5 +335,6 @@ module.exports = {
   addPiece: addPiece,
   getPieceAtPosition: getPieceAtPosition,
   makePly: makePly,
-  isGameOver: isGameOver
+  isGameOver: isGameOver,
+  draftPiece: draftPiece,
 };
