@@ -5,6 +5,7 @@ var GameCenterManager = React.NativeModules.GameCenterManager;
 
 //  compressGame :: (Game) -> Object
 var compressGame = R.evolve({
+  // FIXME: this breaks bloodlust
   board: R.evolve({ pieces: R.map(R.dissoc('parlett')) }),
   plys: R.map(ply => {
     if (R.is(Array, ply)) {
@@ -21,7 +22,6 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
     })))
   })),
   plys: R.map(ply => {
-    console.log(ply);
     if (ply !== 'draft') {
       return [Types.Position.of({x: parseInt(ply[0]), y: parseInt(ply[1])}),
               Types.Position.of({x: parseInt(ply[2]), y: parseInt(ply[3])})]
