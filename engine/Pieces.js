@@ -94,6 +94,22 @@ module.exports = {
     points: 12,
     types: ['ranged']
   },
+  'ranger': {
+    parlett: [
+      {
+        conditions: ['o'],
+        movement: '1/1',
+        distance: '3'
+      },
+      {
+        conditions: ['c'],
+        movement: '1/1',
+        distance: '4'
+      }
+    ],
+    points: 3,
+    types: ['ranged']
+  },
   'bloodlust': {
     parlett: [
       {
@@ -116,13 +132,11 @@ module.exports = {
     parlett: [
       {
         distance: '1',
-        movement: '1/0',
-        direction: 'forwards'
+        movement: '1/0'
       },
       {
         distance: '1',
-        movement: '1/1',
-        direction: 'forwards'
+        movement: '1/1'
       }
     ],
     points: 3
@@ -173,6 +187,24 @@ module.exports = {
       }
     ],
     points: 5
+  },
+  'warlord': {
+    parlett: [
+      {
+        movement: '1/1',
+        distance: '2'
+      },
+      {
+        movement: '1/0',
+        distance: '2'
+      }
+    ],
+    points: 8,
+    types: ['royal']
+  },
+  'teleporter': {
+    parlett: [],
+    points: 3
   },
   ////////// Fairies //////////
   'dabbaba': {

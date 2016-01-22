@@ -1,14 +1,17 @@
+var R = require('ramda');
 var React = require('react-native');
 var Types = require('../engine/Types');
-var PropTypes = React.PropTypes;
 
 var PieceDisplay = require('../lib/piece-display');
 
 var {
+  Dimensions,
   StyleSheet,
+  Image,
   Text,
   View,
   Platform,
+  PropTypes,
   TouchableHighlight,
   TouchableNativeFeedback,
 } = React;
@@ -67,27 +70,29 @@ var Piece = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
+    var type = null;
+    if (R.contains('royal', this.props.piece.types)) {
+      type = <Image style={styles.touchable} source={require('../assets/tile-royal.png')}/>;
+    }
     var className = "piece";
-    console.log(this.props.piece);
     return (
-      <TouchableElement
-        style={[this.getDragStyle(), styles.touchable]}
-        onPress={this.onClick}
-        onStartShouldSetResponder={this._onStartShouldSetResponder}
-        onMoveShouldSetResponder={this._onMoveShouldSetResponder}
-        onResponderMove={this.setPosition}
-        onResponderRelease={this.resetPosition}
-      >
-        <Text style={styles.piece}>
-          {PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
-        </Text>
-      </TouchableElement>
+      <TouchableHighlight onPress={this.onClick}>
+        <Image source={PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
+          style={[this.getDragStyle(), styles.touchable]}
+        >
+          {type}
+        </Image>
+      </TouchableHighlight>
     );
   }
 });
 
+var squareSize = (Dimensions.get('window').width - 14) / 8
 var styles = StyleSheet.create({
   touchable: {
+    width: squareSize,
+    height: squareSize,
+    backgroundColor: 'rgba(0,0,0,0)',
   },
   piece: {
     fontSize: 34,

@@ -24,7 +24,6 @@ var Board = React.createClass({
     }
   },
   getLastMove: function() {
-
     // FIXME: make this less birttle
     if (this.props.lastMove === 'draft') {
       return [Types.Position.of({x: -1, y: -1}),
@@ -58,7 +57,10 @@ var Board = React.createClass({
             }
             var color = (x + y) % 2 === 1 ? 'black' : 'white';
             if (R.find(R.whereEq({x,y}), this.props.possibleMoves)) {
-              color = color + 'Highlight'
+              color = color + 'Highlight';
+            }
+            if (R.find(R.whereEq({x,y}), this.props.possibleCaptures)) {
+              color = 'Capture';
             }
             return (
               <Square color={color}
@@ -92,6 +94,7 @@ var styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#212121',
   }
 });
 

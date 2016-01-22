@@ -112,19 +112,25 @@ var Home = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
     return (
-      <View style={styles.container}>
-        <TouchableElement style={styles.button} onPress={this.newGame}>
-          <Text>Play the Game</Text>
-        </TouchableElement>
-        <TouchableElement style={styles.button} onPress={this.howToPlay}>
-          <Text>How to Play</Text>
-        </TouchableElement>
+      <View style={styles.containerContainer}>
+        <View style={styles.container}>
+          <TouchableElement style={styles.button} onPress={this.newGame}>
+            <Text style={styles.buttonText}>Play the Game</Text>
+          </TouchableElement>
+          <TouchableElement style={styles.button} onPress={this.howToPlay}>
+            <Text style={styles.buttonText}>How to Play</Text>
+          </TouchableElement>
+        </View>
       </View>
     );
   }
 });
 
 var styles = StyleSheet.create({
+  containerContainer: {
+    flex: 1,
+    backgroundColor: '#212121',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -135,8 +141,11 @@ var styles = StyleSheet.create({
     borderRadius: 5,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#c4c4c4',
     marginBottom: 10
+  },
+  buttonText: {
+    color: '#c4c4c4',
   }
 });
 

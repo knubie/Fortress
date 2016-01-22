@@ -3,6 +3,8 @@ var React = require('react-native');
 
 var {
   StyleSheet,
+  Dimensions,
+  Image,
   Text,
   View,
   Platform,
@@ -16,12 +18,29 @@ var Square = React.createClass({
     return true;
   },
   onClick: function() {
+    console.log('click square');
     this.props.onClick(this.props.x, this.props.y);
   },
   render: function() {
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
+    }
+    var source = require('../assets/tile.png');
+    if (this.props.selected) {
+      console.log('is selected');
+      var source = require('../assets/tile-selected.png');
+    }
+    if (this.props.highlightLastMove) {
+      var source = require('../assets/tile-last-move.png');
+    }
+    // TODO rewrite this.
+    if (this.props.color === 'whiteHighlight' || this.props.color === 'blackHighlight') {
+      var source = require('../assets/tile-move.png');
+    }
+    // TODO rewrite this.
+    if (this.props.color === 'Capture') {
+      var source = require('../assets/tile-attack.png');
     }
     var style = [styles[this.props.color], styles.square];
     if (this.props.selected) {
@@ -31,32 +50,27 @@ var Square = React.createClass({
       style = R.append(styles.lastMove, style);
     }
     return (
-      <TouchableElement
-        style={style}
-        onPress={this.onClick}
-        onMoveShouldSetResponder={this._onMoveShouldSetResponder}
-      >
-        <View>{this.props.children}</View>
-      </TouchableElement>
+      <TouchableHighlight onPress={this.onClick}>
+        <Image source={source}
+          style={style}
+        >
+          {this.props.children}
+        </Image>
+      </TouchableHighlight>
     );
   }
 });
 
+var squareSize = (Dimensions.get('window').width - 14) / 8
 var styles = StyleSheet.create({
-  square: { width: 46, height: 46 },
+  square: { width: squareSize, height: squareSize },
   white: { backgroundColor: 'white' },
   black: { backgroundColor: '#eee' },
   whiteHighlight: { backgroundColor: '#ccd' },
   blackHighlight: { backgroundColor: '#bbc' },
   lastMove: {
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    borderColor: 'red'
   },
   selected: {
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    borderColor: 'blue'
   }
 });
 

@@ -9,6 +9,7 @@ var GameCenter = require('../back-ends/game-center')
 
 var {
   StyleSheet,
+  AlertIOS,
   Text,
   View,
   Platform,
@@ -51,6 +52,7 @@ var PlayView = React.createClass({
                                                                     'white' :
                                                                     'black',
       possibleMoves: [ ],
+      possibleCaptures: [ ],
       selectedPiece: null
     }
   },
@@ -70,6 +72,7 @@ var PlayView = React.createClass({
   selectPiece: function(piece) {
     this.setState({
       possibleMoves: Chess.getMoves(this.state.game.board, piece),
+      possibleCaptures: Chess.getCaptures(this.state.game.board, piece),
       selectedPiece: piece
     });
   },
@@ -77,27 +80,10 @@ var PlayView = React.createClass({
     if (R.not(this.yourTurn()) || this.state.selectedPiece == null) {
       this.selectPiece(piece);
     } else {
-      // TODO: Account for moving to other friendly piece.
-      if (piece.color === this.state.selectedPiece.color) {
-        this.selectPiece(piece);
+      if (R.contains(R.prop('position', piece), this.state.possibleMoves)) {
+        this.makePly('move', this.state.selectedPiece.position, piece.position);
       } else {
-        this.setState({
-          possibleMoves: [],
-          // FIXME: don't hardcoe plyType
-          game: Chess.makePly('move', this.state.game, {
-            startingPosition: this.state.selectedPiece.position,
-            targetPosition: piece.position}),
-          selectedPiece: null
-        });
-        // TODO: Get rid of this.
-        if (!this.yourTurn()) {
-          if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
-            alert('You win!');
-            GameCenter.endMatchInTurnWithMatchData(this.state.game);
-          } else {
-            GameCenter.endTurnWithNextParticipants(this.state.game);
-          }
-        }
+        this.selectPiece(piece);
       }
     }
   },
@@ -107,47 +93,71 @@ var PlayView = React.createClass({
     if (R.not(this.yourTurn())) {
       this.setState({
         possibleMoves: [],
+        possibleCaptures: [],
         selectedPiece: null
       });
     } else if (selectedPiece) {
-      this.setState({
-        possibleMoves: [],
-        // FIXME: don't hardcode plyType argument
-        game: Chess.makePly('move', this.state.game, {
-          startingPosition: selectedPiece.position,
-          targetPosition: position}),
-        selectedPiece: null
-      });
-      // TODO: Get rid of this.
-      if (!this.yourTurn()) {
-        if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
-          alert('You win!');
-          GameCenter.endMatchInTurnWithMatchData(this.state.game);
-        } else {
-          GameCenter.endTurnWithNextParticipants(this.state.game);
-        }
-      }
+      this.makePly('move', selectedPiece.position, position);
     }
   },
-  makePly: function(startingPosition, endingPosition) {
+  onAbility: function(piece) {
+    if (R.not(this.yourTurn())) {
+      alert('Not your turn!');
+    } else {
+      this.makePly('ability', piece.position, null);
+    }
+  },
+  makePly: function(plyType, startingPosition, targetPosition) {
+    var oldGame = this.state.game;
+    this.setState({
+      possibleMoves: [],
+      possibleCaptures: [],
+      // FIXME: DRY
+      game: Chess.makePly(plyType, this.state.game, {
+        startingPosition, targetPosition}),
+      selectedPiece: null
+    });
+    AlertIOS.alert(
+      'Confirm',
+      'Are you sure you want to make this move?',
+      [
+        {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
+        {text: 'OK', onPress: () => {
+          // TODO: Get rid of this.
+          if (!this.yourTurn()) {
+            if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
+              alert('You win!');
+              GameCenter.endMatchInTurnWithMatchData(this.state.game);
+            } else {
+              GameCenter.endTurnWithNextParticipants(this.state.game);
+            }
+          }
+        }}
+      ]
+    );
+
   },
   render: function() {
     return (
       <View style={styles.container}>
-        <Text>
+        <Text style={styles.turnMessage}>
           {this.yourTurn() ? 'Take your turn!' : 'Wait your turn!'}
         </Text>
         <Board
           board={this.state.game.board}
           possibleMoves={this.state.possibleMoves}
+          possibleCaptures={this.state.possibleCaptures}
           playingFromWhitesPerspective={this.state.playerColor === 'white'}
           selectedPiece={this.state.selectedPiece}
           lastMove={R.head(R.reverse(this.state.game.plys))}
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
-        >
-        </Board>
-        <PieceCard piece={this.state.selectedPiece}></PieceCard>
+        ></Board>
+        <PieceCard
+          style={styles.pieceCard}
+          piece={this.state.selectedPiece}
+          onAbility={this.onAbility}
+        ></PieceCard>
       </View>
     );
   }
@@ -155,7 +165,20 @@ var PlayView = React.createClass({
 
 var styles = StyleSheet.create({
   container: {
-    marginTop: 70,
+    marginTop: 65,
+    backgroundColor: '#212121',
+    flex: 1,
+  },
+  pieceCard: {
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: 'red',
+  },
+  turnMessage: {
+    margin: 5,
+    color: '#c4c4c4',
+    fontWeight: 'bold',
+    fontSize: 16,
   }
 });
 
