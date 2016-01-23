@@ -3,7 +3,7 @@ var React = require('react-native');
 var Board = require('./Board');
 var Chess = require('../engine/Main');
 var Types = require('../engine/Types');
-var PieceCard = require('./PieceCard.js');
+var PieceInfo = require('./PieceInfo.js');
 
 var GameCenter = require('../back-ends/game-center')
 
@@ -31,9 +31,14 @@ var PlayView = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
       data => {
-        alert('it\'s your turn!');
+        if (!this.yourTurn()) {
+          alert('it\'s your turn!');
+        }
         this.setState({
-          game: GameCenter.decode(data.match.matchData)
+          possibleMoves: [],
+          possibleCaptures: [],
+          selectedPiece: null,
+          game: GameCenter.decode(data.match.matchData),
         });
       }
     );
@@ -70,11 +75,19 @@ var PlayView = React.createClass({
     return this.state.game.turn === this.state.playerColor;
   },
   selectPiece: function(piece) {
-    this.setState({
-      possibleMoves: Chess.getMoves(this.state.game.board, piece),
-      possibleCaptures: Chess.getCaptures(this.state.game.board, piece),
-      selectedPiece: piece
-    });
+    if (R.equals(this.state.selectedPiece, piece)) {
+      this.setState({
+        possibleMoves: [],
+        possibleCaptures: [],
+        selectedPiece: null,
+      });
+    } else {
+      this.setState({
+        possibleMoves: Chess.getMoves(this.state.game.board, piece),
+        possibleCaptures: Chess.getCaptures(this.state.game.board, piece),
+        selectedPiece: piece
+      });
+    }
   },
   clickPiece: function(piece) {
     if (R.not(this.yourTurn()) || this.state.selectedPiece == null) {
@@ -112,7 +125,6 @@ var PlayView = React.createClass({
     this.setState({
       possibleMoves: [],
       possibleCaptures: [],
-      // FIXME: DRY
       game: Chess.makePly(plyType, this.state.game, {
         startingPosition, targetPosition}),
       selectedPiece: null
@@ -153,11 +165,11 @@ var PlayView = React.createClass({
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
-        <PieceCard
-          style={styles.pieceCard}
+        <PieceInfo
+          style={styles.pieceInfo}
           piece={this.state.selectedPiece}
           onAbility={this.onAbility}
-        ></PieceCard>
+        ></PieceInfo>
       </View>
     );
   }
@@ -169,7 +181,7 @@ var styles = StyleSheet.create({
     backgroundColor: '#212121',
     flex: 1,
   },
-  pieceCard: {
+  pieceInfo: {
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: 'red',

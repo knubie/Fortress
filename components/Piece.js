@@ -13,6 +13,7 @@ var {
   Platform,
   PropTypes,
   TouchableHighlight,
+  TouchableWithoutFeedback,
   TouchableNativeFeedback,
 } = React;
 
@@ -76,13 +77,13 @@ var Piece = React.createClass({
     }
     var className = "piece";
     return (
-      <TouchableHighlight onPress={this.onClick}>
-        <Image source={PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
+      <TouchableWithoutFeedback onPress={this.onClick}>
+        <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
           style={[this.getDragStyle(), styles.touchable]}
         >
           {type}
         </Image>
-      </TouchableHighlight>
+      </TouchableWithoutFeedback>
     );
   }
 });

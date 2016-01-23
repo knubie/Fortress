@@ -27,12 +27,11 @@ var Square = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
     var source = require('../assets/tile.png');
-    if (this.props.selected) {
-      console.log('is selected');
-      var source = require('../assets/tile-selected.png');
-    }
     if (this.props.highlightLastMove) {
       var source = require('../assets/tile-last-move.png');
+    }
+    if (this.props.selected) {
+      var source = require('../assets/tile-selected.png');
     }
     // TODO rewrite this.
     if (this.props.color === 'whiteHighlight' || this.props.color === 'blackHighlight') {

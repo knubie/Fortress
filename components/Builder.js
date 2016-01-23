@@ -4,7 +4,9 @@ var Board = require('./Board');
 var PlayView = require('./PlayView');
 var Piece = require('./Piece');
 var Square = require('./Square');
+var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
+var PieceDisplay = require('../lib/piece-display');
 var Chess = require('../engine/Main');
 var Pieces = require('../engine/Pieces');
 var Types = require('../engine/Types');
@@ -14,12 +16,14 @@ var PieceDisplay = require('../lib/piece-display');
 var GameCenter = require('../back-ends/game-center')
 
 var {
+  Image,
   StyleSheet,
   Text,
   View,
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
+  TouchableWithoutFeedback,
   ProgressViewIOS,
   ScrollView,
 } = React;
@@ -127,14 +131,20 @@ var Builder = React.createClass({
     }
     return (
       <View style={styles.outerContainer}>
-        <View horizontal={true} style={styles.container}>
-          {R.map(function(piece) {
-            return (<Piece
-                      piece={piece}
-                      onClick={_this.clickPiece}
-                    ></Piece>)
-          }, this.state.allPieces)}
-        </View>
+        <ProgressViewIOS
+          style={styles.progress}
+          progress={
+            R.reduce(function(acc, piece) {
+              return acc + piece.points;
+            }, 0, this.state.pieces) / 45
+          }
+        />
+        <Text style={styles.pointText}>
+          Point allotment: {R.reduce(function(acc, piece) {
+            return acc + piece.points;
+          }, 0, this.state.pieces)}
+          /45
+        </Text>
         <View style={styles.boardContainer}>
           {R.flatten(R.map(function(y) {
             if (_this.state.game.turn === 'white') {
@@ -161,21 +171,24 @@ var Builder = React.createClass({
             }, R.range(0, boardSize));
           }, R.range(0, 2)))}
         </View>
-        <ProgressViewIOS
-          style={styles.progress}
-          progress={
-            R.reduce(function(acc, piece) {
-              return acc + piece.points;
-            }, 0, this.state.pieces) / 45
-          }
-        />
-        <Text>
-          Point allotment: {R.reduce(function(acc, piece) {
-            return acc + piece.points;
-          }, 0, this.state.pieces)}
-          /45
-        </Text>
-        <PieceCard piece={this.state.selectedPiece}></PieceCard>
+        <View style={styles.scrollViewContainer}>
+          <ScrollView automaticallyAdjustContentInsets={false} contentContainerStyle={styles.container}>
+            {R.map((piece) => {
+              if (R.equals(this.state.selectedPiece, piece)) {
+                var cardSource = require('../assets/card-selected.png');
+              } else {
+                var cardSource = require('../assets/card-front.png');
+              }
+              return (
+                <PieceCard
+                  piece={piece}
+                  selected={R.equals(this.state.selectedPiece, piece)}
+                  onPress={this.clickPiece}/>
+              )
+            }, this.state.allPieces)}
+          </ScrollView>
+        </View>
+        <PieceInfo piece={this.state.selectedPiece}></PieceInfo>
         <TouchableElement onPress={this.next}>
           <Text>Next</Text>
         </TouchableElement>
@@ -186,23 +199,33 @@ var Builder = React.createClass({
 
 var styles = StyleSheet.create({
   outerContainer: {
-    paddingTop: 70
+    paddingTop: 65,
+    backgroundColor: '#212121',
+    flex: 1,
+  },
+  scrollViewContainer: {
+    height: 170,
   },
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'flex-start'
   },
   boardContainer: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
+    height: 100,
   },
   progress: {
     marginTop: 10,
     width: 100
+  },
+  pointText: {
+    color: '#c4c4c4',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginVertical: 5,
   }
 });
 
