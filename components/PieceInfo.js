@@ -38,11 +38,19 @@ var PieceInfo = React.createClass({
           </TouchableElement>
         </View>
       );
+    } else if (this.props.piece && this.props.piece.name === 'mine') {
+      ability = (
+        <View style={styles.buttonContainer}>
+          <TouchableElement style={styles.button} onPress={this.ability}>
+            <Text style={styles.buttonText}>Get 1 extra gold</Text>
+          </TouchableElement>
+        </View>
+      );
     }
 
     return !this.props.piece ? (<View></View>) : (
       <View style={styles.pieceDisplayContainer}>
-        <Image source={PieceDisplay[this.props.piece.name].image[this.props.piece.color]}
+        <Image source={PieceDisplay[this.props.piece.name].image.white}
         style={styles.portrait} />
         <View style={styles.textContainer}>
           <Text style={styles.name}>{PieceDisplay[this.props.piece.name].displayName}</Text>
@@ -56,9 +64,8 @@ var PieceInfo = React.createClass({
           <Text style={styles.description}>
             {PieceDisplay[this.props.piece.name].description}
           </Text>
-          <Text>Movement: {this.movementText(this.props.piece.parlett)}</Text>
-          <Text>
-            Points: {this.props.piece.points}
+          <Text style={styles.infoText}>
+            Movement: {this.movementText(this.props.piece.parlett)}
           </Text>
           {ability}
         </View>
@@ -77,13 +84,13 @@ var styles = StyleSheet.create({
     color: '#c4c4c4',
   },
   description: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#666',
   },
   pieceDisplayContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 20,
+    padding: 40,
   },
   pieceDisplayPicture: {
     fontSize: 80
@@ -97,6 +104,7 @@ var styles = StyleSheet.create({
   portrait: {
     width: 84,
     height: 84,
+    marginRight: 5,
   },
   button: {
     padding: 5,
@@ -111,8 +119,12 @@ var styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     flexDirection: 'row',
+    marginTop: 5,
   },
   buttonText: {
+    color: '#c4c4c4',
+  },
+  infoText: {
     color: '#c4c4c4',
   }
 });

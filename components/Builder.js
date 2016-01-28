@@ -199,8 +199,6 @@ var Builder = React.createClass({
 
 var styles = StyleSheet.create({
   outerContainer: {
-    paddingTop: 65,
-    backgroundColor: '#212121',
     flex: 1,
   },
   scrollViewContainer: {

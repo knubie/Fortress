@@ -3,11 +3,14 @@ var React = require('react-native');
 var Board = require('./Board');
 var Chess = require('../engine/Main');
 var Types = require('../engine/Types');
+var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
+var PieceCard = require('./PieceCard.js');
 
 var GameCenter = require('../back-ends/game-center')
 
 var {
+  Dimensions,
   StyleSheet,
   AlertIOS,
   Text,
@@ -26,6 +29,7 @@ var oppositeColor = function(color) {
 
 var subscription;
 
+
 var PlayView = React.createClass({
   componentDidMount: function() {
     subscription = NativeAppEventEmitter.addListener(
@@ -42,6 +46,9 @@ var PlayView = React.createClass({
         });
       }
     );
+  },
+  back: function() {
+    this.props.navigator.pop();
   },
   updateMatch: function(game) {
   },
@@ -71,6 +78,9 @@ var PlayView = React.createClass({
                              targetPosition: ply[1]});
     }, initialGame, initialGame.plys);
   },
+  colorToIndex: function(color) {
+    return color === 'white' ? 0 : 1;
+  },
   yourTurn: function() {
     return this.state.game.turn === this.state.playerColor;
   },
@@ -90,7 +100,7 @@ var PlayView = React.createClass({
     }
   },
   clickPiece: function(piece) {
-    if (R.not(this.yourTurn()) || this.state.selectedPiece == null) {
+    if (R.not(this.yourTurn()) || this.state.selectedPiece == null || this.state.selectedPiece.color !== this.state.playerColor) {
       this.selectPiece(piece);
     } else {
       if (R.contains(R.prop('position', piece), this.state.possibleMoves)) {
@@ -100,17 +110,42 @@ var PlayView = React.createClass({
       }
     }
   },
+  clickCard: function(piece) {
+    if (R.equals(this.state.selectedPiece, piece)) {
+      this.setState({
+        possibleMoves: [],
+        possibleCaptures: [],
+        selectedPiece: null,
+      });
+    } else {
+      this.setState({
+        possibleMoves: [],
+        possibleCaptures: [],
+        selectedPiece: piece,
+      });
+    }
+  },
   clickSquare: function(x, y) {
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
-    if (R.not(this.yourTurn())) {
+    if (R.not(this.yourTurn()) || !this.state.selectedPiece || this.state.selectedPiece.color !== this.state.playerColor) {
       this.setState({
         possibleMoves: [],
         possibleCaptures: [],
         selectedPiece: null
       });
     } else if (selectedPiece) {
-      this.makePly('move', selectedPiece.position, position);
+      // if selectedPiece is on the board
+      // TODO: better way of determining this?
+      if (selectedPiece.position.x > -1) {
+        this.makePly('move', selectedPiece.position, position);
+      } else {
+        if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] < selectedPiece.points) {
+          alert('Not enough resources!');
+        } else {
+          this.makePly('draft', null, position, selectedPiece);
+        }
+      }
     }
   },
   onAbility: function(piece) {
@@ -120,13 +155,17 @@ var PlayView = React.createClass({
       this.makePly('ability', piece.position, null);
     }
   },
-  makePly: function(plyType, startingPosition, targetPosition) {
+  //TODO: replace starting position with 'piece'
+  makePly: function(plyType, startingPosition, targetPosition, piece) {
     var oldGame = this.state.game;
     this.setState({
       possibleMoves: [],
       possibleCaptures: [],
       game: Chess.makePly(plyType, this.state.game, {
-        startingPosition, targetPosition}),
+        startingPosition,
+        targetPosition,
+        piece,
+      }),
       selectedPiece: null
     });
     AlertIOS.alert(
@@ -150,11 +189,26 @@ var PlayView = React.createClass({
 
   },
   render: function() {
+    var deck = R.map( name => {
+      return Types.Piece.of({
+        name: name,
+        color: this.state.playerColor,
+        position: Types.Position.of({x: -1, y: -1})
+      });
+    }, R.keys(Pieces));
     return (
-      <View style={styles.container}>
-        <Text style={styles.turnMessage}>
-          {this.yourTurn() ? 'Take your turn!' : 'Wait your turn!'}
+      <View>
+        <Text onPress={this.back} style={styles.navigation}>
+          ⬅︎
         </Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.turnMessage}>
+            {this.yourTurn() ? 'Take your turn!' : 'Wait your turn!'}
+          </Text>
+          <Text style={styles.turnMessage}>
+            Gold: {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
+          </Text>
+        </View>
         <Board
           board={this.state.game.board}
           possibleMoves={this.state.possibleMoves}
@@ -165,6 +219,19 @@ var PlayView = React.createClass({
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
+        <View style={styles.scrollViewContainer}>
+          <ScrollView automaticallyAdjustContentInsets={false}
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.scrollView}>
+            {R.map((piece) => {return (
+              <PieceCard
+                piece={piece}
+                selected={R.equals(this.state.selectedPiece, piece)}
+                onPress={this.clickCard}/>
+            )}, deck)}
+          </ScrollView>
+        </View>
         <PieceInfo
           style={styles.pieceInfo}
           piece={this.state.selectedPiece}
@@ -175,11 +242,13 @@ var PlayView = React.createClass({
   }
 });
 
+
+var cardMargin = (Dimensions.get('window').width - 300) / 2
 var styles = StyleSheet.create({
-  container: {
-    marginTop: 65,
-    backgroundColor: '#212121',
+  titleContainer: {
     flex: 1,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
   },
   pieceInfo: {
     borderStyle: 'solid',
@@ -187,11 +256,28 @@ var styles = StyleSheet.create({
     borderColor: 'red',
   },
   turnMessage: {
-    margin: 5,
+    marginVertical: 5,
+    marginHorizontal: 10,
     color: '#c4c4c4',
     fontWeight: 'bold',
     fontSize: 16,
-  }
+  },
+  navigation: {
+    height: 20,
+    margin: 5,
+    fontSize: 25,
+    color: '#c4c4c4',
+    fontWeight: 'bold',
+  },
+  scrollViewContainer: {
+    height: 83,
+    marginHorizontal: cardMargin,
+    marginTop: 25,
+  },
+  scrollView: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
 });
 
 module.exports = PlayView;

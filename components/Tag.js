@@ -22,7 +22,7 @@ var styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: 'bold',
     color: '#212121',
-    borderRadius: 2,
+    borderRadius: 3,
     paddingVertical: 1,
     paddingHorizontal: 4,
     borderRadius: 2,
@@ -33,6 +33,7 @@ var styles = StyleSheet.create({
   ranged: {
   },
   invincible: {
+    backgroundColor: '#666',
   }
 });
 

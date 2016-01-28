@@ -42,8 +42,20 @@ var Home = React.createClass({
             matchID: data.match.matchID,
             board: Types.Board.of({
               size: 8,
-              pieces: []
+              pieces: [
+                Types.Piece.of({
+                  name: 'king',
+                  color: 'white',
+                  position: Types.Position.of({x: 3, y: 0})
+                }),
+                Types.Piece.of({
+                  name: 'king',
+                  color: 'black',
+                  position: Types.Position.of({x: 3, y: 7})
+                }),
+              ]
             }),
+            resources: [20, 20],
             plys: []
           });
         } else {
@@ -61,10 +73,6 @@ var Home = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
-  // TODO: keep an eye on API changes.
-  builderRef: function(builderRef) {
-    this._builderRef = builderRef;
-  },
   loadMatch: function(game) {
     var method = 'push';
     if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
@@ -73,29 +81,11 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
-    // Reset the navigator stack before pushing
-    console.log('THIS GETS CALLED BEFORE NAVIGATOR.PUSH');
-    console.log(this.props.navigator);
-    console.log(this.props.navigator.navigationContext._currentRoute.component.displayName);
-    if (game.plys.length < 2 && yourTurn) {
-      // Load Builder
-      this.props.navigator[method]({
-        component: Builder,
-        title: 'Create your army',
-        rightButtonTitle: 'Next',
-        onRightButtonPress: () => {
-          // TODO: keep an eye on API changes.
-          this._builderRef && this._builderRef.next();
-        },
-        passProps: ({ game, route: 'Builder', ref: this.builderRef }),
-      });
-    } else {
-      this.props.navigator[method]({
-        component: PlayView,
-        title: 'Play the game',
-        passProps: ({ game, yourTurn, route: 'PlayView' }),
-      });
-    }
+    this.props.navigator[method]({
+      component: PlayView,
+      title: 'Play the game',
+      passProps: ({ game, yourTurn, route: 'PlayView' }),
+    });
   },
   newGame: function() {
     GameCenterManager.newMatch();

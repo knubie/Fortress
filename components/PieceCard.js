@@ -18,6 +18,7 @@ var PieceCard = React.createClass({
   render: function() {
     return (
       <TouchableWithoutFeedback onPress={this.onPress}>
+      <View style={styles.container}>
         <Image
           source={this.props.selected ?
                   require('../assets/card-selected.png') :
@@ -28,17 +29,39 @@ var PieceCard = React.createClass({
             style={{backgroundColor: 'rgba(0,0,0,0)', width: 40, height: 40}}
           />
         </Image>
+        <Image style={styles.points} source={require('../assets/point-circle.png')}>
+          <Text style={styles.pointText}>{this.props.piece.points}</Text>
+        </Image>
+      </View>
       </TouchableWithoutFeedback>
     );
   }
 });
 
 var styles = StyleSheet.create({
-  card: {
-    margin: 4,
-    paddingTop: 13,
-    paddingLeft: 3,
+  container: {
+    marginHorizontal: 8,
+    marginTop: 6,
+    marginBottom: 12,
   },
+  card: {
+    paddingTop: 13,
+    paddingLeft: 2,
+  },
+  points: {
+    backgroundColor: 'rgba(0,0,0,0)',
+    position: 'absolute',
+    top: -6,
+    left: -6,
+  },
+  pointText: {
+    color: '#c4c4c4',
+    fontSize: 18,
+    fontFamily: 'superscript',
+    position: 'absolute',
+    top: 1.5,
+    left: 5,
+  }
 });
 
 module.exports = PieceCard;

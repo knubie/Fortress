@@ -25,7 +25,7 @@ var Board = React.createClass({
   },
   getLastMove: function() {
     // FIXME: make this less birttle
-    if (this.props.lastMove === 'draft') {
+    if (this.props.lastMove === 'draft' || this.props.lastMove == null) {
       return [Types.Position.of({x: -1, y: -1}),
               Types.Position.of({x: -1, y: -1})];
     } else {
@@ -95,6 +95,7 @@ var styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#212121',
+    marginHorizontal: 40,
   }
 });
 

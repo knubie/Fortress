@@ -7,10 +7,12 @@ var Fortress = React.createClass({
     return (
       <NavigatorIOS
         style={styles.navigator}
+        navigationBarHidden={true}
+        itemWrapperStyle={styles.wrapper}
         initialRoute={{
           component: Home,
           title: 'Home',
-          passProps: { },
+          passProps: { route: 'Home' },
         }}
       />
     );
@@ -20,7 +22,11 @@ var Fortress = React.createClass({
 var styles = StyleSheet.create({
   navigator: {
     flex: 1,
-  }
+  },
+  wrapper: {
+    backgroundColor: '#212121',
+    flex: 1,
+  },
 });
 
 AppRegistry.registerComponent('Fortress', () => Fortress);

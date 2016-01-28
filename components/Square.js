@@ -60,7 +60,7 @@ var Square = React.createClass({
   }
 });
 
-var squareSize = (Dimensions.get('window').width - 14) / 8
+var squareSize = (Dimensions.get('window').width - 40) / 8;
 var styles = StyleSheet.create({
   square: { width: squareSize, height: squareSize },
   white: { backgroundColor: 'white' },
