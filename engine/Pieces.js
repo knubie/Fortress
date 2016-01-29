@@ -77,6 +77,20 @@ module.exports = {
     types: ['royal']
   },
   ///////// Custom pieces //////////
+  'warlord': {
+    parlett: [
+      {
+        movement: '1/1',
+        distance: '2'
+      },
+      {
+        movement: '1/0',
+        distance: '2'
+      }
+    ],
+    points: 8,
+    types: ['royal']
+  },
   'cannon': {
     parlett: [
       {
@@ -176,7 +190,7 @@ module.exports = {
         distance: '0'
       }
     ],
-    points: 2,
+    points: 4,
     types: ['invincible']
   },
   'mine': {
@@ -188,19 +202,18 @@ module.exports = {
     ],
     points: 5
   },
-  'warlord': {
+  'thief': {
     parlett: [
       {
         movement: '1/1',
-        distance: '2'
+        distance: '1'
       },
       {
         movement: '1/0',
-        distance: '2'
+        distance: '1'
       }
     ],
-    points: 8,
-    types: ['royal']
+    points: 4
   },
   'teleporter': {
     parlett: [],

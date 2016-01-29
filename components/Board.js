@@ -56,14 +56,18 @@ var Board = React.createClass({
               var x = (this.state.width - 1) - x;
             }
             var color = (x + y) % 2 === 1 ? 'black' : 'white';
+            var highlight = false;
+            var capture = false;
             if (R.find(R.whereEq({x,y}), this.props.possibleMoves)) {
-              color = color + 'Highlight';
+              highlight = true;
             }
             if (R.find(R.whereEq({x,y}), this.props.possibleCaptures)) {
-              color = 'Capture';
+              capture = true;
             }
             return (
               <Square color={color}
+                      highlight={highlight}
+                      capture={capture}
                       selected={
                         R.whereEq({x,y},
                         R.prop('position',
@@ -92,10 +96,9 @@ var styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#212121',
-    marginHorizontal: 40,
+    marginHorizontal: 20,
   }
 });
 

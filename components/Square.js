@@ -27,19 +27,18 @@ var Square = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
     var source = require('../assets/tile.png');
+    var highlightStyle = null;
     if (this.props.highlightLastMove) {
-      var source = require('../assets/tile-last-move.png');
+      source = require('../assets/tile-last-move.png');
     }
     if (this.props.selected) {
-      var source = require('../assets/tile-selected.png');
+      highlightStyle = styles.selected;
     }
-    // TODO rewrite this.
-    if (this.props.color === 'whiteHighlight' || this.props.color === 'blackHighlight') {
-      var source = require('../assets/tile-move.png');
+    if (this.props.highlight) {
+      highlightStyle = styles.highlighted;
     }
-    // TODO rewrite this.
-    if (this.props.color === 'Capture') {
-      var source = require('../assets/tile-attack.png');
+    if (this.props.capture) {
+      highlightStyle = styles.capture;
     }
     var style = [styles[this.props.color], styles.square];
     if (this.props.selected) {
@@ -50,27 +49,43 @@ var Square = React.createClass({
     }
     return (
       <TouchableHighlight onPress={this.onClick}>
-        <Image source={source}
+        <View source={source}
           style={style}
         >
-          {this.props.children}
-        </Image>
+          <View style={[styles.square, highlightStyle]}>
+            {this.props.children}
+          </View>
+        </View>
       </TouchableHighlight>
     );
   }
 });
 
-var squareSize = (Dimensions.get('window').width - 40) / 8;
+var squareSize = (Dimensions.get('window').width - (40 + ((8 - 1) * 2))) / 8;
 var styles = StyleSheet.create({
-  square: { width: squareSize, height: squareSize },
-  white: { backgroundColor: 'white' },
-  black: { backgroundColor: '#eee' },
-  whiteHighlight: { backgroundColor: '#ccd' },
-  blackHighlight: { backgroundColor: '#bbc' },
-  lastMove: {
+  square: {
+    width: squareSize,
+    height: squareSize,
+    borderRadius: 2,
+    marginBottom: 2,
+  },
+  white: { backgroundColor: '#7C7C7C' },
+  black: { backgroundColor: '#646464' },
+  highlighted: {
+    backgroundColor: 'rgba(128,204,255,0.2)',
   },
   selected: {
-  }
+    backgroundColor: '#215888',
+  },
+  capture: {
+    backgroundColor: 'rgba(240,52,52,0.25)',
+  },
+  whiteHighlight: { backgroundColor: '#5C8B9C' },
+  blackHighlight: { backgroundColor: '#55717B' },
+  lastMove: {
+    borderColor: 'white',
+    borderWidth: 2,
+  },
 });
 
 module.exports = Square;

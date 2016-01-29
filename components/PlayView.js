@@ -35,7 +35,7 @@ var PlayView = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
       data => {
-        if (!this.yourTurn()) {
+        if (!this.yourTurn() && data.match.yourTurn) {
           alert('it\'s your turn!');
         }
         this.setState({
@@ -128,7 +128,9 @@ var PlayView = React.createClass({
   clickSquare: function(x, y) {
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
-    if (R.not(this.yourTurn()) || !this.state.selectedPiece || this.state.selectedPiece.color !== this.state.playerColor) {
+    if (R.not(this.yourTurn()) ||
+        !this.state.selectedPiece ||
+        this.state.selectedPiece.color !== this.state.playerColor) {
       this.setState({
         possibleMoves: [],
         possibleCaptures: [],
@@ -198,12 +200,12 @@ var PlayView = React.createClass({
     }, R.keys(Pieces));
     return (
       <View>
-        <Text onPress={this.back} style={styles.navigation}>
-          ⬅︎
-        </Text>
         <View style={styles.titleContainer}>
+          <Text onPress={this.back} style={styles.navigation}>
+            ⬅︎
+          </Text>
           <Text style={styles.turnMessage}>
-            {this.yourTurn() ? 'Take your turn!' : 'Wait your turn!'}
+            {this.yourTurn() ? 'Your Turn' : 'Their Turn'}
           </Text>
           <Text style={styles.turnMessage}>
             Gold: {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
@@ -228,12 +230,12 @@ var PlayView = React.createClass({
               <PieceCard
                 piece={piece}
                 selected={R.equals(this.state.selectedPiece, piece)}
+                disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
                 onPress={this.clickCard}/>
             )}, deck)}
           </ScrollView>
         </View>
         <PieceInfo
-          style={styles.pieceInfo}
           piece={this.state.selectedPiece}
           onAbility={this.onAbility}
         ></PieceInfo>
@@ -244,16 +246,15 @@ var PlayView = React.createClass({
 
 
 var cardMargin = (Dimensions.get('window').width - 300) / 2
+var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
+var cardHeight = cardWidth * 1.5;
 var styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
+    marginHorizontal: 20,
+    marginVertical: 5,
     justifyContent: 'space-between',
     flexDirection: 'row',
-  },
-  pieceInfo: {
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: 'red',
   },
   turnMessage: {
     marginVertical: 5,
@@ -264,15 +265,15 @@ var styles = StyleSheet.create({
   },
   navigation: {
     height: 20,
-    margin: 5,
+    padding: 5,
     fontSize: 25,
     color: '#c4c4c4',
     fontWeight: 'bold',
   },
   scrollViewContainer: {
-    height: 83,
-    marginHorizontal: cardMargin,
-    marginTop: 25,
+    height: cardHeight + 8,
+    margin: 20,
+    marginBottom: 20 - 8,
   },
   scrollView: {
     flexDirection: 'row',
