@@ -13,8 +13,25 @@ var {
 } = React;
 
 var PieceCard = React.createClass({
+  getInitialState: function() {
+    return {
+      translate: 0
+    }
+  },
   onPress: function() {
     this.props.onPress(this.props.piece);
+  },
+  onPressIn: function() {
+    console.log('on press in');
+    this.setState({
+      translate: 1
+    });
+  },
+  onPressOut: function() {
+    console.log('on press out');
+    this.setState({
+      translate: 0
+    });
   },
   render: function() {
     var borderStyle = styles.unselected;
@@ -26,8 +43,24 @@ var PieceCard = React.createClass({
     }
     var cardStyle = this.props.disabled ? [styles.card, styles.disabled] : styles.card;
     return (
-      <TouchableWithoutFeedback onPress={this.onPress}>
-        <View style={cardStyle}>
+      <TouchableWithoutFeedback
+        onPressIn={this.onPressIn}
+        onPressOut={this.onPressOut}
+        onPress={this.onPress}>
+        <View style={[cardStyle, {
+          transform: [
+            {
+              translateX: this.state.translate,
+            },
+            {
+              translateY: this.state.translate,
+            }
+          ],
+          shadowOffset: {
+            width: 1 - this.state.translate,
+            height: 1 - this.state.translate,
+          },
+        }]}>
           <View style={[styles.cardBorder, borderStyle]}>
             <Image
               source={PieceDisplay[this.props.piece.name].image['black']}
@@ -55,10 +88,6 @@ var styles = StyleSheet.create({
     shadowColor: '#000000',
     shadowOpacity: 1,
     shadowRadius: 4,
-    shadowOffset: {
-      width: 1,
-      height: 1,
-    },
   },
   disabled: {
     opacity: 0.5,

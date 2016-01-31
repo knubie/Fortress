@@ -45,7 +45,7 @@ var Square = React.createClass({
       style = R.append(styles.selected, style);
     }
     if (this.props.highlightLastMove) {
-      style = R.append(styles.lastMove, style);
+      highlightStyle = styles.lastMove;
     }
     return (
       <TouchableHighlight onPress={this.onClick}>
@@ -83,7 +83,7 @@ var styles = StyleSheet.create({
   whiteHighlight: { backgroundColor: '#5C8B9C' },
   blackHighlight: { backgroundColor: '#55717B' },
   lastMove: {
-    borderColor: 'white',
+    borderColor: 'rgba(255,255,255,0.4)',
     borderWidth: 2,
   },
 });

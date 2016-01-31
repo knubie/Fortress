@@ -6,7 +6,7 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "ramda": "^0.18.0",
+    "ramda": "^0.19.1",
     "react-native": "^0.17.0"
   }
 }

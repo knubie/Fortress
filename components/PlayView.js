@@ -191,13 +191,16 @@ var PlayView = React.createClass({
 
   },
   render: function() {
-    var deck = R.map( name => {
-      return Types.Piece.of({
-        name: name,
-        color: this.state.playerColor,
-        position: Types.Position.of({x: -1, y: -1})
-      });
-    }, R.keys(Pieces));
+    //var deck = R.map( name => {
+      //return Types.Piece.of({
+        //name: name,
+        //color: this.state.playerColor,
+        //position: Types.Position.of({x: -1, y: -1})
+      //});
+    //}, R.keys(Pieces));
+    var deck = R.filter((piece) => {
+      return (piece.color === this.state.playerColor && piece.position.x < 0 && piece.position.y < 0);
+    }, this.state.game.board.pieces);
     return (
       <View>
         <View style={styles.titleContainer}>
@@ -250,7 +253,6 @@ var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
 var styles = StyleSheet.create({
   titleContainer: {
-    flex: 1,
     marginHorizontal: 20,
     marginVertical: 5,
     justifyContent: 'space-between',

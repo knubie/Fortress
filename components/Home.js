@@ -2,6 +2,7 @@ var React = require('react-native');
 var R = require('ramda');
 var PlayView = require('./PlayView');
 var Builder = require('./Builder');
+var DeckBuilder = require('./DeckBuilder');
 var HowToPlay = require('./HowToPlay');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
@@ -46,12 +47,14 @@ var Home = React.createClass({
                 Types.Piece.of({
                   name: 'king',
                   color: 'white',
-                  position: Types.Position.of({x: 3, y: 0})
+                  position: Types.Position.of({x: 3, y: 0}),
+                  key: 0,
                 }),
                 Types.Piece.of({
                   name: 'king',
                   color: 'black',
-                  position: Types.Position.of({x: 3, y: 7})
+                  position: Types.Position.of({x: 3, y: 7}),
+                  key: 5,
                 }),
               ]
             }),
@@ -81,11 +84,19 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
-    this.props.navigator[method]({
-      component: PlayView,
-      title: 'Play the game',
-      passProps: ({ game, yourTurn, route: 'PlayView' }),
+    if (game.plys.length < 2 && yourTurn) {
+    this.props.navigator.push({
+      component: DeckBuilder,
+      title: 'My Collection',
+      passProps: ({ game, yourTurn, route: 'DeckBuilder' }),
     });
+    } else {
+      this.props.navigator[method]({
+        component: PlayView,
+        title: 'Play the game',
+        passProps: ({ game, yourTurn, route: 'PlayView' }),
+      });
+    }
   },
   newGame: function() {
     GameCenterManager.newMatch();
@@ -94,6 +105,35 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: HowToPlay,
       title: 'How to play'
+    });
+  },
+  buildDeck: function() {
+    game = Types.Game.of({
+      turn: 'white',
+      board: Types.Board.of({
+        size: 8,
+        pieces: [
+          Types.Piece.of({
+            name: 'king',
+            color: 'white',
+            position: Types.Position.of({x: 3, y: 0}),
+            key: 0,
+          }),
+          Types.Piece.of({
+            name: 'king',
+            color: 'black',
+            position: Types.Position.of({x: 3, y: 7}),
+            key: 1,
+          }),
+        ]
+      }),
+      resources: [20, 20],
+      plys: []
+    });
+    this.props.navigator.push({
+      component: DeckBuilder,
+      title: 'My Collection',
+      passProps: ({game}),
     });
   },
   render: function() {
@@ -106,6 +146,9 @@ var Home = React.createClass({
         <View style={styles.container}>
           <TouchableElement style={styles.button} onPress={this.newGame}>
             <Text style={styles.buttonText}>Play the Game</Text>
+          </TouchableElement>
+          <TouchableElement style={styles.button} onPress={this.buildDeck}>
+            <Text style={styles.buttonText}>My Collection</Text>
           </TouchableElement>
           <TouchableElement style={styles.button} onPress={this.howToPlay}>
             <Text style={styles.buttonText}>How to Play</Text>

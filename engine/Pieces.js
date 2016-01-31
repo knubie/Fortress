@@ -220,6 +220,29 @@ module.exports = {
     points: 3
   },
   ////////// Fairies //////////
+  'berolina': {
+    parlett: [
+      {
+        conditions: ['i', 'o'],
+        movement: '1/1',
+        direction: 'forwards',
+        distance: '2'
+      },
+      {
+        conditions: ['o'],
+        movement: '1/1',
+        direction: 'forwards',
+        distance: '1'
+      },
+      {
+        conditions: ['c'],
+        movement: '1/0',
+        direction: 'forwards',
+        distance: '1'
+      }
+    ],
+    points: 1
+  },
   'dabbaba': {
     parlett: [{
       movement: '2/0',
@@ -282,29 +305,6 @@ module.exports = {
       distance: 'n'
     }],
     points: 9
-  },
-  'berolina': {
-    parlett: [
-      {
-        conditions: ['i', 'o'],
-        movement: '1/1',
-        direction: 'forwards',
-        distance: '2'
-      },
-      {
-        conditions: ['o'],
-        movement: '1/1',
-        direction: 'forwards',
-        distance: '1'
-      },
-      {
-        conditions: ['c'],
-        movement: '1/0',
-        direction: 'forwards',
-        distance: '1'
-      }
-    ],
-    points: 2
   },
 };
 

@@ -15,16 +15,13 @@ var {
 } = React;
 
 var PieceInfo = React.createClass({
-  movementText: function(parlett) {
-    return R.reduce((first, second) => {
-      var head = first === '' ? '' : ', ';
-      return first + head + second.distance + '(' + second.movement + ')';
-    }, '', parlett);
-  },
   movementTags: function(parlett) {
     return R.map((p) => {
+      direction = p.direction === 'forwards' ? '↑' : '';
+      conditions = p.conditions ? p.conditions.join('') : '';
+      distance = p.distance === 'n' ? '∞' : p.distance
       return (<Tag type={'movement'}
-                   text={p.distance + '(' + p.movement + ')'}
+                   text={direction + ' ' + conditions + distance + '(' + p.movement + ')'}
               />);
     }, parlett);
   },
@@ -92,8 +89,6 @@ var styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-
   },
   name: {
     fontFamily: 'Helvetica Neue',
@@ -109,17 +104,15 @@ var styles = StyleSheet.create({
     color: '#979797',
     textAlign: 'center',
     marginBottom: 10,
-    paddingHorizontal: 30,
+    width: 300,
   },
   pieceDisplayContainer: {
-    flex: 1,
     marginHorizontal: 20,
   },
   pieceDisplayPicture: {
     fontSize: 80
   },
   tags: {
-    flex: 1,
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     flexDirection: 'row',
@@ -142,7 +135,6 @@ var styles = StyleSheet.create({
     marginBottom: 10,
   },
   buttonContainer: {
-    flex: 1,
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     flexDirection: 'row',

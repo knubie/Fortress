@@ -250,6 +250,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
                                     @"matchData": matchData,
                                     }
                                 };
+        // FIXME: Don't send this even unless the current match ID matches the new event match ID
         [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event];
         if (self.currentMatch.matchID == match.matchID) {
           NSLog(@"match is currentMatch");

@@ -328,7 +328,7 @@ var makePly = curry(function(plyType, game, opts) {
       var pieceToAdd = Piece.of(evolve({
         position: always(Position.of(opts.targetPosition))
       }, opts.piece));
-      newGame = draftPiece(pieceToAdd, game);
+      newGame = draftPiece(opts.piece, opts.targetPosition, game);
       newGame = Game.of(evolve({
         turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
         //FIXME: this is broken!!
@@ -343,9 +343,11 @@ var makePly = curry(function(plyType, game, opts) {
       prop('name')
     )
   , newGame.board.pieces);
-  var piecesWithAfterEveryPlyCallbackAndColor = filter(
+  var piecesWithAfterEveryPlyCallbackAndColor = filter(function(piece) {
+    return !(piece.position.x < 0 && piece.position.y < 0);
+  }, filter(
   propEq('color', game.turn)
-  , piecesWithAfterEveryPlyCallback);
+  , piecesWithAfterEveryPlyCallback));
 
   return reduce(function(game, piece) {
     return path([piece.name, 'afterEveryPly'], pieceCallbacks)(game, piece);
@@ -406,6 +408,7 @@ var movePiece = curry(function(startingPosition, targetPosition, game) {
 //  isGameOver :: (Board, String) -> Boolean
 var isGameOver = curry(function(board, color) {
   check(arguments, [Board, String]);
+  //TODO: check position.
   return not(any(where({
                    color: equals(color),
                    types: contains('royal')
@@ -430,13 +433,27 @@ var addPieceToBoard = curry(function(piece, board) {
   }, board));
 });
 
-// draftPiece :: (Game, Piece) -> Maybe Game
-var draftPiece = curry(function(piece, game) {
-  check(arguments, [Piece, Game]);
+// draftPiece :: (Piece, Position, Game) -> Maybe Game
+var draftPiece = curry(function(piece, position, game) {
+  check(arguments, [Piece, Position, Game]);
   var index = piece.color === 'white' ? 0 : 1;
+
   if (piece.points <= game.resources[index]) {
     return Game.of(evolve({
-      board: addPieceToBoard(piece),
+      //board: addPieceToBoard(piece),
+      board: compose(
+               Board.of,
+               evolve({
+                 pieces: adjust(
+                   compose(
+                     Piece.of,
+                     evolve({
+                       position: always(position)
+                     })
+                   ), indexOf(piece, game.board.pieces)
+                 )
+               })
+             ),
       resources: adjust(subtract(__, piece.points), index)
     }, game));
   } else {
