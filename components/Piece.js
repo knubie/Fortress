@@ -88,7 +88,7 @@ var Piece = React.createClass({
   }
 });
 
-var squareSize = (Dimensions.get('window').width - (40 + ((8 - 1) * 2))) / 8;
+var squareSize = (Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7;
 var styles = StyleSheet.create({
   touchable: {
     width: squareSize,

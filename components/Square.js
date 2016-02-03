@@ -29,6 +29,9 @@ var Square = React.createClass({
     var source = require('../assets/tile.png');
     var highlightStyle = null;
     if (this.props.highlightLastMove) {
+      highlightStyle = styles.lastMove;
+    }
+    if (this.props.highlightLastMove) {
       source = require('../assets/tile-last-move.png');
     }
     if (this.props.selected) {
@@ -44,9 +47,6 @@ var Square = React.createClass({
     if (this.props.selected) {
       style = R.append(styles.selected, style);
     }
-    if (this.props.highlightLastMove) {
-      highlightStyle = styles.lastMove;
-    }
     return (
       <TouchableHighlight onPress={this.onClick}>
         <View source={source}
@@ -61,7 +61,7 @@ var Square = React.createClass({
   }
 });
 
-var squareSize = (Dimensions.get('window').width - (40 + ((8 - 1) * 2))) / 8;
+var squareSize = (Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7;
 var styles = StyleSheet.create({
   square: {
     width: squareSize,
@@ -83,7 +83,7 @@ var styles = StyleSheet.create({
   whiteHighlight: { backgroundColor: '#5C8B9C' },
   blackHighlight: { backgroundColor: '#55717B' },
   lastMove: {
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.25)',
     borderWidth: 2,
   },
 });

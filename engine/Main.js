@@ -115,6 +115,33 @@ var getMoves = curry(function(board, piece) {
 
   if (customMovement[piece.name]) {
     return customMovement[piece.name](board, piece);
+  } else if (piece.position.x < 0 && piece.position.y < 0) {
+    // TODO: rewrite this, baking into the Pieces.js
+    var moves = [];
+    if (piece.color === 'white') {
+      var yStart = 0;
+      var yEnd = 1;
+      if (piece.name === 'pawn' || piece.name === 'berolina' || piece.name === 'wall') {
+        var yEnd = 2;
+      }
+      moves = flatten(map(function(y) {
+        return map(function(x) {
+          return Position.of({x: x, y: y});
+        }, range(0, board.size));
+      }, range(yStart, yEnd)));
+    } else {
+      var yStart = board.size;
+      var yEnd = board.size - 2;
+      if (piece.name === 'pawn' || piece.name === 'berolina' || piece.name === 'wall') {
+        var yEnd = board.size - 2;
+      }
+      moves = flatten(map(function(y) {
+        return map(function(x) {
+          return Position.of({x: x, y: y});
+        }, range(0, board.size));
+      }, range(yEnd, yStart)));
+    }
+    return reject(getPieceAtPosition(board, piece.color), moves);
   } else {
     return uniq(flatten(map(function(p) {
       var d = map(parseInt, p.movement.match(/(\d)\/(\d)/));

@@ -16,6 +16,8 @@ var PieceDisplay = require('../lib/piece-display');
 var GameCenter = require('../back-ends/game-center')
 
 var {
+  AlertIOS,
+  AsyncStorage,
   Dimensions,
   Image,
   StyleSheet,
@@ -31,6 +33,13 @@ var {
 var boardSize = 8;
 
 var DeckBuilder = React.createClass({
+  componentDidMount: function() {
+    // TODO: move this to home to avoid async pop-in
+    AsyncStorage.getItem('decks', (error, result) => {
+      var decks = JSON.parse(result);
+      this.setState({decks});
+    });
+  },
   getInitialState: function() {
     return {
       pieces: [ ],
@@ -38,6 +47,7 @@ var DeckBuilder = React.createClass({
       royals: 0,
       selectedPiece: null,
       game: this.props.game,
+      selectedDeck: 'New Deck',
     }
   },
   onDrop: function(x, y, piece) {
@@ -61,6 +71,10 @@ var DeckBuilder = React.createClass({
       alert('You have too many cards.');
     } else {
       var game = Types.Game.of(R.evolve({
+        board: compose(
+                Types.Board.of,
+                evolve({pieces: R.concat(this.deck())})
+               ),
         turn: oppositeColor,
         plys: R.append('draft'),
       }, this.state.game));
@@ -75,16 +89,30 @@ var DeckBuilder = React.createClass({
   removeFromDeck: function() {
     if (this.state.selectedPiece) {
       this.setState({
-        game: Types.Game.of(evolve({
-          board:  compose(
-                    Types.Board.of,
-                    evolve({
-                      pieces: R.without([this.state.selectedPiece])
-                    })
-                  )
-        }, this.state.game))
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  R.remove(
+                    R.indexOf(
+                      this.state.selectedPiece.name,
+                      this.state.decks[this.state.selectedDeck]
+                    ), 1,
+                    this.state.decks[this.state.selectedDeck]
+                  ),
+                  //R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
+                  this.state.decks
+                )
       });
-      console.log(this.state.game);
+      //this.setState({
+        //game: Types.Game.of(evolve({
+          //board:  compose(
+                    //Types.Board.of,
+                    //evolve({
+                      //pieces: R.without([this.state.selectedPiece])
+                    //})
+                  //)
+        //}, this.state.game))
+      //});
+      console.log(this.state);
       //this.setState({
         //pieces: R.append(this.state.selectedPiece, this.state.pieces)
       //});
@@ -92,20 +120,27 @@ var DeckBuilder = React.createClass({
   },
   addToDeck: function() {
     if (this.state.selectedPiece) {
-      var piece = Types.Piece.of(R.assoc(
-        'key', R.reduce(R.compose(R.add(1), R.max), 0, R.map(R.prop('key'), this.deck()))
-      , this.state.selectedPiece));
+      //var piece = Types.Piece.of(R.assoc(
+        //'key', R.reduce(R.compose(R.add(1), R.max), 0, R.map(R.prop('key'), this.deck()))
+      //, this.state.selectedPiece));
+      //this.setState({
+        //game: Types.Game.of(evolve({
+          //board:  compose(
+                    //Types.Board.of,
+                    //evolve({
+                      //pieces: R.append(piece)
+                    //})
+                  //)
+        //}, this.state.game))
+      //});
       this.setState({
-        game: Types.Game.of(evolve({
-          board:  compose(
-                    Types.Board.of,
-                    evolve({
-                      pieces: R.append(piece)
-                    })
-                  )
-        }, this.state.game))
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
+                  this.state.decks
+                )
       });
-      console.log(this.state.game);
+      console.log(this.state);
       //this.setState({
         //pieces: R.append(this.state.selectedPiece, this.state.pieces)
       //});
@@ -131,12 +166,68 @@ var DeckBuilder = React.createClass({
     this.props.navigator.pop();
   },
   deck: function() {
-    return R.filter((piece) => {
-      return (piece.color === this.state.game.turn && piece.position.x < 0 && piece.position.y < 0);
-    }, this.state.game.board.pieces);
+    if (this.state.decks && this.state.decks[this.state.selectedDeck]) {
+      //var piece = Types.Piece.of(R.assoc(
+        //'key', R.reduce(R.compose(R.add(1), R.max), 0, R.map(R.prop('key'), this.deck()))
+      //, this.state.selectedPiece));
+      var i = 0;
+      return R.map(name => {
+        i = i - 1;
+        return Types.Piece.of({
+          name: name,
+          color: this.state.game.turn,
+          position: Types.Position.of({x: -1, y: -1}),
+          key: i,
+        });
+      }, this.state.decks[this.state.selectedDeck]);
+    } else {
+      return [];
+    }
+    //return R.filter((piece) => {
+      //return (piece.color === this.state.game.turn && piece.position.x < 0 && piece.position.y < 0);
+    //}, this.state.game.board.pieces);
+  },
+  selectDeck: function(deck) {
+    this.setState({selectedDeck: deck});
+  },
+  saveDeck: function() {
+    AlertIOS.prompt('Save Deck', 'What do you want to call this deck?', (name) => {
+      name = name || 'Untitled Deck';
+      this.setState({
+        decks: R.assoc('New Deck', [], R.assoc(name, this.state.decks[this.state.selectedDeck], this.state.decks)),
+        selectedDeck: name
+      });
+      AsyncStorage.setItem('decks', JSON.stringify(this.state.decks), function(error) {
+        console.log(error);
+      });
+    });
+  },
+  deleteDeck: function() {
+    AlertIOS.alert(
+      'Delete Deck',
+      'Are you sure you want to delete this deck?',
+      [
+        {text: 'Nevermind!', onPress: () => { return null }},
+        {text: 'Yep', onPress: () => {
+          this.setState({
+            decks: R.dissoc(this.state.selectedDeck, this.state.decks),
+            selectedDeck: 'New Deck',
+          });
+          AsyncStorage.setItem('decks', JSON.stringify(this.state.decks), function(error) {
+            console.log(error);
+          });
+        }}
+      ]
+    );
+
   },
   render: function() {
     var _this = this;
+    var TouchableElement = TouchableHighlight;
+    if (Platform.OS === 'android') {
+     TouchableElement = TouchableNativeFeedback;
+    }
+
     var allCards = R.map( name => {
       return Types.Piece.of({
         name: name,
@@ -145,10 +236,25 @@ var DeckBuilder = React.createClass({
       });
     }, R.keys(Pieces));
 
-    var TouchableElement = TouchableHighlight;
-    if (Platform.OS === 'android') {
-     TouchableElement = TouchableNativeFeedback;
-    }
+    var decks = R.map(deck => {
+      var deckClass = deck === this.state.selectedDeck ? styles.deckSelected : null;
+      return (
+        <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass]}>
+          {deck}
+        </Text>
+      );
+    }, R.keys(this.state.decks));
+
+    var deckAction = this.state.selectedDeck === 'New Deck' ?
+      (<TouchableElement style={styles.button}
+        onPress={this.saveDeck}>
+        <Text style={styles.buttonText}>Save Deck</Text>
+      </TouchableElement>) :
+      (<TouchableElement style={[styles.button, styles.buttonRed]}
+        onPress={this.deleteDeck}>
+        <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
+      </TouchableElement>);
+
     return (
       <View style={styles.outerContainer}>
         <View style={styles.titleContainer}>
@@ -161,6 +267,9 @@ var DeckBuilder = React.createClass({
           <Text onPress={this.next} style={styles.navigation}>
             Next
           </Text>
+        </View>
+        <View style={styles.deckList}>
+          {decks}
         </View>
         <View style={[styles.scrollViewContainer, styles.deck]}>
           <ScrollView automaticallyAdjustContentInsets={false}
@@ -175,6 +284,9 @@ var DeckBuilder = React.createClass({
                 onPress={this.clickCard}/>
             )}, this.deck())}
           </ScrollView>
+        </View>
+        <View style={styles.buttonContainer}>
+          {deckAction}
         </View>
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
@@ -226,6 +338,19 @@ var styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderColor: '#302F2F',
   },
+  deckList: {
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+  },
+  deckSelect: {
+    fontSize: 12,
+    color: '#646464',
+    marginRight: 10,
+  },
+  deckSelected: {
+    color: '#c4c4c4',
+  },
   scrollViewContainer: {
     height: cardHeight + 8,
     margin: 20,
@@ -243,6 +368,12 @@ var styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#c4c4c4',
     marginBottom: 10,
+  },
+  buttonRed: {
+    borderColor: '#E5403F',
+  },
+  buttonTextRed: {
+    color: '#E5403F',
   },
   buttonContainer: {
     justifyContent: 'center',

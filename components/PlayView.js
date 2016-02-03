@@ -118,8 +118,9 @@ var PlayView = React.createClass({
         selectedPiece: null,
       });
     } else {
+      console.log(Chess.getMoves(this.state.game.board, piece));
       this.setState({
-        possibleMoves: [],
+        possibleMoves: Chess.getMoves(this.state.game.board, piece),
         possibleCaptures: [],
         selectedPiece: piece,
       });
@@ -130,7 +131,8 @@ var PlayView = React.createClass({
     var selectedPiece = this.state.selectedPiece;
     if (R.not(this.yourTurn()) ||
         !this.state.selectedPiece ||
-        this.state.selectedPiece.color !== this.state.playerColor) {
+        selectedPiece.color !== this.state.playerColor ||
+        !R.contains(position, this.state.possibleMoves)) {
       this.setState({
         possibleMoves: [],
         possibleCaptures: [],
@@ -205,7 +207,7 @@ var PlayView = React.createClass({
       <View>
         <View style={styles.titleContainer}>
           <Text onPress={this.back} style={styles.navigation}>
-            ⬅︎
+            ‹
           </Text>
           <Text style={styles.turnMessage}>
             {this.yourTurn() ? 'Your Turn' : 'Their Turn'}
@@ -254,21 +256,19 @@ var cardHeight = cardWidth * 1.5;
 var styles = StyleSheet.create({
   titleContainer: {
     marginHorizontal: 20,
-    marginVertical: 5,
+    height: 30,
     justifyContent: 'space-between',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   turnMessage: {
-    marginVertical: 5,
-    marginHorizontal: 10,
     color: '#c4c4c4',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 14,
   },
   navigation: {
-    height: 20,
-    padding: 5,
-    fontSize: 25,
+    fontFamily: 'Anonymous Pro',
+    fontSize: 45,
     color: '#c4c4c4',
     fontWeight: 'bold',
   },

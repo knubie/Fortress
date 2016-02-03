@@ -56,18 +56,18 @@ var PieceInfo = React.createClass({
     return !this.props.piece ? (<View></View>) : (
       <View style={styles.pieceDisplayContainer}>
         <View style={styles.textContainer}>
-          <View>
+          <View style={styles.title}>
             {R.map(
                (type) => {
                  if (type === 'royal') {
-                   return (<Image source={require('../assets/crown.png')}/>);
+                   return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
                  } else if (type === 'ranged') {
-                   return (<Image source={require('../assets/bow.png')}/>);
+                   return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
                  }
                }, this.props.piece.types)
             }
+            <Text style={styles.name}>{PieceDisplay[this.props.piece.name].displayName}</Text>
           </View>
-          <Text style={styles.name}>{PieceDisplay[this.props.piece.name].displayName}</Text>
           <Text style={styles.description}>
             {PieceDisplay[this.props.piece.name].description}
           </Text>
@@ -89,6 +89,14 @@ var styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
+  },
+  icon: {
+    marginRight: 5,
+    marginTop: 2,
+  },
+  title: {
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
   },
   name: {
     fontFamily: 'Helvetica Neue',

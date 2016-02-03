@@ -12,6 +12,7 @@ var { NativeAppEventEmitter } = require('react-native');
 var GameCenter = require('../back-ends/game-center')
 
 var {
+  AsyncStorage,
   StyleSheet,
   Text,
   View,
@@ -27,6 +28,7 @@ var subscription;
 
 var Home = React.createClass({
   componentDidMount: function() {
+    var boardSize = 7;
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
@@ -42,7 +44,7 @@ var Home = React.createClass({
             turn: 'white',
             matchID: data.match.matchID,
             board: Types.Board.of({
-              size: 8,
+              size: boardSize,
               pieces: [
                 Types.Piece.of({
                   name: 'king',
@@ -51,10 +53,22 @@ var Home = React.createClass({
                   key: 0,
                 }),
                 Types.Piece.of({
+                  name: 'mine',
+                  color: 'white',
+                  position: Types.Position.of({x: 4, y: 0}),
+                  key: 1,
+                }),
+                Types.Piece.of({
                   name: 'king',
                   color: 'black',
-                  position: Types.Position.of({x: 3, y: 7}),
-                  key: 5,
+                  position: Types.Position.of({x: 3, y: boardSize - 1}),
+                  key: 2,
+                }),
+                Types.Piece.of({
+                  name: 'mine',
+                  color: 'black',
+                  position: Types.Position.of({x: 4, y: boardSize - 1}),
+                  key: 3,
                 }),
               ]
             }),
@@ -71,7 +85,42 @@ var Home = React.createClass({
       }
     );
     GameCenterManager.clearMatch();
-    // Send method to Native, remove currentMatch
+    // Load in a default preset deck.
+    AsyncStorage.getItem('decks', function(error, result) {
+      console.log(error);
+      console.log(result);
+      if (result == null) {
+        var decks = {
+          'New Deck': [],
+          'Starter Deck': [
+            'pawn',
+            'pawn',
+            'pawn',
+            'pawn',
+            'pawn',
+            'pawn',
+            'bishop',
+            'bishop',
+            'knight',
+            'knight',
+            'rook',
+            'rook',
+            'queen',
+            'king',
+            'wall',
+            'teleporter',
+            'bomber',
+            'mine',
+            'ranger',
+            'archbishop',
+          ]
+        };
+        AsyncStorage.setItem('decks', JSON.stringify(decks), function(error) {
+          console.log(error);
+        });
+      } else {
+      }
+    });
   },
   componentWillUnmount: function() {
     subscription.remove();

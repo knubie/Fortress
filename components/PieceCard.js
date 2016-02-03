@@ -22,13 +22,11 @@ var PieceCard = React.createClass({
     this.props.onPress(this.props.piece);
   },
   onPressIn: function() {
-    console.log('on press in');
     this.setState({
       translate: 1
     });
   },
   onPressOut: function() {
-    console.log('on press out');
     this.setState({
       translate: 0
     });
