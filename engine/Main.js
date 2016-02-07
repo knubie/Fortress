@@ -10,6 +10,8 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 
+var MAX_GOLD = 10;
+
 var concatAll = unapply(reduce(concat, []));
 
 //  between :: (Number, Number) -> [Number]
@@ -105,6 +107,38 @@ var legalPosition = curry(function(board, position) {
   return position.x >= 0 && position.x < board.size && position.y >= 0 && position.y < board.size;
 });
 
+//  getDraftSquares :: (Board, String, String) -> [Position]
+var getDraftSquares = curry(function(board, card, color) {
+  console.log(card);
+  // TODO: rewrite this, baking into the Pieces.js
+  var moves = [];
+  if (color === 'white') {
+    var yStart = 0;
+    var yEnd = 1;
+    // TODO bake this into Pieces.js
+    if (card === 'pawn' || card === 'berolina' || card === 'wall') {
+      var yEnd = 2;
+    }
+    moves = flatten(map(function(y) {
+      return map(function(x) {
+        return Position.of({x: x, y: y});
+      }, range(0, board.size));
+    }, range(yStart, yEnd)));
+  } else {
+    var yStart = board.size;
+    var yEnd = board.size - 1;
+    if (card === 'pawn' || card === 'berolina' || card === 'wall') {
+      var yEnd = board.size - 2;
+    }
+    moves = flatten(map(function(y) {
+      return map(function(x) {
+        return Position.of({x: x, y: y});
+      }, range(0, board.size));
+    }, range(yEnd, yStart)));
+  }
+  return reject(getAnyPieceAtPosition(board), moves);
+});
+
 //  getMoves :: (Board, Piece) -> [Position]
 var getMoves = curry(function(board, piece) {
   check(arguments, [Board, Piece]);
@@ -131,7 +165,7 @@ var getMoves = curry(function(board, piece) {
       }, range(yStart, yEnd)));
     } else {
       var yStart = board.size;
-      var yEnd = board.size - 2;
+      var yEnd = board.size - 1;
       if (piece.name === 'pawn' || piece.name === 'berolina' || piece.name === 'wall') {
         var yEnd = board.size - 2;
       }
@@ -274,17 +308,33 @@ var pieceCallbacks = {
       }, board));
     })
   },
+  king: {
+    // TAX
+    // Add one resource per pawn, or one
+    // TODO: rewrite this using new deck/hand system, write tests
+    ability: curry(function(piece, game) {
+      var index = piece.color === 'white' ? 0 : 1;
+      var amount = max(1, filter(where({
+        name: equals('pawn'),
+        color: equals(piece.color),
+        position: compose(gte(__, 0), prop('x'))
+      }), game.board.pieces).length + 1);
+      return Game.of(evolve({
+        resources: adjust(compose(min(MAX_GOLD), add(amount)), index) // Add one to resources of same color as piece.
+      }, game));
+    }),
+  },
   mine: {
     ability: curry(function(piece, game) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(add(1), index) // Add one to resources of same color as piece.
+        resources: adjust(compose(min(MAX_GOLD), add(1)), index) // Add one to resources of same color as piece.
       }, game));
     }),
     afterEveryPly: curry(function(game, piece) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(add(1), index) // Add one to resources of same color as piece.
+        resources: adjust(compose(min(MAX_GOLD), add(1)), index) // Add one to resources of same color as piece.
       }, game));
     })
   },
@@ -293,7 +343,7 @@ var pieceCallbacks = {
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(add(capturedPiece.points - 1), index)
+        resources: adjust(compose(min(MAX_GOLD), add(capturedPiece.points - 1)), index)
       }, game));
     })
   },
@@ -318,11 +368,10 @@ var customMovement = {
 
 //  makePly :: (String, Game, Object) -> Maybe Game
 var makePly = curry(function(plyType, game, opts) {
-  //FIXME: make signature (plyType, game, piece, targetPosition
+  // TODO: check player's turn
   var newGame = game
     , startingPosition = opts.startingPosition
-    , targetPosition = opts.targetPosition
-    , piece = opts.piece || getAnyPieceAtPosition(game.board, opts.startingPosition);
+    , targetPosition = opts.targetPosition;
 
   switch (plyType) {
     case 'move':
@@ -343,6 +392,7 @@ var makePly = curry(function(plyType, game, opts) {
       }
       break;
     case 'ability':
+      var piece = getAnyPieceAtPosition(game.board, startingPosition);
       if (piece.name && pieceCallbacks[piece.name] && pieceCallbacks[piece.name].ability) {
         newGame = Game.of(evolve({
           turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
@@ -351,16 +401,35 @@ var makePly = curry(function(plyType, game, opts) {
         }, pieceCallbacks[piece.name].ability(piece, game)));
       }
       break;
-    case 'draft':
-      var pieceToAdd = Piece.of(evolve({
-        position: always(Position.of(opts.targetPosition))
-      }, opts.piece));
-      newGame = draftPiece(opts.piece, opts.targetPosition, game);
+    case 'draw':
+      var playerIndex = game.turn === 'white' ? 0 : 1;
+      var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
       newGame = Game.of(evolve({
         turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
         //FIXME: this is broken!!
-        plys: append([targetPosition, targetPosition])
-      }, newGame));
+        plys: append('draw')
+      }, drawCard(game.turn, newGame)));
+
+      break;
+    case 'draft':
+      var color = game.turn === 'white' ? 0 : 1;
+      console.log(opts.targetPosition);
+      var pieceToAdd = Piece.of({
+        name: game.hands[color][opts.card],
+        color: game.turn,
+        position: Position.of(opts.targetPosition)
+      });
+      newGame = draftPiece(pieceToAdd, game);
+      if (newGame) {
+        newGame = Game.of(evolve({
+          hands: adjust(remove(opts.card, 1), color),
+          turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
+          //FIXME: this is broken!!
+          plys: append([targetPosition, targetPosition])
+        }, newGame));
+      } else {
+        return game; // TODO: return null if unsuccessful?
+      }
       break;
   }
   var piecesWithAfterEveryPlyCallback = filter(
@@ -460,33 +529,43 @@ var addPieceToBoard = curry(function(piece, board) {
   }, board));
 });
 
-// draftPiece :: (Piece, Position, Game) -> Maybe Game
-var draftPiece = curry(function(piece, position, game) {
-  check(arguments, [Piece, Position, Game]);
+// draftPiece :: (Piece, Game) -> Maybe Game
+var draftPiece = curry(function(piece, game) {
+  check(arguments, [Piece, Game]);
   var index = piece.color === 'white' ? 0 : 1;
 
   if (piece.points <= game.resources[index]) {
     return Game.of(evolve({
-      //board: addPieceToBoard(piece),
-      board: compose(
-               Board.of,
-               evolve({
-                 pieces: adjust(
-                   compose(
-                     Piece.of,
-                     evolve({
-                       position: always(position)
-                     })
-                   ), indexOf(piece, game.board.pieces)
-                 )
-               })
-             ),
+      board: addPieceToBoard(piece),
+      //board: compose(
+               //Board.of,
+               //evolve({
+                 //pieces: adjust(
+                   //compose(
+                     //Piece.of,
+                     //evolve({
+                       //position: always(position)
+                     //})
+                   //), indexOf(piece, game.board.pieces)
+                 //)
+               //})
+             //),
       resources: adjust(subtract(__, piece.points), index)
     }, game));
   } else {
     // TODO return message.
     return null;
   }
+});
+
+// draftPiece :: (String, Game) -> Game
+var drawCard = curry(function(color, game) {
+  var playerIndex = color === 'white' ? 0 : 1;
+  var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
+  return Game.of(evolve({
+    decks: adjust(remove(randomIndex, 1), playerIndex),
+    hands: adjust(prepend(game.decks[playerIndex][randomIndex]), playerIndex)
+  }, game));
 });
 
 module.exports = {
@@ -499,4 +578,6 @@ module.exports = {
   makePly: makePly,
   isGameOver: isGameOver,
   draftPiece: draftPiece,
+  drawCard: drawCard,
+  getDraftSquares: getDraftSquares
 };

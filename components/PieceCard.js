@@ -1,6 +1,7 @@
 var R = require('ramda');
 var React = require('react-native');
 var PieceDisplay = require('../lib/piece-display');
+var Types = require('../engine/Types');
 
 var {
   TouchableWithoutFeedback,
@@ -14,14 +15,23 @@ var {
 
 var PieceCard = React.createClass({
   getInitialState: function() {
+    // TODO this is clunky.
+    var piece = Types.Piece.of({
+      name: this.props.card,
+      color: 'white',
+      position: Types.Position.of({x: -1, y: -1}),
+    });
     return {
-      translate: 0
+      translate: 0,
+      points: piece.points,
     }
   },
   onPress: function() {
-    this.props.onPress(this.props.piece);
+    console.log('onpress');
+    this.props.onPress(this.props.card, this.props.index);
   },
   onPressIn: function() {
+    console.log('onpressin');
     this.setState({
       translate: 1
     });
@@ -33,9 +43,9 @@ var PieceCard = React.createClass({
   },
   render: function() {
     var borderStyle = styles.unselected;
-    if (R.contains('royal', this.props.piece.types)) {
-      borderStyle = styles.borderRoyal;
-    }
+    //if (R.contains('royal', this.props.piece.types)) {
+      //borderStyle = styles.borderRoyal;
+    //}
     if (this.props.selected) {
       borderStyle = styles.selected;
     }
@@ -61,12 +71,12 @@ var PieceCard = React.createClass({
         }]}>
           <View style={[styles.cardBorder, borderStyle]}>
             <Image
-              source={PieceDisplay[this.props.piece.name].image['black']}
+              source={PieceDisplay[this.props.card].image['black']}
               style={{backgroundColor: 'rgba(0,0,0,0)', width: 40, height: 40}}
             />
           </View>
           <View style={styles.points}>
-            <Text style={styles.pointText}>{this.props.piece.points}</Text>
+            <Text style={styles.pointText}>{this.state.points}</Text>
           </View>
         </View>
       </TouchableWithoutFeedback>

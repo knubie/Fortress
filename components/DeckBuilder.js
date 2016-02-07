@@ -32,6 +32,8 @@ var {
 
 var boardSize = 8;
 
+var MAX_DECK_SIZE = 20;
+var HAND_SIZE = 4;
 var DeckBuilder = React.createClass({
   componentDidMount: function() {
     // TODO: move this to home to avoid async pop-in
@@ -45,39 +47,43 @@ var DeckBuilder = React.createClass({
       pieces: [ ],
       points: 0,
       royals: 0,
-      selectedPiece: null,
+      selectedCardInDeck: null,
+      selectedCardInCollection: null,
       game: this.props.game,
       selectedDeck: 'New Deck',
     }
-  },
-  onDrop: function(x, y, piece) {
-    this.setState({
-      pieces: Chess.addPiece(
-        // If moving a piece already on the board, remove it.
-        reject(propEq('position', piece.position), this.state.pieces),
-        Types.Piece.of({
-          name: piece.name,
-          color: piece.color,
-          position: Types.Position.of({x: x, y: y})
-        })
-      )
-    });
   },
   next: function() {
     var oppositeColor = function(color) {
       return color === 'white' ? 'black' : 'white';
     }
-    if (this.deck().length > 20) {
+    if (this.deck().length > MAX_DECK_SIZE) {
       alert('You have too many cards.');
     } else {
+      // TODO move this into the engine.
+      var colorIndex = this.state.game.turn === 'white' ? 0 : 1;
+      //this.setState({
+        //game: R.assoc(
+                //'decks',
+                //adjust(always(this.state.selectedDeck), colorIndex, this.state.game.decks),
+                //this.state.game)
+      //});
+      var drawHand = function drawHand(game) {
+        // HAND_SIZE + colorIndex -> give black an extra card.
+        if (game.hands[colorIndex].length < HAND_SIZE + colorIndex) {
+          return drawHand(Chess.drawCard(game.turn, game));
+        } else {
+          return game;
+        }
+      }
       var game = Types.Game.of(R.evolve({
-        board: compose(
-                Types.Board.of,
-                evolve({pieces: R.concat(this.deck())})
-               ),
         turn: oppositeColor,
         plys: R.append('draft'),
-      }, this.state.game));
+      }, drawHand(R.assoc(
+        'decks',
+        adjust(always(this.state.decks[this.state.selectedDeck]), colorIndex, this.state.game.decks),
+        this.state.game)
+      )));
       GameCenter.endTurnWithNextParticipants(game);
       this.props.navigator.replace({
         component: PlayView,
@@ -86,111 +92,62 @@ var DeckBuilder = React.createClass({
       });
     }
   },
+  back: function() {
+    this.props.navigator.pop();
+  },
   removeFromDeck: function() {
-    if (this.state.selectedPiece) {
+    if (this.state.selectedCardInDeck) {
       this.setState({
         decks:  R.assoc(
                   this.state.selectedDeck,
                   R.remove(
-                    R.indexOf(
-                      this.state.selectedPiece.name,
-                      this.state.decks[this.state.selectedDeck]
-                    ), 1,
+                    this.state.selectedCardInDeck, 1,
                     this.state.decks[this.state.selectedDeck]
                   ),
                   //R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
                   this.state.decks
                 )
       });
-      //this.setState({
-        //game: Types.Game.of(evolve({
-          //board:  compose(
-                    //Types.Board.of,
-                    //evolve({
-                      //pieces: R.without([this.state.selectedPiece])
-                    //})
-                  //)
-        //}, this.state.game))
-      //});
-      console.log(this.state);
-      //this.setState({
-        //pieces: R.append(this.state.selectedPiece, this.state.pieces)
-      //});
     }
   },
   addToDeck: function() {
-    if (this.state.selectedPiece) {
-      //var piece = Types.Piece.of(R.assoc(
-        //'key', R.reduce(R.compose(R.add(1), R.max), 0, R.map(R.prop('key'), this.deck()))
-      //, this.state.selectedPiece));
-      //this.setState({
-        //game: Types.Game.of(evolve({
-          //board:  compose(
-                    //Types.Board.of,
-                    //evolve({
-                      //pieces: R.append(piece)
-                    //})
-                  //)
-        //}, this.state.game))
-      //});
+    if (this.state.selectedCardInCollection) {
       this.setState({
         decks:  R.assoc(
                   this.state.selectedDeck,
-                  R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
+                  R.append(R.keys(Pieces)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
                   this.state.decks
                 )
       });
-      console.log(this.state);
-      //this.setState({
-        //pieces: R.append(this.state.selectedPiece, this.state.pieces)
-      //});
     }
   },
-  clickCard: function(piece) {
+  clickCardInCollection: function(card, index) {
     this.setState({
-      selectedPiece: piece,
+      selectedCardInDeck: null,
+      selectedCardInCollection: index,
     });
   },
-  clickPiece: function(piece) {
-    // Pieces in the piece selection window have position:
-    // x: -1, y: -1
-    if (this.state.selectedPiece && piece.position.x >= 0) {
-      this.clickSquare(piece.position.x, piece.position.y)
-    } else {
-      this.setState({
-        selectedPiece: piece
-      });
-    }
-  },
-  back: function() {
-    this.props.navigator.pop();
+  clickCardInDeck: function(card, index) {
+    this.setState({
+      selectedCardInDeck: index,
+      selectedCardInCollection: null,
+    });
   },
   deck: function() {
+    // TODO if deck init is moved to Home, might not need this.
     if (this.state.decks && this.state.decks[this.state.selectedDeck]) {
-      //var piece = Types.Piece.of(R.assoc(
-        //'key', R.reduce(R.compose(R.add(1), R.max), 0, R.map(R.prop('key'), this.deck()))
-      //, this.state.selectedPiece));
-      var i = 0;
-      return R.map(name => {
-        i = i - 1;
-        return Types.Piece.of({
-          name: name,
-          color: this.state.game.turn,
-          position: Types.Position.of({x: -1, y: -1}),
-          key: i,
-        });
-      }, this.state.decks[this.state.selectedDeck]);
+      return this.state.decks[this.state.selectedDeck];
     } else {
       return [];
     }
-    //return R.filter((piece) => {
-      //return (piece.color === this.state.game.turn && piece.position.x < 0 && piece.position.y < 0);
-    //}, this.state.game.board.pieces);
   },
   selectDeck: function(deck) {
-    this.setState({selectedDeck: deck});
+    this.setState({
+      selectedDeck: deck,
+    });
   },
   saveDeck: function() {
+    // TODO: prevent saving as 'New Deck'
     AlertIOS.prompt('Save Deck', 'What do you want to call this deck?', (name) => {
       name = name || 'Untitled Deck';
       this.setState({
@@ -228,14 +185,6 @@ var DeckBuilder = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
 
-    var allCards = R.map( name => {
-      return Types.Piece.of({
-        name: name,
-        color: this.props.game.turn,
-        position: Types.Position.of({x: -1, y: -1})
-      });
-    }, R.keys(Pieces));
-
     var decks = R.map(deck => {
       var deckClass = deck === this.state.selectedDeck ? styles.deckSelected : null;
       return (
@@ -254,6 +203,17 @@ var DeckBuilder = React.createClass({
         onPress={this.deleteDeck}>
         <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
       </TouchableElement>);
+    
+    var addToDeck = this.state.selectedCardInCollection != null ?
+      (<TouchableElement style={styles.button}
+          onPress={this.addToDeck}>
+          <Text style={styles.buttonText}>Add to Deck</Text>
+       </TouchableElement>) : null;
+    var removeFromDeck = this.state.selectedCardInDeck != null ?
+      (<TouchableElement style={styles.button}
+          onPress={this.removeFromDeck}>
+          <Text style={styles.buttonText}>Remove from Deck</Text>
+       </TouchableElement>) : null;
 
     return (
       <View style={styles.outerContainer}>
@@ -262,7 +222,7 @@ var DeckBuilder = React.createClass({
             ⬅︎
           </Text>
           <Text style={styles.navigation}>
-            Deck: {this.deck().length} / 20
+            Deck: {this.deck().length} / {MAX_DECK_SIZE}
           </Text>
           <Text onPress={this.next} style={styles.navigation}>
             Next
@@ -276,13 +236,15 @@ var DeckBuilder = React.createClass({
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>
-            {R.map((piece) => {return (
+            {R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
-                piece={piece}
-                selected={R.equals(this.state.selectedPiece, piece)}
+                card={card}
+                index={i}
+                key={i}
+                selected={R.equals(this.state.selectedCardInDeck, i)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
-                onPress={this.clickCard}/>
-            )}, this.deck())}
+                onPress={this.clickCardInDeck}/>
+            )}, this.deck()))}
           </ScrollView>
         </View>
         <View style={styles.buttonContainer}>
@@ -293,22 +255,22 @@ var DeckBuilder = React.createClass({
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>
-            {R.map((piece) => {return (
+            {R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
-                piece={piece}
-                selected={R.equals(this.state.selectedPiece, piece)}
+                card={card}
+                index={i}
+                key={i}
+                selected={R.equals(this.state.selectedCardInCollection, i)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
-                onPress={this.clickCard}/>
-            )}, allCards)}
+
+                onPress={this.clickCardInCollection}/>
+            )}, R.keys(Pieces)))}
           </ScrollView>
         </View>
         <PieceInfo piece={this.state.selectedPiece}></PieceInfo>
         <View style={styles.buttonContainer}>
-          {this.state.selectedPiece ? 
-            <TouchableElement style={styles.button}
-              onPress={this.state.selectedPiece.key != null ? this.removeFromDeck : this.addToDeck}>
-              <Text style={styles.buttonText}>{this.state.selectedPiece.key != null ? 'Remove From Deck' : 'Add To Deck'}</Text>
-            </TouchableElement> : null}
+          {addToDeck}
+          {removeFromDeck}
         </View>
       </View>
     );

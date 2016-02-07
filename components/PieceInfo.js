@@ -43,7 +43,7 @@ var PieceInfo = React.createClass({
           </TouchableElement>
         </View>
       );
-    } else if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'mine') {
+    } else if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'king') {
       ability = (
         <View style={styles.buttonContainer}>
           <TouchableElement style={styles.button} onPress={this.ability}>

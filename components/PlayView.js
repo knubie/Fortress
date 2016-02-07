@@ -65,7 +65,8 @@ var PlayView = React.createClass({
                                                                     'black',
       possibleMoves: [ ],
       possibleCaptures: [ ],
-      selectedPiece: null
+      selectedPiece: null,
+      selectedCard: null,
     }
   },
 //getCurrentGame :: (Game) -> [Game]
@@ -78,6 +79,7 @@ var PlayView = React.createClass({
                              targetPosition: ply[1]});
     }, initialGame, initialGame.plys);
   },
+  // TODO: move this to the engine.
   colorToIndex: function(color) {
     return color === 'white' ? 0 : 1;
   },
@@ -95,11 +97,34 @@ var PlayView = React.createClass({
       this.setState({
         possibleMoves: Chess.getMoves(this.state.game.board, piece),
         possibleCaptures: Chess.getCaptures(this.state.game.board, piece),
-        selectedPiece: piece
+        selectedPiece: piece,
+        selectedCard: null,
+      });
+    }
+  },
+  clickCard: function(card, index) {
+    console.log('click card ' + index);
+    this.selectCard(index);
+  },
+  selectCard: function(card) {
+    if (R.equals(this.state.selectedCard, card)) {
+      this.setState({
+        possibleMoves: [],
+        possibleCaptures: [],
+        selectedPiece: null,
+        selectedCard: null,
+      });
+    } else {
+      this.setState({
+        possibleMoves: Chess.getDraftSquares(this.state.game.board, this.playersHand()[card], this.state.playerColor),
+        possibleCaptures: [],
+        selectedPiece: null,
+        selectedCard: card,
       });
     }
   },
   clickPiece: function(piece) {
+    // TODO: move turn checking to the engine.
     if (R.not(this.yourTurn()) || this.state.selectedPiece == null || this.state.selectedPiece.color !== this.state.playerColor) {
       this.selectPiece(piece);
     } else {
@@ -110,28 +135,23 @@ var PlayView = React.createClass({
       }
     }
   },
-  clickCard: function(piece) {
-    if (R.equals(this.state.selectedPiece, piece)) {
-      this.setState({
-        possibleMoves: [],
-        possibleCaptures: [],
-        selectedPiece: null,
-      });
-    } else {
-      console.log(Chess.getMoves(this.state.game.board, piece));
-      this.setState({
-        possibleMoves: Chess.getMoves(this.state.game.board, piece),
-        possibleCaptures: [],
-        selectedPiece: piece,
-      });
-    }
-  },
   clickSquare: function(x, y) {
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
+    var selectedCard = null;
+    if (this.state.selectedCard != null) {
+      selectedCard = Types.Piece.of({
+        name: this.playersHand()[this.state.selectedCard],
+        color: this.state.playerColor,
+        // FIXME: this won't work for non-piece cards
+        position: Types.Position.of({x: -1, y: -1}),
+      });
+    }
+    // TODO: move turn checking to the engine.
     if (R.not(this.yourTurn()) ||
-        !this.state.selectedPiece ||
-        selectedPiece.color !== this.state.playerColor ||
+        (!selectedPiece && this.state.selectedCard == null) ||
+        (selectedPiece != null && selectedPiece.color !== this.state.playerColor) ||
+        // TODO: Move this into the engine.
         !R.contains(position, this.state.possibleMoves)) {
       this.setState({
         possibleMoves: [],
@@ -139,16 +159,14 @@ var PlayView = React.createClass({
         selectedPiece: null
       });
     } else if (selectedPiece) {
-      // if selectedPiece is on the board
-      // TODO: better way of determining this?
-      if (selectedPiece.position.x > -1) {
-        this.makePly('move', selectedPiece.position, position);
+      this.makePly('move', selectedPiece.position, position);
+    } else if (this.state.selectedCard) {
+      // TODO: move this to the engine.
+      if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] < selectedCard.points) {
+        alert('Not enough resources!');
       } else {
-        if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] < selectedPiece.points) {
-          alert('Not enough resources!');
-        } else {
-          this.makePly('draft', null, position, selectedPiece);
-        }
+        // FIXME: change this API
+        this.makePly('draft', null, position, null, this.state.selectedCard);
       }
     }
   },
@@ -160,7 +178,7 @@ var PlayView = React.createClass({
     }
   },
   //TODO: replace starting position with 'piece'
-  makePly: function(plyType, startingPosition, targetPosition, piece) {
+  makePly: function(plyType, startingPosition, targetPosition, piece, card) {
     var oldGame = this.state.game;
     this.setState({
       possibleMoves: [],
@@ -169,8 +187,10 @@ var PlayView = React.createClass({
         startingPosition,
         targetPosition,
         piece,
+        card,
       }),
-      selectedPiece: null
+      selectedPiece: null,
+      selectedCard: null,
     });
     AlertIOS.alert(
       'Confirm',
@@ -179,6 +199,9 @@ var PlayView = React.createClass({
         {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
         {text: 'OK', onPress: () => {
           // TODO: Get rid of this.
+          //if (plyType === 'draft') {
+            //this.drawCard();
+          //}
           if (!this.yourTurn()) {
             if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
               alert('You win!');
@@ -190,7 +213,35 @@ var PlayView = React.createClass({
         }}
       ]
     );
-
+  },
+  drawCard: function() {
+    // TODO: Turn check and deck size should happen in-engine.
+    if (R.not(this.yourTurn())) {
+      alert('it\'s not your turn!');
+    } else if (this.playersDeck().length < 1) {
+      alert('You\'re out of cards');
+    } else {
+      // TODO: remove this shit
+      AlertIOS.alert(
+        'Confirm',
+        'Are you sure you want to draw a card?',
+        [
+          {text: 'Cancel', onPress: () => {return;} },
+          {text: 'OK', onPress: () => {
+            this.setState({
+              game: Chess.makePly('draw', this.state.game, {})
+            });
+            GameCenter.endTurnWithNextParticipants(this.state.game);
+          }}
+        ]
+      );
+    }
+  },
+  playersDeck: function() {
+    return this.state.game.decks[this.colorToIndex(this.state.playerColor)];
+  },
+  playersHand: function() {
+    return this.state.game.hands[this.colorToIndex(this.state.playerColor)];
   },
   render: function() {
     //var deck = R.map( name => {
@@ -200,8 +251,19 @@ var PlayView = React.createClass({
         //position: Types.Position.of({x: -1, y: -1})
       //});
     //}, R.keys(Pieces));
+    // TODO: change deck/hand api
+    var cardInfo = this.state.selectedCard ?
+      Types.Piece.of({
+        name: this.playersHand()[this.state.selectedCard],
+        color: 'white',
+        position: Types.Position.of({x: -1, y: -1}),
+      }) : null;
+
     var deck = R.filter((piece) => {
-      return (piece.color === this.state.playerColor && piece.position.x < 0 && piece.position.y < 0);
+      return (piece.color === this.state.playerColor && piece.position.x === -1 && piece.position.y === -1);
+    }, this.state.game.board.pieces);
+    var hand = R.filter((piece) => {
+      return (piece.color === this.state.playerColor && piece.position.x === -2 && piece.position.y === -2);
     }, this.state.game.board.pieces);
     return (
       <View>
@@ -231,17 +293,27 @@ var PlayView = React.createClass({
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>
-            {R.map((piece) => {return (
+            <TouchableHighlight style={styles.addCard} onPress={this.drawCard}>
+              <Text style={styles.addCardText}>
+                Draw a Card{'\n'}
+                {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}/20
+              </Text>
+            </TouchableHighlight>
+            {R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
-                piece={piece}
-                selected={R.equals(this.state.selectedPiece, piece)}
-                disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
+                card={card}
+                index={i}
+                //piece={piece}
+                //selected={R.equals(this.state.selectedPiece, piece)}
+                //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
+                selected={R.equals(this.state.selectedCard, i)}
                 onPress={this.clickCard}/>
-            )}, deck)}
+            )}, this.state.game.hands[this.colorToIndex(this.state.playerColor)]))}
           </ScrollView>
         </View>
         <PieceInfo
-          piece={this.state.selectedPiece}
+          piece={cardInfo || this.state.selectedPiece}
+          isCard={!!cardInfo}
           onAbility={this.onAbility}
         ></PieceInfo>
       </View>
@@ -281,6 +353,22 @@ var styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
+  addCard: {
+    width: cardWidth,
+    height: cardHeight,
+    borderWidth: 2,
+    borderRadius: 4,
+    borderColor: '#979797',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  addCardText: {
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#979797',
+  },
 });
-
+Math.random() * (max - min) + min
 module.exports = PlayView;

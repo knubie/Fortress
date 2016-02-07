@@ -52,27 +52,27 @@ var Home = React.createClass({
                   position: Types.Position.of({x: 3, y: 0}),
                   key: 0,
                 }),
-                Types.Piece.of({
-                  name: 'mine',
-                  color: 'white',
-                  position: Types.Position.of({x: 4, y: 0}),
-                  key: 1,
-                }),
+                //Types.Piece.of({
+                  //name: 'mine',
+                  //color: 'white',
+                  //position: Types.Position.of({x: 4, y: 0}),
+                  //key: 1,
+                //}),
                 Types.Piece.of({
                   name: 'king',
                   color: 'black',
                   position: Types.Position.of({x: 3, y: boardSize - 1}),
                   key: 2,
                 }),
-                Types.Piece.of({
-                  name: 'mine',
-                  color: 'black',
-                  position: Types.Position.of({x: 4, y: boardSize - 1}),
-                  key: 3,
-                }),
+                //Types.Piece.of({
+                  //name: 'mine',
+                  //color: 'black',
+                  //position: Types.Position.of({x: 4, y: boardSize - 1}),
+                  //key: 3,
+                //}),
               ]
             }),
-            resources: [20, 20],
+            resources: [2, 2],
             plys: []
           });
         } else {
@@ -108,9 +108,9 @@ var Home = React.createClass({
             'queen',
             'king',
             'wall',
+            'wall',
             'teleporter',
             'bomber',
-            'mine',
             'ranger',
             'archbishop',
           ]
