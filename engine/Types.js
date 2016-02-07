@@ -11,6 +11,55 @@ for (var k in R) {
 // TODO: R.assoc break this patter because it copies prototypes as well.
 // will need to assign the opts obj onto a this.__value member to avoid that.
 
+// MovePly { piece :: Piece, position :: Position }
+function MovePly(opts) {
+  check([opts,   opts.piece, opts.position],
+        [Object, Piece,      Position]);
+  for (k in opts) {
+    if (opts.hasOwnProperty(k)) {
+      this[k] = opts[k];
+    }
+  };
+}
+MovePly.of = function(x) { return new MovePly(x); };
+
+// DrawPly { card :: String }
+// TODO: implement Card Type
+function DrawPly(opts) {
+  check([opts,   opts.card],
+        [Object, String]);
+  for (k in opts) {
+    if (opts.hasOwnProperty(k)) {
+      this[k] = opts[k];
+    }
+  };
+}
+DrawPly.of = function(x) { return new DrawPly(x); };
+
+// UseCardPly { card :: Number, position :: Position }
+function UseCardPly(opts) {
+  check([opts,   opts.card, opts.position],
+        [Object, Number,    Position]);
+  for (k in opts) {
+    if (opts.hasOwnProperty(k)) {
+      this[k] = opts[k];
+    }
+  };
+}
+UseCardPly.of = function(x) { return new UseCardPly(x); };
+
+// AbilityPly { piece :: Piece }
+function AbilityPly(opts) {
+  check([opts,   opts.card],
+        [Object, String]);
+  for (k in opts) {
+    if (opts.hasOwnProperty(k)) {
+      this[k] = opts[k];
+    }
+  };
+}
+AbilityPly.of = function(x) { return new AbilityPly(x); };
+
 //  Game { turn :: String, board :: Board }
 function Game(opts) {
   check([opts, opts.turn, opts.board], [Object, String, Board]);
@@ -19,6 +68,10 @@ function Game(opts) {
       this[k] = opts[k];
     }
   };
+  // plys: enum(MovePly, DrawPly, UseCardPly, AbilityPly)
+  // AbilityPly: {
+  //   piece: Piece
+  // }
   this.plys = this.plys || [];
   // resources[0] = white
   // resources[1] = black
@@ -105,4 +158,4 @@ Position.of = function(x) { return new Position(x); };
   //return Position.of(f(this))
 //}
 
-module.exports = { Game: Game, Board: Board, Piece: Piece, Position: Position };
+module.exports = { Game: Game, Board: Board, Piece: Piece, Position: Position, DrawPly: DrawPly };

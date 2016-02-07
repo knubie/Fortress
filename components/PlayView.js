@@ -1,6 +1,7 @@
 var R = require('ramda');
 var React = require('react-native');
 var Board = require('./Board');
+var Modal = require('./Modal');
 var Chess = require('../engine/Main');
 var Types = require('../engine/Types');
 var Pieces = require('../engine/Pieces');
@@ -198,10 +199,6 @@ var PlayView = React.createClass({
       [
         {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
         {text: 'OK', onPress: () => {
-          // TODO: Get rid of this.
-          //if (plyType === 'draft') {
-            //this.drawCard();
-          //}
           if (!this.yourTurn()) {
             if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
               alert('You win!');
@@ -215,13 +212,12 @@ var PlayView = React.createClass({
     );
   },
   drawCard: function() {
-    // TODO: Turn check and deck size should happen in-engine.
-    if (R.not(this.yourTurn())) {
-      alert('it\'s not your turn!');
-    } else if (this.playersDeck().length < 1) {
-      alert('You\'re out of cards');
+    if (!this.yourTurn()) {
+      this.setState({
+        game: R.assoc('message', 'It\'s not your turn!', this.state.game)
+      });
     } else {
-      // TODO: remove this shit
+        // TODO: remove this shit
       AlertIOS.alert(
         'Confirm',
         'Are you sure you want to draw a card?',
@@ -229,9 +225,11 @@ var PlayView = React.createClass({
           {text: 'Cancel', onPress: () => {return;} },
           {text: 'OK', onPress: () => {
             this.setState({
-              game: Chess.makePly('draw', this.state.game, {})
+              game: Chess.drawCardPly(this.state.playerColor, this.state.game)
             });
-            GameCenter.endTurnWithNextParticipants(this.state.game);
+            if (R.not(this.yourTurn())) {
+              GameCenter.endTurnWithNextParticipants(this.state.game);
+            }
           }}
         ]
       );
@@ -242,6 +240,11 @@ var PlayView = React.createClass({
   },
   playersHand: function() {
     return this.state.game.hands[this.colorToIndex(this.state.playerColor)];
+  },
+  clearMessage: function() {
+    this.setState({
+      game: R.assoc('message', null, this.state.game)
+    });
   },
   render: function() {
     //var deck = R.map( name => {
@@ -265,6 +268,9 @@ var PlayView = React.createClass({
     var hand = R.filter((piece) => {
       return (piece.color === this.state.playerColor && piece.position.x === -2 && piece.position.y === -2);
     }, this.state.game.board.pieces);
+    var message = this.state.game.message ?
+      (<Modal onPress={this.clearMessage} text={this.state.game.message}></Modal>) : null;
+
     return (
       <View>
         <View style={styles.titleContainer}>
@@ -316,6 +322,7 @@ var PlayView = React.createClass({
           isCard={!!cardInfo}
           onAbility={this.onAbility}
         ></PieceInfo>
+        {message}
       </View>
     );
   }
