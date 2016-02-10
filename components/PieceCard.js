@@ -13,6 +13,8 @@ var {
   View,
 } = React;
 
+var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
+var cardHeight = cardWidth * 1.5;
 var PieceCard = React.createClass({
   getInitialState: function() {
     // TODO this is clunky.
@@ -27,7 +29,6 @@ var PieceCard = React.createClass({
     }
   },
   onPress: function() {
-    console.log('onpress');
     this.props.onPress(this.props.card, this.props.index);
   },
   onPressIn: function() {
@@ -72,7 +73,7 @@ var PieceCard = React.createClass({
           <View style={[styles.cardBorder, borderStyle]}>
             <Image
               source={PieceDisplay[this.props.card].image['black']}
-              style={{backgroundColor: 'rgba(0,0,0,0)', width: 40, height: 40}}
+              style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
             />
           </View>
           <View style={styles.points}>
@@ -84,8 +85,8 @@ var PieceCard = React.createClass({
   }
 });
 
-var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
-var cardHeight = cardWidth * 1.5;
+// cardWidth - 10
+
 var styles = StyleSheet.create({
   card: {
     width: cardWidth,

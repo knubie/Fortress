@@ -73,12 +73,12 @@ var PlayView = React.createClass({
 //getCurrentGame :: (Game) -> [Game]
   getCurrentGame: function(initialGame) {
     // TODO: ignore first two plys
-    return R.reduce((game, ply) => {
-      // FIXME: don't hardcode plyType argument
-      return Chess.makePly('move', game, {
-                             startingPosition: ply[0],
-                             targetPosition: ply[1]});
-    }, initialGame, initialGame.plys);
+    //return R.reduce((game, ply) => {
+      //// FIXME: don't hardcode plyType argument
+      //return Chess.makePly('move', game, {
+                             //startingPosition: ply[0],
+                             //targetPosition: ply[1]});
+    //}, initialGame, initialGame.plys);
   },
   // TODO: move this to the engine.
   colorToIndex: function(color) {
@@ -104,7 +104,6 @@ var PlayView = React.createClass({
     }
   },
   clickCard: function(card, index) {
-    console.log('click card ' + index);
     this.selectCard(index);
   },
   selectCard: function(card) {
@@ -117,6 +116,7 @@ var PlayView = React.createClass({
       });
     } else {
       this.setState({
+        // account for other card types
         possibleMoves: Chess.getDraftSquares(this.state.game.board, this.playersHand()[card], this.state.playerColor),
         possibleCaptures: [],
         selectedPiece: null,
@@ -126,11 +126,13 @@ var PlayView = React.createClass({
   },
   clickPiece: function(piece) {
     // TODO: move turn checking to the engine.
-    if (R.not(this.yourTurn()) || this.state.selectedPiece == null || this.state.selectedPiece.color !== this.state.playerColor) {
+    if (R.not(this.yourTurn()) ||
+        this.state.selectedPiece == null ||
+        this.state.selectedPiece.color !== this.state.playerColor) {
       this.selectPiece(piece);
     } else {
       if (R.contains(R.prop('position', piece), this.state.possibleMoves)) {
-        this.makePly('move', this.state.selectedPiece.position, piece.position);
+        this.makePly(Chess.movePly(this.state.selectedPiece, piece.position, this.state.game));
       } else {
         this.selectPiece(piece);
       }
@@ -139,20 +141,10 @@ var PlayView = React.createClass({
   clickSquare: function(x, y) {
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
-    var selectedCard = null;
-    if (this.state.selectedCard != null) {
-      selectedCard = Types.Piece.of({
-        name: this.playersHand()[this.state.selectedCard],
-        color: this.state.playerColor,
-        // FIXME: this won't work for non-piece cards
-        position: Types.Position.of({x: -1, y: -1}),
-      });
-    }
-    // TODO: move turn checking to the engine.
-    if (R.not(this.yourTurn()) ||
+    var selectedCard = this.state.selectedCard;
+    if ((selectedPiece && R.not(this.yourTurn())) ||
         (!selectedPiece && this.state.selectedCard == null) ||
         (selectedPiece != null && selectedPiece.color !== this.state.playerColor) ||
-        // TODO: Move this into the engine.
         !R.contains(position, this.state.possibleMoves)) {
       this.setState({
         possibleMoves: [],
@@ -160,73 +152,59 @@ var PlayView = React.createClass({
         selectedPiece: null
       });
     } else if (selectedPiece) {
-      this.makePly('move', selectedPiece.position, position);
-    } else if (this.state.selectedCard) {
-      // TODO: move this to the engine.
-      if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] < selectedCard.points) {
-        alert('Not enough resources!');
-      } else {
-        // FIXME: change this API
-        this.makePly('draft', null, position, null, this.state.selectedCard);
-      }
+      this.makePly(Chess.movePly(this.state.selectedPiece, position, this.state.game));
+    } else if (selectedCard) {
+      this.makePly(Chess.useCardPly(this.state.playerColor, selectedCard, {
+        positions: [position],
+      }, this.state.game));
     }
   },
   onAbility: function(piece) {
-    if (R.not(this.yourTurn())) {
-      alert('Not your turn!');
-    } else {
-      this.makePly('ability', piece.position, null);
-    }
+    this.makePly(Chess.abilityPly(piece, this.state.game));
   },
-  //TODO: replace starting position with 'piece'
-  makePly: function(plyType, startingPosition, targetPosition, piece, card) {
+  makePly: function(newGame) {
     var oldGame = this.state.game;
     this.setState({
       possibleMoves: [],
       possibleCaptures: [],
-      game: Chess.makePly(plyType, this.state.game, {
-        startingPosition,
-        targetPosition,
-        piece,
-        card,
-      }),
+      game: newGame,
       selectedPiece: null,
       selectedCard: null,
     });
-    AlertIOS.alert(
-      'Confirm',
-      'Are you sure you want to make this move?',
-      [
-        {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
-        {text: 'OK', onPress: () => {
-          if (!this.yourTurn()) {
-            if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
-              alert('You win!');
-              GameCenter.endMatchInTurnWithMatchData(this.state.game);
-            } else {
-              GameCenter.endTurnWithNextParticipants(this.state.game);
+    if (!this.state.game.message) {
+      AlertIOS.alert(
+        'Confirm',
+        'Are you sure you want to make this move?',
+        [
+          {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
+          {text: 'OK', onPress: () => {
+            if (!this.yourTurn()) {
+              if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
+                alert('You win!');
+                GameCenter.endMatchInTurnWithMatchData(this.state.game);
+              } else {
+                GameCenter.endTurnWithNextParticipants(this.state.game);
+              }
             }
-          }
-        }}
-      ]
-    );
+          }}
+        ]
+      );
+    }
+
   },
   drawCard: function() {
-    if (!this.yourTurn()) {
-      this.setState({
-        game: R.assoc('message', 'It\'s not your turn!', this.state.game)
-      });
+    var newGame = Chess.drawCardPly(this.state.playerColor, this.state.game);
+    if (newGame.message) {
+      this.setState({game: newGame});
     } else {
-        // TODO: remove this shit
+        // TODO: Abstract this into modal?
       AlertIOS.alert(
         'Confirm',
         'Are you sure you want to draw a card?',
         [
           {text: 'Cancel', onPress: () => {return;} },
           {text: 'OK', onPress: () => {
-            this.setState({
-              game: Chess.drawCardPly(this.state.playerColor, this.state.game)
-            });
+            this.setState({ game: newGame });
             if (R.not(this.yourTurn())) {
               GameCenter.endTurnWithNextParticipants(this.state.game);
             }
@@ -243,7 +221,7 @@ var PlayView = React.createClass({
   },
   clearMessage: function() {
     this.setState({
-      game: R.assoc('message', null, this.state.game)
+      game: Types.Game.of(R.assoc('message', null, this.state.game))
     });
   },
   render: function() {
@@ -305,14 +283,16 @@ var PlayView = React.createClass({
                 {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}/20
               </Text>
             </TouchableHighlight>
-            {R.values(R.mapObjIndexed((card, i, deck) => {return (
+            {R.values(R.mapObjIndexed((card, i, deck) => {
+              var index = parseInt(i);
+              return (
               <PieceCard
                 card={card}
-                index={i}
+                index={index}
                 //piece={piece}
                 //selected={R.equals(this.state.selectedPiece, piece)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
-                selected={R.equals(this.state.selectedCard, i)}
+                selected={R.equals(this.state.selectedCard, index)}
                 onPress={this.clickCard}/>
             )}, this.state.game.hands[this.colorToIndex(this.state.playerColor)]))}
           </ScrollView>

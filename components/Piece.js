@@ -78,11 +78,13 @@ var Piece = React.createClass({
     var className = "piece";
     return (
       <TouchableWithoutFeedback onPress={this.onClick}>
-        <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
-          style={[this.getDragStyle(), styles.touchable]}
-        >
-          {type}
-        </Image>
+        <View style={[styles.tile, styles[this.props.piece.color]]}>
+          <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
+            style={[this.getDragStyle(), styles.touchable]}
+          >
+            {type}
+          </Image>
+        </View>
       </TouchableWithoutFeedback>
     );
   }
@@ -90,9 +92,29 @@ var Piece = React.createClass({
 
 var squareSize = (Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7;
 var styles = StyleSheet.create({
-  touchable: {
+  tile: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: squareSize,
     height: squareSize,
+    borderRadius: 4,
+    borderBottomWidth: 3,
+  },
+  black: {
+    backgroundColor: '#C4C4C4',
+    borderBottomColor: '#808080',
+  },
+  white: {
+    backgroundColor: '#6D6D6D',
+    borderBottomColor: '#484848',
+  },
+  touchable: {
+    position: 'relative',
+    top: 3,
+    left: 3,
+    width: squareSize - 6,
+    height: squareSize - 6,
     backgroundColor: 'rgba(0,0,0,0)',
   },
   piece: {

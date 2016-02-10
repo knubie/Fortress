@@ -66,11 +66,11 @@ var styles = StyleSheet.create({
   square: {
     width: squareSize,
     height: squareSize,
-    borderRadius: 2,
+    borderRadius: 4,
     marginBottom: 2,
   },
-  white: { backgroundColor: '#7C7C7C' },
-  black: { backgroundColor: '#646464' },
+  white: { backgroundColor: '#353535' },
+  black: { backgroundColor: '#353535' },
   highlighted: {
     backgroundColor: 'rgba(128,204,255,0.2)',
   },

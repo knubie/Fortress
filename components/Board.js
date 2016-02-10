@@ -25,7 +25,6 @@ var Board = React.createClass({
   },
   getLastMove: function() {
     // FIXME: make this less birttle
-    console.log(this.props.lastMove);
     if (this.props.lastMove === 'draft' || this.props.lastMove == null || this.props.lastMove === 'draw') {
       return [Types.Position.of({x: -1, y: -1}),
               Types.Position.of({x: -1, y: -1})];

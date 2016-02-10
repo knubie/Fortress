@@ -24,7 +24,7 @@ function MovePly(opts) {
 MovePly.of = function(x) { return new MovePly(x); };
 
 // DrawPly { card :: String }
-// TODO: implement Card Type
+// TODO: implement Card Type, maybe Symbol?
 function DrawPly(opts) {
   check([opts,   opts.card],
         [Object, String]);
@@ -38,8 +38,8 @@ DrawPly.of = function(x) { return new DrawPly(x); };
 
 // UseCardPly { card :: Number, position :: Position }
 function UseCardPly(opts) {
-  check([opts,   opts.card, opts.position],
-        [Object, Number,    Position]);
+  check([opts,   opts.card],
+        [Object, Number]);
   for (k in opts) {
     if (opts.hasOwnProperty(k)) {
       this[k] = opts[k];
@@ -50,8 +50,8 @@ UseCardPly.of = function(x) { return new UseCardPly(x); };
 
 // AbilityPly { piece :: Piece }
 function AbilityPly(opts) {
-  check([opts,   opts.card],
-        [Object, String]);
+  check([opts,   opts.piece],
+        [Object, Piece]);
   for (k in opts) {
     if (opts.hasOwnProperty(k)) {
       this[k] = opts[k];
@@ -158,4 +158,13 @@ Position.of = function(x) { return new Position(x); };
   //return Position.of(f(this))
 //}
 
-module.exports = { Game: Game, Board: Board, Piece: Piece, Position: Position, DrawPly: DrawPly };
+module.exports = {
+  Game,
+  Board,
+  Piece,
+  Position,
+  DrawPly,
+  MovePly,
+  UseCardPly,
+  AbilityPly,
+};

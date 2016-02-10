@@ -20,12 +20,12 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
     })))
   })),
   // TODO: account for plyTypes
-  plys: R.map(ply => {
-    if (ply !== 'draft') {
-      return [Types.Position.of({x: parseInt(ply[0]), y: parseInt(ply[1])}),
-              Types.Position.of({x: parseInt(ply[2]), y: parseInt(ply[3])})]
-    } else { return ply }
-  })
+  //plys: R.map(ply => {
+    //if (ply !== 'draft') {
+      //return [Types.Position.of({x: parseInt(ply[0]), y: parseInt(ply[1])}),
+              //Types.Position.of({x: parseInt(ply[2]), y: parseInt(ply[3])})]
+    //} else { return ply }
+  //})
 }));
 
 //  encode :: (Game) -> String(JSON)

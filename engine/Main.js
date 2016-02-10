@@ -342,21 +342,98 @@ var customMovement = {
   }
 }
 
+//  endTurn :: (PlyType, Game) -> Game
+var endTurn = curry(function(ply, game) {
+  return Game.of(evolve({
+    turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
+    plys: append(ply)
+  }, game));
+});
+
 //  drawCardPly :: (String, Game) -> Game
 var drawCardPly = curry(function(color, game) {
   check(arguments, [String, Game]);
   var playerIndex = color === 'white' ? 0 : 1;
   var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
-  if (color !== game.turn) {
+  if (not(equals(color, game.turn))) {
     return message('It\'s not your turn!', game);
   } else {
     var newGame = drawCard(color, game);
     if (!newGame.message) {
-      return Game.of(evolve({
-        turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-        plys: append(Types.DrawPly.of({card: newGame.hands[playerIndex][0]}))
-      }, newGame));
+      return endTurn(
+          Types.DrawPly.of({card: newGame.hands[playerIndex][0]}),
+          newGame);
     } else { return newGame }
+  }
+});
+
+//  movePly :: (Piece, Position, Game) -> Game
+var movePly = curry(function(piece, position, game) {
+  check(arguments, [Piece, Position, Game]);
+  if (equals(piece.position, position) ||
+      // movePiece() already makes this check, any way we can prevent
+      // calling it again?
+      not(contains(position, getMoves(game.board, piece)))) {
+    return game;
+  } else if (not(equals(piece.color, game.turn))) {
+    return message('It\'s not your turn!', game);
+  } else {
+    var newGame = movePiece(piece.position, position, game);
+    if (newGame) {
+      return endTurn(
+          Types.MovePly.of({piece, position}),
+          newGame);
+    } else {
+      return game;
+    }
+  }
+});
+
+// (Number)
+var useCardPly = curry(function(color, card, params, game) {
+  var playerIndex = game.turn === 'white' ? 0 : 1;
+  var {positions, pieces, cards} = params;
+  if (not(equals(color, game.turn))) {
+    return message('It\'s not your turn!', game);
+  } else {
+    // TODO: rewrite this, check valid squares
+    // Create a card lookup with:
+    // points needed,
+    // params needed
+    // action (draft, etc.)
+    var piece = Piece.of({
+      color: color,
+      name: game.hands[playerIndex][card],
+      position: positions[0],
+    });
+    if (piece.points <= game.resources[playerIndex]) {
+      //newGame = draftPiece(pieceToAdd, game);
+      var newGame = Game.of(evolve({
+        board: addPieceToBoard(piece),
+        hands: adjust(remove(card, 1), playerIndex),
+        resources: adjust(subtract(__, piece.points), playerIndex)
+      }, game));
+      if (newGame) {
+        return endTurn(
+            Types.UseCardPly.of({card, positions}),
+            newGame);
+      }
+    } else {
+      return message('Not enough resources!', game);
+    }
+  }
+});
+
+var abilityPly = curry(function(piece, game) {
+  if (not(equals(piece.color, game.turn))) {
+    return message('It\'s not your turn!', game);
+  } else if (piece.name && pieceCallbacks[piece.name] && pieceCallbacks[piece.name].ability) {
+    var newGame = pieceCallbacks[piece.name].ability(piece, game);
+    return endTurn(
+        Types.AbilityPly.of({piece}),
+        newGame);
+  } else {
+    return game;
   }
 });
 //  makePly :: (String, Game, Object) -> Maybe Game
@@ -490,7 +567,6 @@ var movePiece = curry(function(startingPosition, targetPosition, game) {
       //onCapture(piece, newPiece, capturedPiece)
     //)(newBoard);
   } else {
-    // TODO: return message
     return null;
   }
 });
@@ -531,6 +607,7 @@ var draftPiece = curry(function(piece, game) {
   if (piece.points <= game.resources[index]) {
     return Game.of(evolve({
       board: addPieceToBoard(piece),
+      hands: adjust(remove(opts.card, 1), color),
       //board: compose(
                //Board.of,
                //evolve({
@@ -567,16 +644,19 @@ var drawCard = curry(function(color, game) {
 });
 
 module.exports = {
-  movePiece: movePiece,
-  getMoves: getMoves,
-  getCaptures: getCaptures,
-  getDefends: getDefends,
-  addPiece: addPiece,
-  getPieceAtPosition: getPieceAtPosition,
-  makePly: makePly,
-  isGameOver: isGameOver,
-  draftPiece: draftPiece,
-  drawCard: drawCard,
-  drawCardPly: drawCardPly,
-  getDraftSquares: getDraftSquares
+  movePiece,
+  getMoves,
+  getCaptures,
+  getDefends,
+  addPiece,
+  getPieceAtPosition,
+  makePly,
+  isGameOver,
+  draftPiece,
+  drawCard,
+  drawCardPly,
+  useCardPly,
+  movePly,
+  abilityPly,
+  getDraftSquares,
 };
