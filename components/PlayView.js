@@ -36,14 +36,20 @@ var PlayView = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
       data => {
-        if (!this.yourTurn() && data.match.yourTurn) {
-          alert('it\'s your turn!');
-        }
+        var game = Types.Game.of(
+          R.assoc(
+            'message',
+            (!this.yourTurn() && data.match.yourTurn) ?
+              "It's your turn!" : '',
+            GameCenter.decode(data.match.matchData)
+          )
+        );
         this.setState({
           possibleMoves: [],
           possibleCaptures: [],
           selectedPiece: null,
-          game: GameCenter.decode(data.match.matchData),
+          baseGame: GameCenter.getBaseGame(data.match.matchData),
+          game: game,
         });
       }
     );
@@ -57,8 +63,9 @@ var PlayView = React.createClass({
     subscription.remove();
   },
   getInitialState: function() {
+    console.log(this.props);
     return {
-      initGame: this.props.game,
+      baseGame: this.props.baseGame,
       game: this.props.game,
       playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
                    this.props.game.turn === 'black' && !this.props.yourTurn ?
@@ -149,7 +156,8 @@ var PlayView = React.createClass({
       this.setState({
         possibleMoves: [],
         possibleCaptures: [],
-        selectedPiece: null
+        selectedPiece: null,
+        selectedCard: null
       });
     } else if (selectedPiece) {
       this.makePly(Chess.movePly(this.state.selectedPiece, position, this.state.game));
@@ -183,7 +191,8 @@ var PlayView = React.createClass({
                 alert('You win!');
                 GameCenter.endMatchInTurnWithMatchData(this.state.game);
               } else {
-                GameCenter.endTurnWithNextParticipants(this.state.game);
+                //GameCenter.endTurnWithNextParticipants(this.state.game);
+                GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
               }
             }
           }}
@@ -206,7 +215,8 @@ var PlayView = React.createClass({
           {text: 'OK', onPress: () => {
             this.setState({ game: newGame });
             if (R.not(this.yourTurn())) {
-              GameCenter.endTurnWithNextParticipants(this.state.game);
+              //GameCenter.endTurnWithNextParticipants(this.state.game);
+              GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
             }
           }}
         ]
@@ -240,12 +250,6 @@ var PlayView = React.createClass({
         position: Types.Position.of({x: -1, y: -1}),
       }) : null;
 
-    var deck = R.filter((piece) => {
-      return (piece.color === this.state.playerColor && piece.position.x === -1 && piece.position.y === -1);
-    }, this.state.game.board.pieces);
-    var hand = R.filter((piece) => {
-      return (piece.color === this.state.playerColor && piece.position.x === -2 && piece.position.y === -2);
-    }, this.state.game.board.pieces);
     var message = this.state.game.message ?
       (<Modal onPress={this.clearMessage} text={this.state.game.message}></Modal>) : null;
 

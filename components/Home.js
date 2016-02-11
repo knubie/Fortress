@@ -38,6 +38,7 @@ var Home = React.createClass({
         //   newMatch: Boolean
         // }
         var game = {};
+        var baseGame = {};
         yourTurn = data.match.yourTurn;
         if (data.match.newMatch) {
           game = Types.Game.of({
@@ -75,13 +76,16 @@ var Home = React.createClass({
             resources: [2, 2],
             plys: []
           });
+          baseGame = game;
         } else {
+          // TODO: update this
           game = GameCenter.decode(data.match.matchData);
+          baseGame = GameCenter.getBaseGame(data.match.matchData);
         }
         if (data.match.yourTurn) {
           player.color = game.turn;
         }
-        this.loadMatch(game);
+        this.loadMatch(game, baseGame);
       }
     );
     GameCenterManager.clearMatch();
@@ -125,7 +129,7 @@ var Home = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
-  loadMatch: function(game) {
+  loadMatch: function(game, baseGame) {
     var method = 'push';
     if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
       method = 'push';
@@ -133,6 +137,7 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
+    console.log(game);
     if (game.plys.length < 2 && yourTurn) {
     this.props.navigator.push({
       component: DeckBuilder,
@@ -143,7 +148,12 @@ var Home = React.createClass({
       this.props.navigator[method]({
         component: PlayView,
         title: 'Play the game',
-        passProps: ({ game, yourTurn, route: 'PlayView' }),
+        passProps: ({
+          game,
+          baseGame,
+          yourTurn,
+          route: 'PlayView'
+        }),
       });
     }
   },

@@ -76,9 +76,10 @@ var Piece = React.createClass({
       type = <Image style={styles.touchable} source={require('../assets/tile-royal.png')}/>;
     }
     var className = "piece";
+    var selected = this.props.selected ? styles.selected : null;
     return (
       <TouchableWithoutFeedback onPress={this.onClick}>
-        <View style={[styles.tile, styles[this.props.piece.color]]}>
+        <View style={[styles.tile, styles[this.props.piece.color], selected]}>
           <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
             style={[this.getDragStyle(), styles.touchable]}
           >
@@ -102,12 +103,12 @@ var styles = StyleSheet.create({
     borderBottomWidth: 3,
   },
   black: {
-    backgroundColor: '#C4C4C4',
-    borderBottomColor: '#808080',
+    backgroundColor: '#606060',
+    borderBottomColor: '#454545',
   },
   white: {
-    backgroundColor: '#6D6D6D',
-    borderBottomColor: '#484848',
+    backgroundColor: '#606060',
+    borderBottomColor: '#454545',
   },
   touchable: {
     position: 'relative',
@@ -119,7 +120,11 @@ var styles = StyleSheet.create({
   },
   piece: {
     fontSize: 34,
-  }
+  },
+  selected: {
+    backgroundColor: '#3875A4',
+    borderBottomColor: '#295576',
+  },
 });
 
 module.exports = Piece;

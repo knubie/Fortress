@@ -53,6 +53,7 @@ RCT_EXPORT_MODULE();
   return self;
 }
 
+// Called when the app is launched
 - (void)didBecomeActive:(NSNotification *)notification;
 {
   NSLog(@"Did become active");
@@ -85,6 +86,7 @@ RCT_EXPORT_MODULE();
                                     //      @"currentParticipant": match.currentParticipant.player.playerID,
                                     }
                                 };
+        // TODO: only update if not your turn
         [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
       }
     }];
@@ -193,94 +195,95 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   }
 }
 
+// Called when loading a match from GKTurnBasedMatchMaker
+// Called when the app is open, and the other player updates the match - did not become active
+// Called when the app is opened from notification, did become active
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive
 {
   NSLog(@"received turn event for match");
-  [match loadMatchDataWithCompletionHandler:^(NSData *rawMatchData, NSError *error) {
-    if (error)
-    {
-      NSLog(@"loadMatchData error");
-      NSLog(@"%@", error);
-    } else {
-      NSString* matchData;
-      if (rawMatchData.length == 0)
-      {
-        matchData = @"";
-        NSLog(@"match data is empty");
-      } else {
-        matchData = [[NSString alloc] initWithData:rawMatchData
-                                      encoding:NSUTF8StringEncoding];
-        NSLog(@"match data is NOT empty");
-        NSLog(matchData);
-      }
-      GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-      NSDictionary *event = @{
-                              @"match": @{
-                                  //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
-                                  @"matchID": match.matchID,
-                                  @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                                  @"newMatch": rawMatchData.length == 0 ? @(YES) : @(NO),
-                                  @"matchData": matchData,
-                                  //      @"message": match.message,
-                                  //      @"currentParticipant": match.currentParticipant.player.playerID,
-                                  }
-                              };
-      if (didBecomeActive) {
-        NSLog(@"did become active");
-        // Launch the playView from didfindmatch
-        self.currentMatch = match;
-        [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
-        if (rawMatchData.length != 0) {
-          [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
-        }
-        // alert: false
-      } else {
-        NSLog(@"did NOT become active");
+  NSString* matchData;
+  if (match.matchData.length == 0)
+  {
+    matchData = @"";
+    NSLog(@"match data is empty");
+  } else {
+    matchData = [[NSString alloc] initWithData:match.matchData
+                                  encoding:NSUTF8StringEncoding];
+    NSLog(@"match data is NOT empty");
+//        NSLog(matchData);
+  }
+  GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+  NSDictionary *event = @{
+                          @"match": @{
+                              //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
+                              @"matchID": match.matchID,
+                              @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
+                              @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
+                              @"matchData": matchData,
+                              //      @"message": match.message,
+                              //      @"currentParticipant": match.currentParticipant.player.playerID,
+                              }
+                          };
+  // DidBecomeActive when launching from GKTurnBasedMatchmakerViewController
+  if (didBecomeActive) {
+    NSLog(@"did become active");
+    // Launch the playView from didfindmatch
+    self.currentMatch = match;
+    [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
+    if (match.matchData.length != 0) {
+      [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
+    }
+    // alert: false
+  } else {
+    NSLog(@"did NOT become active");
 //        NSLog(@"Current match ID:");
 //        NSLog(self.currentMatch.matchID);
 //        NSLog(@"turn event match ID:");
 //        NSLog(match.matchID);
-        self.currentMatch = match;
-        // Update matchdata?
-        NSDictionary *event = @{
-                                @"match": @{
-                                    @"matchID": match.matchID,
-                                    @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                                    @"newMatch": rawMatchData.length == 0 ? @(YES) : @(NO),
-                                    @"matchData": matchData,
-                                    }
-                                };
-        // FIXME: Don't send this even unless the current match ID matches the new event match ID
-        [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event];
-        if (self.currentMatch.matchID == match.matchID) {
-          NSLog(@"match is currentMatch");
+//    self.currentMatch = match;
+    // Update matchdata?
+    NSDictionary *event = @{
+                            @"match": @{
+                                @"matchID": match.matchID,
+                                @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
+                                @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
+                                @"matchData": matchData,
+                                }
+                            };
+    // FIXME: Don't send this even unless the current match ID matches the new event match ID
 
-          // alert: true
-        } else {
-          // do nothing?
-        }
-      }
+    if ([match.matchID isEqualToString:self.currentMatch.matchID]) {
+      NSLog(@"match is currentMatch");
+      [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event];
+    } else {
+      NSLog(@"currentMatch is NOT match");
+      NSLog(@"incoming matchID:");
+      NSLog(@"%@", match.matchID);
+      NSLog(@"current matchID:");
+      NSLog(@"%@", self.currentMatch.matchID);
+      // do nothing?
     }
-  }];
-  
-  // didBecomeActive
-  //   - Launch from GKViewController (didFindMatch)
-  //   - Launch from Push Notification
-  // didNOTBecomeActive
-  //   - Viewing another match
-  //     - Do Nothing
-  //   - Viewing the current match
-  //     - Send turn alert, update match
-  //   - Viewing the home screen
-  //     - Make this match first in the list
+  }
 
-  // if didBecomeActive
-  //   launch the playView, regardless of where they are.
-  // else
-  //   if match == self.currentMatch
-  //     send notification, update matchdata in React
-  //   else
-  //     do Nothing?
+// didBecomeActive
+//   - Launch from GKViewController (didFindMatch)
+//   - Launch from Push Notification
+//     - Update match data
+// didNOTBecomeActive
+//   - Viewing another match
+//     - Do Nothing
+//   - Viewing the current match
+//     - Send turn alert, update match
+//   - Viewing the home screen
+//     - Make this match first in the list
+
+// if didBecomeActive
+//   launch the playView, regardless of where they are.
+// else
+//   if match == self.currentMatch
+//     send notification, update matchdata in React
+//   else
+//     do Nothing?
 
 }
 
@@ -295,6 +298,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 
 #pragma mark GKTurnBasedMatchmakerViewControllerDelegate
 
+// Called when loading a match from GKTurnBasedMatchmakerViewController
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match
 {
   NSLog(@"didFindMatch");

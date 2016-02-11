@@ -20,6 +20,7 @@ function MovePly(opts) {
       this[k] = opts[k];
     }
   };
+  this.type = 'MovePly';
 }
 MovePly.of = function(x) { return new MovePly(x); };
 
@@ -33,6 +34,7 @@ function DrawPly(opts) {
       this[k] = opts[k];
     }
   };
+  this.type = 'DrawPly';
 }
 DrawPly.of = function(x) { return new DrawPly(x); };
 
@@ -45,6 +47,7 @@ function UseCardPly(opts) {
       this[k] = opts[k];
     }
   };
+  this.type = 'UseCardPly';
 }
 UseCardPly.of = function(x) { return new UseCardPly(x); };
 
@@ -57,6 +60,7 @@ function AbilityPly(opts) {
       this[k] = opts[k];
     }
   };
+  this.type = 'AbilityPly';
 }
 AbilityPly.of = function(x) { return new AbilityPly(x); };
 

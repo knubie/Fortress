@@ -72,10 +72,10 @@ var Modal = React.createClass({
       <View style={styles.modalContainer}>
         <Animated.View style={[styles.modal, {opacity: this.state.backgroundOpacity}]}/>
         <Animated.View style={[styles.box, {top: this.state.boxTop}]}>
-          <Text>
+          <Text style={styles.modalText}>
             {this.props.text}
           </Text>
-          <Text onPress={this.onPress}>OK</Text>
+          <Text style={styles.modalButton} onPress={this.onPress}>OK</Text>
         </Animated.View>
       </View>
     );
@@ -90,6 +90,14 @@ var styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
     backgroundColor: 'rgba(255,255,255,0)',
+  },
+  modalText: {
+    textAlign: 'center',
+  },
+  modalButton: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 20,
   },
   box: {
     padding: 20,

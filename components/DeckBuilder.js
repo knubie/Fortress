@@ -84,11 +84,12 @@ var DeckBuilder = React.createClass({
         adjust(always(this.state.decks[this.state.selectedDeck]), colorIndex, this.state.game.decks),
         this.state.game)
       )));
-      GameCenter.endTurnWithNextParticipants(game);
+      GameCenter.endTurnWithGame(game);
+      //GameCenter.endTurnWithNextParticipants(game);
       this.props.navigator.replace({
         component: PlayView,
         title: 'Play the game',
-        passProps: ({ game, yourTurn: false }),
+        passProps: ({ game, baseGame: game, yourTurn: false }),
       });
     }
   },
@@ -96,8 +97,11 @@ var DeckBuilder = React.createClass({
     this.props.navigator.pop();
   },
   removeFromDeck: function() {
+    console.log('remove from deck');
+    // FIXME: something breaks when removing the bank
     if (this.state.selectedCardInDeck) {
       this.setState({
+        selectedCardInDeck: null,
         decks:  R.assoc(
                   this.state.selectedDeck,
                   R.remove(
@@ -239,9 +243,9 @@ var DeckBuilder = React.createClass({
             {R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
                 card={card}
-                index={i}
-                key={i}
-                selected={R.equals(this.state.selectedCardInDeck, i)}
+                index={parseInt(i)}
+                key={parseInt(i)}
+                selected={R.equals(this.state.selectedCardInDeck, parseInt(i))}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
                 onPress={this.clickCardInDeck}/>
             )}, this.deck()))}
@@ -258,9 +262,9 @@ var DeckBuilder = React.createClass({
             {R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
                 card={card}
-                index={i}
-                key={i}
-                selected={R.equals(this.state.selectedCardInCollection, i)}
+                index={parseInt(i)}
+                key={parseInt(i)}
+                selected={R.equals(this.state.selectedCardInCollection, parseInt(i))}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
 
                 onPress={this.clickCardInCollection}/>

@@ -2,6 +2,8 @@ var R = require('ramda');
 var React = require('react-native');
 
 var {
+  Easing,
+  Animated,
   StyleSheet,
   Dimensions,
   Image,
@@ -14,11 +16,9 @@ var {
 
 var Square = React.createClass({
   _onMoveShouldSetResponder: function(e) {
-    console.log('i\'m being highlighted!');
     return true;
   },
   onClick: function() {
-    console.log('click square');
     this.props.onClick(this.props.x, this.props.y);
   },
   render: function() {
@@ -26,13 +26,9 @@ var Square = React.createClass({
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
     }
-    var source = require('../assets/tile.png');
     var highlightStyle = null;
     if (this.props.highlightLastMove) {
       highlightStyle = styles.lastMove;
-    }
-    if (this.props.highlightLastMove) {
-      source = require('../assets/tile-last-move.png');
     }
     if (this.props.selected) {
       highlightStyle = styles.selected;
@@ -49,12 +45,10 @@ var Square = React.createClass({
     }
     return (
       <TouchableHighlight onPress={this.onClick}>
-        <View source={source}
-          style={style}
-        >
-          <View style={[styles.square, highlightStyle]}>
+        <View style={style}>
+          <Animated.View style={[styles.square, highlightStyle]}>
             {this.props.children}
-          </View>
+          </Animated.View>
         </View>
       </TouchableHighlight>
     );
@@ -72,7 +66,7 @@ var styles = StyleSheet.create({
   white: { backgroundColor: '#353535' },
   black: { backgroundColor: '#353535' },
   highlighted: {
-    backgroundColor: 'rgba(128,204,255,0.2)',
+    backgroundColor: 'rgba(128,204,255,0.1)',
   },
   selected: {
     backgroundColor: '#215888',

@@ -100,7 +100,7 @@ var styles = StyleSheet.create({
   },
   name: {
     fontFamily: 'Helvetica Neue',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
     marginBottom: 10,

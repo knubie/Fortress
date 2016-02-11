@@ -40,10 +40,11 @@ var Board = React.createClass({
                         piece={piece}
                         onClick={this.props.clickPiece}
                         key={''+piece.x+piece.y}
+                        selected={
+                          R.whereEq({x: piece.position.x, y: piece.position.y},
+                          R.prop('position',
+                                 (this.props.selectedPiece || {position: {}})))}
                       ></Piece>;
-    }
-    if (this.props.board == null) {
-      console.log('board is null!');
     }
     return (
       <View style={styles.boardContainer}>
