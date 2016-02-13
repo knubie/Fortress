@@ -39,6 +39,17 @@ var DeckBuilder = React.createClass({
     // TODO: move this to home to avoid async pop-in
     AsyncStorage.getItem('decks', (error, result) => {
       var decks = JSON.parse(result);
+      var newDecks = R.map((deck) => {
+        var i = 0;
+        return R.map((card) => {
+          i++;
+          return {
+            key: i,
+            card: card,
+          };
+          return newCard;
+        }, deck);
+      }, decks);
       this.setState({decks});
     });
   },
@@ -99,7 +110,7 @@ var DeckBuilder = React.createClass({
   removeFromDeck: function() {
     console.log('remove from deck');
     // FIXME: something breaks when removing the bank
-    if (this.state.selectedCardInDeck) {
+    if (this.state.selectedCardInDeck != null) {
       this.setState({
         selectedCardInDeck: null,
         decks:  R.assoc(
@@ -115,11 +126,11 @@ var DeckBuilder = React.createClass({
     }
   },
   addToDeck: function() {
-    if (this.state.selectedCardInCollection) {
+    if (this.state.selectedCardInCollection != null) {
       this.setState({
         decks:  R.assoc(
                   this.state.selectedDeck,
-                  R.append(R.keys(Pieces)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
+                  R.prepend(R.keys(Pieces)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
                   this.state.decks
                 )
       });

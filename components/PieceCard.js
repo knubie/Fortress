@@ -4,6 +4,8 @@ var PieceDisplay = require('../lib/piece-display');
 var Types = require('../engine/Types');
 
 var {
+  Easing,
+  Animated,
   TouchableWithoutFeedback,
   Dimensions,
   Platform,
@@ -16,8 +18,20 @@ var {
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
 var PieceCard = React.createClass({
+  componentWillReceiveProps: function(nextProps) {
+    // TODO: this should be replaced by something else.
+    var piece = Types.Piece.of({
+      name: nextProps.card,
+      color: 'white',
+      position: Types.Position.of({x: -1, y: -1}),
+    });
+    this.setState({
+      points: piece.points,
+    });
+  },
   getInitialState: function() {
     // TODO this is clunky.
+    // It also breaks because the keys are not unique.
     var piece = Types.Piece.of({
       name: this.props.card,
       color: 'white',
@@ -26,21 +40,33 @@ var PieceCard = React.createClass({
     return {
       translate: 0,
       points: piece.points,
+      scale: new Animated.Value(1),
     }
   },
   onPress: function() {
     this.props.onPress(this.props.card, this.props.index);
   },
   onPressIn: function() {
-    console.log('onpressin');
-    this.setState({
-      translate: 1
-    });
+    Animated.timing(                          // Base: spring, decay, timing
+      this.state.scale,                 // Animate `bounceValue`
+      {
+        toValue: 1.1,
+        duration: 150, // milliseconds
+        delay: 0, // milliseconds
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
   },
   onPressOut: function() {
-    this.setState({
-      translate: 0
-    });
+    Animated.timing(                          // Base: spring, decay, timing
+      this.state.scale,                 // Animate `bounceValue`
+      {
+        toValue: 1,
+        duration: 150, // milliseconds
+        delay: 0, // milliseconds
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
   },
   render: function() {
     var borderStyle = styles.unselected;
@@ -56,20 +82,7 @@ var PieceCard = React.createClass({
         onPressIn={this.onPressIn}
         onPressOut={this.onPressOut}
         onPress={this.onPress}>
-        <View style={[cardStyle, {
-          transform: [
-            {
-              translateX: this.state.translate,
-            },
-            {
-              translateY: this.state.translate,
-            }
-          ],
-          shadowOffset: {
-            width: 1 - this.state.translate,
-            height: 1 - this.state.translate,
-          },
-        }]}>
+        <Animated.View style={[cardStyle, {transform: [{scale: this.state.scale}] }]}>
           <View style={[styles.cardBorder, borderStyle]}>
             <Image
               source={PieceDisplay[this.props.card].image['black']}
@@ -79,7 +92,7 @@ var PieceCard = React.createClass({
           <View style={styles.points}>
             <Text style={styles.pointText}>{this.state.points}</Text>
           </View>
-        </View>
+        </Animated.View>
       </TouchableWithoutFeedback>
     );
   }

@@ -97,9 +97,9 @@ var styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    //justifyContent: 'space-between',
     backgroundColor: '#212121',
-    marginHorizontal: 20,
+    marginLeft: 20,
   }
 });
 

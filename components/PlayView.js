@@ -149,8 +149,7 @@ var PlayView = React.createClass({
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
     var selectedCard = this.state.selectedCard;
-    if ((selectedPiece && R.not(this.yourTurn())) ||
-        (!selectedPiece && this.state.selectedCard == null) ||
+    if ((selectedPiece == null && selectedCard == null) ||
         (selectedPiece != null && selectedPiece.color !== this.state.playerColor) ||
         !R.contains(position, this.state.possibleMoves)) {
       this.setState({
@@ -159,9 +158,9 @@ var PlayView = React.createClass({
         selectedPiece: null,
         selectedCard: null
       });
-    } else if (selectedPiece) {
+    } else if (selectedPiece != null) {
       this.makePly(Chess.movePly(this.state.selectedPiece, position, this.state.game));
-    } else if (selectedCard) {
+    } else if (selectedCard != null) {
       this.makePly(Chess.useCardPly(this.state.playerColor, selectedCard, {
         positions: [position],
       }, this.state.game));
@@ -243,7 +242,7 @@ var PlayView = React.createClass({
       //});
     //}, R.keys(Pieces));
     // TODO: change deck/hand api
-    var cardInfo = this.state.selectedCard ?
+    var cardInfo = this.state.selectedCard != null ?
       Types.Piece.of({
         name: this.playersHand()[this.state.selectedCard],
         color: 'white',

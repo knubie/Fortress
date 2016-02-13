@@ -39,8 +39,11 @@ var styles = StyleSheet.create({
     backgroundColor: '#666',
   },
   movement: {
-    backgroundColor: '#000',
-    color: '#979797',
+    backgroundColor: '#6D6D6D',
+    color: 'white',
+    borderRadius: 7,
+    fontSize: 10,
+    height: 14,
   },
 });
 

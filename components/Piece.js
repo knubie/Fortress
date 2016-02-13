@@ -5,6 +5,8 @@ var Types = require('../engine/Types');
 var PieceDisplay = require('../lib/piece-display');
 
 var {
+  Animated,
+  Easing,
   Dimensions,
   StyleSheet,
   Image,
@@ -23,10 +25,55 @@ var Piece = React.createClass({
     piece: PropTypes.instanceOf(Types.Piece)
   },
   getInitialState: function() {
+    //this._backgroundColor = new Animated.Value(0);
+    //this._borderBottomColor = new Animated.Value(0);
     return {
       dragging: false,
+      backgroundColor: new Animated.Value(0),
+      borderBottomColor: new Animated.Value(0),
       x: 0,
       y: 0
+    }
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.selected) {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.backgroundColor,                 // Animate `bounceValue`
+        {
+          toValue: 1,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.borderBottomColor,                 // Animate `bounceValue`
+        {
+          toValue: 1,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
+    } else {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.backgroundColor,                 // Animate `bounceValue`
+        {
+          toValue: 0,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.borderBottomColor,                 // Animate `bounceValue`
+        {
+          toValue: 0,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
     }
   },
   setPosition: function(e) {
@@ -67,6 +114,15 @@ var Piece = React.createClass({
     this.props.onClick(this.props.piece);
   },
   render: function() {
+      //borderBottomColor: new Animated.Value('rgba(69, 69, 69, 100)'),
+    var backgroundColor = this.state.backgroundColor.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(96, 96, 96, 100)', 'rgba(56, 117, 164, 1)'],
+    });
+    var borderBottomColor = this.state.backgroundColor.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(69, 69, 69, 100)', 'rgba(41, 85, 118, 1)'],
+    });
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
@@ -76,22 +132,27 @@ var Piece = React.createClass({
       type = <Image style={styles.touchable} source={require('../assets/tile-royal.png')}/>;
     }
     var className = "piece";
-    var selected = this.props.selected ? styles.selected : null;
     return (
       <TouchableWithoutFeedback onPress={this.onClick}>
-        <View style={[styles.tile, styles[this.props.piece.color], selected]}>
+        <Animated.View
+          style={[
+            styles.tile,
+            {backgroundColor: backgroundColor,
+              borderBottomColor: borderBottomColor},
+          ]}
+        >
           <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
             style={[this.getDragStyle(), styles.touchable]}
           >
             {type}
           </Image>
-        </View>
+        </Animated.View>
       </TouchableWithoutFeedback>
     );
   }
 });
 
-var squareSize = (Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7;
+var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
 var styles = StyleSheet.create({
   tile: {
     position: 'absolute',

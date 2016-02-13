@@ -15,6 +15,45 @@ var {
 } = React;
 
 var Square = React.createClass({
+  getInitialState: function() {
+    return {
+      backgroundColor: new Animated.Value(0),
+      scale: new Animated.Value(1),
+    }
+  },
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.highlight) {
+      this.state.scale.setValue(0.95);
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.scale,                 // Animate `bounceValue`
+        {
+          toValue: 1,
+          duration: 250, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.backgroundColor,                 // Animate `bounceValue`
+        {
+          toValue: 1,
+          duration: 250, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
+    } else {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.backgroundColor,                 // Animate `bounceValue`
+        {
+          toValue: 0,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.linear,
+        }
+      ).start();
+    }
+  },
   _onMoveShouldSetResponder: function(e) {
     return true;
   },
@@ -43,28 +82,30 @@ var Square = React.createClass({
     if (this.props.selected) {
       style = R.append(styles.selected, style);
     }
+    var backgroundColor = this.state.backgroundColor.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(53, 53, 53, 1)', 'rgba(61,67,72,1)'],
+    });
     return (
       <TouchableHighlight onPress={this.onClick}>
-        <View style={style}>
-          <Animated.View style={[styles.square, highlightStyle]}>
-            {this.props.children}
-          </Animated.View>
-        </View>
+        <Animated.View style={[{transform: [{scale: this.state.scale}] }, styles.square, {backgroundColor: backgroundColor}]}>
+          {this.props.children}
+        </Animated.View>
       </TouchableHighlight>
     );
   }
 });
 
-var squareSize = (Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7;
+var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
 var styles = StyleSheet.create({
   square: {
     width: squareSize,
     height: squareSize,
     borderRadius: 4,
-    marginBottom: 2,
+    margin: 1,
   },
-  white: { backgroundColor: '#353535' },
-  black: { backgroundColor: '#353535' },
+  white: { backgroundColor: '#953535' },
+  black: { backgroundColor: '#359535' },
   highlighted: {
     backgroundColor: 'rgba(128,204,255,0.1)',
   },

@@ -19,10 +19,25 @@ var PieceInfo = React.createClass({
     return R.map((p) => {
       direction = p.direction === 'forwards' ? '↑' : '';
       conditions = p.conditions ? p.conditions.join('') : '';
-      distance = p.distance === 'n' ? '∞' : p.distance
-      return (<Tag type={'movement'}
-                   text={direction + ' ' + conditions + distance + '(' + p.movement + ')'}
-              />);
+      distance = p.distance === 'n' ? '∞' : p.distance;
+      distanceSize = p.distance === 'n' ? styles.distanceInfinite : null;
+      movement = p.movement.split('/');
+      var movementDivider = p.conditions ? (<View style={styles.movementDivider}/>) : null;
+      return (
+        <View style={styles.movement}>
+          <Text style={[styles.movementText, styles.movementOuterText]}>{direction + ' ' + conditions}</Text>
+          {movementDivider}
+          <Text style={[styles.movementText, styles.movementOuterText, distanceSize]}>{distance}</Text>
+          <View style={styles.movementInner}>
+            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[0]}</Text>
+            <View style={styles.movementInnerDivider}/>
+            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[1]}</Text>
+          </View>
+        </View>
+      );
+      //return (<Tag type={'movement'}
+                   //text={direction + ' ' + conditions + distance + '(' + p.movement + ')'}
+              ///>);
     }, parlett);
   },
   ability: function() {
@@ -71,13 +86,10 @@ var PieceInfo = React.createClass({
           <Text style={styles.description}>
             {PieceDisplay[this.props.piece.name].description}
           </Text>
+          {ability}
           <View style={styles.tags}>
-            <Text style={styles.infoText}>
-              Movement:
-            </Text>
             {this.movementTags(this.props.piece.parlett)}
           </View>
-          {ability}
         </View>
       </View>
     );
@@ -92,7 +104,6 @@ var styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
-    marginTop: 2,
   },
   title: {
     justifyContent: 'flex-start',
@@ -140,13 +151,12 @@ var styles = StyleSheet.create({
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#c4c4c4',
-    marginBottom: 10,
   },
   buttonContainer: {
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     flexDirection: 'row',
-    marginTop: 5,
+    marginBottom: 10,
   },
   buttonText: {
     fontWeight: 'bold',
@@ -158,7 +168,61 @@ var styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#c4c4c4',
-  }
+  },
+  movement: {
+    borderRadius: 7,
+    backgroundColor: '#6D6D6D',
+    height: 14,
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    paddingLeft: 4,
+    marginHorizontal: 3,
+  },
+  movementDivider: {
+    width: 1,
+    height: 14,
+    marginHorizontal: 5,
+    backgroundColor: '#484848',
+  },
+  movementInnerDivider: {
+    width: 2,
+    height: 12,
+    marginHorizontal: 3,
+    backgroundColor: '#6D6D6D',
+  },
+  movementText: {
+    fontFamily: 'Helvetica Neue',
+    fontSize: 10,
+    fontWeight: '500',
+    color: 'white',
+    backgroundColor: 'transparent',
+  },
+  distanceInfinite: {
+    position: 'relative',
+    top: -4,
+    fontSize: 15,
+  },
+  movementOuterText: {
+    position: 'relative',
+    top: 0.5,
+  },
+  movementInnerText: {
+    position: 'relative',
+    bottom: 0.5,
+  },
+  movementInner: {
+    borderRadius: 7,
+    backgroundColor: '#545454',
+    paddingLeft: 5,
+    paddingRight: 4,
+    height: 12,
+    margin: 1,
+    marginLeft: 3,
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+  },
 });
 
 module.exports = PieceInfo;
