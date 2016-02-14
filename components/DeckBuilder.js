@@ -8,7 +8,7 @@ var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var PieceDisplay = require('../lib/piece-display');
 var Chess = require('../engine/Main');
-var Pieces = require('../engine/Pieces');
+var Cards = require('../engine/Cards');
 var Types = require('../engine/Types');
 
 var PieceDisplay = require('../lib/piece-display');
@@ -92,7 +92,7 @@ var DeckBuilder = React.createClass({
         plys: R.append('draft'),
       }, drawHand(R.assoc(
         'decks',
-        adjust(always(this.state.decks[this.state.selectedDeck]), colorIndex, this.state.game.decks),
+        adjust(always(Chess.shuffle(this.state.decks[this.state.selectedDeck])), colorIndex, this.state.game.decks),
         this.state.game)
       )));
       GameCenter.endTurnWithGame(game);
@@ -130,7 +130,7 @@ var DeckBuilder = React.createClass({
       this.setState({
         decks:  R.assoc(
                   this.state.selectedDeck,
-                  R.prepend(R.keys(Pieces)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
+                  R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
                   this.state.decks
                 )
       });
@@ -279,7 +279,7 @@ var DeckBuilder = React.createClass({
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
 
                 onPress={this.clickCardInCollection}/>
-            )}, R.keys(Pieces)))}
+            )}, R.keys(Cards)))}
           </ScrollView>
         </View>
         <PieceInfo piece={this.state.selectedPiece}></PieceInfo>

@@ -2,6 +2,7 @@ var R = require('ramda');
 var React = require('react-native');
 var PieceDisplay = require('../lib/piece-display');
 var Types = require('../engine/Types');
+var Cards = require('../engine/Cards');
 
 var {
   Easing,
@@ -20,26 +21,16 @@ var cardHeight = cardWidth * 1.5;
 var PieceCard = React.createClass({
   componentWillReceiveProps: function(nextProps) {
     // TODO: this should be replaced by something else.
-    var piece = Types.Piece.of({
-      name: nextProps.card,
-      color: 'white',
-      position: Types.Position.of({x: -1, y: -1}),
-    });
     this.setState({
-      points: piece.points,
+      points: Cards[nextProps.card].points,
     });
   },
   getInitialState: function() {
     // TODO this is clunky.
     // It also breaks because the keys are not unique.
-    var piece = Types.Piece.of({
-      name: this.props.card,
-      color: 'white',
-      position: Types.Position.of({x: -1, y: -1}),
-    });
     return {
       translate: 0,
-      points: piece.points,
+      points: Cards[this.props.card].points,
       scale: new Animated.Value(1),
     }
   },

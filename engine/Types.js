@@ -26,14 +26,7 @@ MovePly.of = function(x) { return new MovePly(x); };
 
 // DrawPly { card :: String }
 // TODO: implement Card Type, maybe Symbol?
-function DrawPly(opts) {
-  check([opts,   opts.card],
-        [Object, String]);
-  for (k in opts) {
-    if (opts.hasOwnProperty(k)) {
-      this[k] = opts[k];
-    }
-  };
+function DrawPly() {
   this.type = 'DrawPly';
 }
 DrawPly.of = function(x) { return new DrawPly(x); };

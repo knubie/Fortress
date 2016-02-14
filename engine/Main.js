@@ -1,5 +1,6 @@
 var R        = require('ramda');
 var check    = require('./lib/type-checker').checkAll;
+var Cards   = require('./Cards');
 var Types    = require('./Types');
 var Game     = Types.Game;
 var Board    = Types.Board;
@@ -15,6 +16,21 @@ var MAX_GOLD = 10;
 
 var concatAll = unapply(reduce(concat, []));
 
+var shuffle = function(arr) {
+  var array = arr.slice(0);
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
+//  colorToIndex :: (String) -> Number
+var colorToIndex = curry(function(color) {
+  return color === 'white' ? 0 : 1;
+
+});
 //  between :: (Number, Number) -> [Number]
 var between = curry(function(start, end) {
   check(arguments, [Number, Number]);
@@ -185,6 +201,20 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  perception: {
+    use: curry(function(game) {
+      var color = game.turn;
+      var playerIndex = colorToIndex(color);
+      var newGame = drawCard(color, game);
+      if (!newGame.message) {
+        newGame = drawCard(color, newGame);
+        if (!newGame.message) {
+          newGame = drawCard(color, newGame);
+        }
+      }
+      return newGame;
+    })
+  },
   teleporter: {
     // onCapture :: (Piece, Piece, Piece, Game) -> Game
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
@@ -360,9 +390,7 @@ var drawCardPly = curry(function(color, game) {
   } else {
     var newGame = drawCard(color, game);
     if (!newGame.message) {
-      return endTurn(
-          Types.DrawPly.of({card: newGame.hands[playerIndex][0]}),
-          newGame);
+      return endTurn(Types.DrawPly.of(), newGame);
     } else { return newGame }
   }
 });
@@ -401,22 +429,27 @@ var useCardPly = curry(function(color, card, params, game) {
     // points needed,
     // params needed
     // action (draft, etc.)
-    var piece = Piece.of({
-      color: color,
-      name: game.hands[playerIndex][card],
-      position: positions[0],
-    });
-    if (piece.points <= game.resources[playerIndex]) {
-      //newGame = draftPiece(pieceToAdd, game);
+    // Write tests
+    var name = game.hands[playerIndex][card];
+    if (Cards[name].points <= game.resources[playerIndex]) {
       var newGame = Game.of(evolve({
-        board: addPieceToBoard(piece),
         hands: adjust(remove(card, 1), playerIndex),
-        resources: adjust(subtract(__, piece.points), playerIndex)
+        resources: adjust(subtract(__, Cards[name].points), playerIndex)
       }, game));
+      if (pieceCallbacks[name] && pieceCallbacks[name].use != null) {
+        newGame = pieceCallbacks[name].use(newGame)
+      } else {
+        var piece = Piece.of({
+          color: color,
+          name: game.hands[playerIndex][card],
+          position: positions[0],
+        });
+        newGame = Game.of(evolve({
+          board: addPieceToBoard(piece),
+        }, newGame));
+      }
       if (newGame) {
-        return endTurn(
-            Types.UseCardPly.of({card, positions}),
-            newGame);
+        return endTurn(Types.UseCardPly.of({card, params}), newGame);
       }
     } else {
       return message('Not enough resources!', game);
@@ -632,13 +665,12 @@ var draftPiece = curry(function(piece, game) {
 // draftPiece :: (String, Game) -> Game
 var drawCard = curry(function(color, game) {
   var playerIndex = color === 'white' ? 0 : 1;
-  var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
   if (game.decks[playerIndex].length < 1) {
     return message('Your deck is empty!', game);
   } else {
     return Game.of(evolve({
-      decks: adjust(remove(randomIndex, 1), playerIndex),
-      hands: adjust(prepend(game.decks[playerIndex][randomIndex]), playerIndex)
+      decks: adjust(remove(0, 1), playerIndex),
+      hands: adjust(prepend(game.decks[playerIndex][0]), playerIndex)
     }, game));
   }
 });
@@ -659,4 +691,5 @@ module.exports = {
   movePly,
   abilityPly,
   getDraftSquares,
+  shuffle,
 };

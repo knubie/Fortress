@@ -37,24 +37,16 @@ var makePly = function(game, ply) {
       Types.Position.of(ply.position),
       game);
   } else if (ply.type === 'DrawPly') {
-    var playerIndex = game.turn === 'white' ? 0 : 1;
-    var deckIndex = R.indexOf(ply.card, game.decks[playerIndex]);
-    return Types.Game.of(evolve({
-      decks: adjust(remove(deckIndex, 1), playerIndex),
-      hands: adjust(prepend(game.decks[playerIndex][deckIndex]), playerIndex),
-      turn: always(playerIndex === 0 ? 'black' : 'white'),
-      plys: R.append(Types.DrawPly.of({card: game.decks[playerIndex][deckIndex]}))
-    }, game));
+    return Chess.drawCardPly(game.turn, game);
   } else if (ply.type === 'AbilityPly') {
     return Chess.abilityPly(
       Types.Piece.of(R.evolve({position: Types.Position.of}, ply.piece)),
       game);
   } else if (ply.type === 'UseCardPly') {
     return Chess.useCardPly(game.turn, ply.card, {
-      positions: R.map(Types.Position.of, ply.positions)
+      positions: R.map(Types.Position.of, ply.params.positions || [])
     }, game);
   } else { // draft
-    console.log(ply);
     return Types.Game.of(R.evolve({
       plys: R.append('draft'),
     }, game));

@@ -2,6 +2,9 @@ var R = require('ramda');
 var React = require('react-native');
 var Tag = require('./Tag');
 var PieceDisplay = require('../lib/piece-display');
+var Cards = require('../engine/Cards');
+var Pieces = require('../engine/Pieces');
+var Types = require('../engine/Types');
 
 var {
   Dimensions,
@@ -41,7 +44,12 @@ var PieceInfo = React.createClass({
     }, parlett);
   },
   ability: function() {
-    this.props.onAbility(this.props.piece);
+    if (R.is(Types.Piece, this.props.card)) {
+      this.props.onAbility(this.props.card);
+    }
+  },
+  useCard: function() {
+    this.props.useCard();
   },
   render: function() {
     var TouchableElement = TouchableHighlight;
@@ -50,7 +58,8 @@ var PieceInfo = React.createClass({
      TouchableElement = TouchableNativeFeedback;
     }
     // FIXME: don't hardcode this.
-    if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'bomber') {
+    if (R.is(Types.Piece, this.props.card) && this.props.card.name === 'bomber') {
+    //if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'bomber') {
       ability = (
         <View style={styles.buttonContainer}>
           <TouchableElement style={styles.button} onPress={this.ability}>
@@ -58,7 +67,8 @@ var PieceInfo = React.createClass({
           </TouchableElement>
         </View>
       );
-    } else if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'king') {
+    } else if (R.is(Types.Piece, this.props.card) && this.props.card.name === 'king') {
+    //} else if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'king') {
       ability = (
         <View style={styles.buttonContainer}>
           <TouchableElement style={styles.button} onPress={this.ability}>
@@ -66,29 +76,38 @@ var PieceInfo = React.createClass({
           </TouchableElement>
         </View>
       );
+    } else if (!R.is(Types.Piece, this.props.card) && !Pieces[this.props.card]) {
+      ability = (
+        <View style={styles.buttonContainer}>
+          <TouchableElement style={styles.button} onPress={this.useCard}>
+            <Text style={styles.buttonText}>USE</Text>
+          </TouchableElement>
+        </View>
+      );
     }
 
-    return !this.props.piece ? (<View></View>) : (
+    var movementTags = null;
+    if (Pieces[this.props.card]) {
+      movementTags = this.movementTags(Pieces[this.props.card].parlett);
+    }
+
+    console.log(this.props.card);
+    var pieceDisplay = R.is(Types.Piece, this.props.card) ?
+      PieceDisplay[this.props.card.name] :
+      PieceDisplay[this.props.card];
+
+    return !this.props.card ? (<View></View>) : (
       <View style={styles.pieceDisplayContainer}>
         <View style={styles.textContainer}>
           <View style={styles.title}>
-            {R.map(
-               (type) => {
-                 if (type === 'royal') {
-                   return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
-                 } else if (type === 'ranged') {
-                   return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
-                 }
-               }, this.props.piece.types)
-            }
-            <Text style={styles.name}>{PieceDisplay[this.props.piece.name].displayName}</Text>
+            <Text style={styles.name}>{pieceDisplay.displayName}</Text>
           </View>
           <Text style={styles.description}>
-            {PieceDisplay[this.props.piece.name].description}
+            {pieceDisplay.description}
           </Text>
           {ability}
           <View style={styles.tags}>
-            {this.movementTags(this.props.piece.parlett)}
+            {movementTags}
           </View>
         </View>
       </View>

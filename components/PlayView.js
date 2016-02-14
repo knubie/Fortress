@@ -63,7 +63,6 @@ var PlayView = React.createClass({
     subscription.remove();
   },
   getInitialState: function() {
-    console.log(this.props);
     return {
       baseGame: this.props.baseGame,
       game: this.props.game,
@@ -169,6 +168,31 @@ var PlayView = React.createClass({
   onAbility: function(piece) {
     this.makePly(Chess.abilityPly(piece, this.state.game));
   },
+  useCard: function() {
+    //var newGame = Chess.drawCardPly(this.state.playerColor, this.state.game);
+    var newGame = Chess.useCardPly(this.state.playerColor, this.state.selectedCard, { }, this.state.game);
+    if (newGame.message) {
+      this.setState({game: newGame});
+    } else {
+        // TODO: Abstract this into modal?
+      AlertIOS.alert(
+        'Confirm',
+        'Are you sure you want to use this card?',
+        [
+          {text: 'No Wait...', onPress: () => {return;} },
+          {text: 'Yep!', onPress: () => {
+            this.setState({ game: newGame });
+            if (R.not(this.yourTurn())) {
+              //GameCenter.endTurnWithNextParticipants(this.state.game);
+              GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
+            }
+          }}
+        ]
+      );
+    }
+    //this.makePly(Chess.useCardPly(this.state.playerColor, this.state.selectedCard, { }, this.state.game));
+    //this.makePly(Chess.abilityPly(piece, this.state.game));
+  },
   makePly: function(newGame) {
     var oldGame = this.state.game;
     this.setState({
@@ -242,12 +266,6 @@ var PlayView = React.createClass({
       //});
     //}, R.keys(Pieces));
     // TODO: change deck/hand api
-    var cardInfo = this.state.selectedCard != null ?
-      Types.Piece.of({
-        name: this.playersHand()[this.state.selectedCard],
-        color: 'white',
-        position: Types.Position.of({x: -1, y: -1}),
-      }) : null;
 
     var message = this.state.game.message ?
       (<Modal onPress={this.clearMessage} text={this.state.game.message}></Modal>) : null;
@@ -256,7 +274,7 @@ var PlayView = React.createClass({
       <View>
         <View style={styles.titleContainer}>
           <Text onPress={this.back} style={styles.navigation}>
-            ‹
+            ‹ 
           </Text>
           <Text style={styles.turnMessage}>
             {this.yourTurn() ? 'Your Turn' : 'Their Turn'}
@@ -301,9 +319,9 @@ var PlayView = React.createClass({
           </ScrollView>
         </View>
         <PieceInfo
-          piece={cardInfo || this.state.selectedPiece}
-          isCard={!!cardInfo}
+          card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
           onAbility={this.onAbility}
+          useCard={this.useCard}
         ></PieceInfo>
         {message}
       </View>
@@ -318,7 +336,7 @@ var cardHeight = cardWidth * 1.5;
 var styles = StyleSheet.create({
   titleContainer: {
     marginHorizontal: 20,
-    height: 30,
+    height: 40,
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
