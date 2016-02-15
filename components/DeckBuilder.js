@@ -35,24 +35,6 @@ var boardSize = 8;
 var MAX_DECK_SIZE = 20;
 var HAND_SIZE = 4;
 var DeckBuilder = React.createClass({
-  componentDidMount: function() {
-    // TODO: move this to home to avoid async pop-in
-    AsyncStorage.getItem('decks', (error, result) => {
-      var decks = JSON.parse(result);
-      var newDecks = R.map((deck) => {
-        var i = 0;
-        return R.map((card) => {
-          i++;
-          return {
-            key: i,
-            card: card,
-          };
-          return newCard;
-        }, deck);
-      }, decks);
-      this.setState({decks});
-    });
-  },
   getInitialState: function() {
     return {
       pieces: [ ],
@@ -61,6 +43,7 @@ var DeckBuilder = React.createClass({
       selectedCardInDeck: null,
       selectedCardInCollection: null,
       game: this.props.game,
+      decks: this.props.decks,
       selectedDeck: 'New Deck',
     }
   },
@@ -155,6 +138,7 @@ var DeckBuilder = React.createClass({
     } else {
       return [];
     }
+    return this.state.decks[this.state.selectedDeck] || [];
   },
   selectDeck: function(deck) {
     this.setState({

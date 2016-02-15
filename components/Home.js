@@ -90,7 +90,7 @@ var Home = React.createClass({
     );
     GameCenterManager.clearMatch();
     // Load in a default preset deck.
-    AsyncStorage.getItem('decks', function(error, result) {
+    AsyncStorage.getItem('decks', (error, result) => {
       console.log(error);
       console.log(result);
       if (result == null) {
@@ -119,12 +119,21 @@ var Home = React.createClass({
             'archbishop',
           ]
         };
-        AsyncStorage.setItem('decks', JSON.stringify(decks), function(error) {
+        AsyncStorage.setItem('decks', JSON.stringify(decks), (error) => {
           console.log(error);
         });
+        this.setState({
+          decks: decks,
+        });
       } else {
+        this.setState({
+          decks: JSON.parse(result),
+        });
       }
     });
+  },
+  getInitialState: function() {
+    return {};
   },
   componentWillUnmount: function() {
     subscription.remove();
@@ -137,7 +146,6 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
-    console.log(game);
     if (game.plys.length < 2 && yourTurn) {
     this.props.navigator.push({
       component: DeckBuilder,
@@ -152,6 +160,7 @@ var Home = React.createClass({
           game,
           baseGame,
           yourTurn,
+          decks: this.state.decks,
           route: 'PlayView'
         }),
       });
@@ -192,7 +201,7 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: DeckBuilder,
       title: 'My Collection',
-      passProps: ({game}),
+      passProps: ({game, decks: this.state.decks}),
     });
   },
   render: function() {
