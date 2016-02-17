@@ -84,8 +84,6 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
 }));
 
 var uncompressGame = function(game) {
-  console.log('uncompress');
-  console.log(game);
   var baseGame = Types.Game.of(R.evolve({
     board: R.compose(Types.Board.of, R.evolve({
       pieces: R.map(R.compose(Types.Piece.of, R.evolve({

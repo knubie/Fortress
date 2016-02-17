@@ -110,6 +110,7 @@ var PlayView = React.createClass({
     }
   },
   clickCard: function(card, index) {
+    console.log('click card');
     this.selectCard(index);
   },
   selectCard: function(card) {
@@ -289,7 +290,7 @@ var PlayView = React.createClass({
           possibleCaptures={this.state.possibleCaptures}
           playingFromWhitesPerspective={this.state.playerColor === 'white'}
           selectedPiece={this.state.selectedPiece}
-          lastMove={R.head(R.reverse(this.state.game.plys))}
+          lastPly={R.head(R.reverse(this.state.game.plys))}
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
@@ -310,6 +311,7 @@ var PlayView = React.createClass({
               <PieceCard
                 card={card}
                 index={index}
+                left={(cardWidth + 10) + ((cardWidth + 10) * parseInt(i))}
                 //piece={piece}
                 //selected={R.equals(this.state.selectedPiece, piece)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}

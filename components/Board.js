@@ -24,13 +24,10 @@ var Board = React.createClass({
     }
   },
   getLastMove: function() {
-    // FIXME: make this less birttle
-    if (this.props.lastMove === 'draft' || this.props.lastMove == null || this.props.lastMove === 'draw') {
-      return [Types.Position.of({x: -1, y: -1}),
-              Types.Position.of({x: -1, y: -1})];
-    } else {
-      return this.props.lastMove
-    }
+    return [
+      R.path(['position'], this.props.lastPly),
+      R.path(['piece', 'position'], this.props.lastPly),
+    ];
   },
   render: function() {
     var returnPiece = piece => {
@@ -40,10 +37,14 @@ var Board = React.createClass({
                         piece={piece}
                         onClick={this.props.clickPiece}
                         key={''+piece.x+piece.y}
-                        selected={
-                          R.whereEq({x: piece.position.x, y: piece.position.y},
-                          R.prop('position',
-                                 (this.props.selectedPiece || {position: {}})))}
+                        movedLast={
+                          R.any(R.whereEq(piece.position), this.getLastMove())
+                        }
+                        attacked={R.find(R.whereEq(piece.position), this.props.possibleMoves)}
+                        selected={R.whereEq(
+                          piece.position,
+                          (R.path(['position'], this.props.selectedPiece) || {})
+                        )}
                       ></Piece>;
     }
     return (
@@ -73,7 +74,7 @@ var Board = React.createClass({
                         R.whereEq({x,y},
                         R.prop('position',
                                (this.props.selectedPiece || {position: {}})))}
-                      highlightLastMove={
+                      movedLast={
                         R.any(R.whereEq({x, y}), this.getLastMove())
                       }
                       onClick={this.props.clickSquare}

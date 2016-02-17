@@ -10,9 +10,7 @@ var PieceDisplay = require('../lib/piece-display');
 var Chess = require('../engine/Main');
 var Cards = require('../engine/Cards');
 var Types = require('../engine/Types');
-
 var PieceDisplay = require('../lib/piece-display');
-
 var GameCenter = require('../back-ends/game-center')
 
 var {
@@ -30,12 +28,20 @@ var {
   ScrollView,
 } = React;
 
+var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
+var cardHeight = cardWidth * 1.5;
+
 var boardSize = 8;
 
 var MAX_DECK_SIZE = 20;
 var HAND_SIZE = 4;
 var DeckBuilder = React.createClass({
   getInitialState: function() {
+    this.deckScrollOffset = 0;
+    this.startDragY = 0;
+    this.startDragX = 0;
+    this.draggedCardTop = 0;
+    this.draggedCardLeft = 0;
     return {
       pieces: [ ],
       points: 0,
@@ -43,25 +49,33 @@ var DeckBuilder = React.createClass({
       selectedCardInDeck: null,
       selectedCardInCollection: null,
       game: this.props.game,
-      decks: this.props.decks,
+      //decks: this.props.decks,
+      decks: R.map((deck) => {
+        return R.values(R.mapObjIndexed((card, i) => { return {name: card, key: i}; }, deck));
+      }, this.props.decks),
+      collection: R.values(R.mapObjIndexed((card, i) => {
+        return {name: card, key: i};
+      }, R.keys(Cards))),
       selectedDeck: 'New Deck',
+      enableCollectionScroll: true,
+      draggedCard: 'pawn',
+      showDraggedCard: false,
+      draggedCardTop: -100,
+      draggedCardLeft: -100,
+      draggedCardY: 0,
+      draggedCardX: 0,
     }
   },
   next: function() {
     var oppositeColor = function(color) {
       return color === 'white' ? 'black' : 'white';
     }
-    if (this.deck().length > MAX_DECK_SIZE) {
+    if (this.getDeck().length > MAX_DECK_SIZE) {
       alert('You have too many cards.');
     } else {
       // TODO move this into the engine.
+      //var colorIndex = Chess.colorToIndex(this.state.game.turn);
       var colorIndex = this.state.game.turn === 'white' ? 0 : 1;
-      //this.setState({
-        //game: R.assoc(
-                //'decks',
-                //adjust(always(this.state.selectedDeck), colorIndex, this.state.game.decks),
-                //this.state.game)
-      //});
       var drawHand = function drawHand(game) {
         // HAND_SIZE + colorIndex -> give black an extra card.
         if (game.hands[colorIndex].length < HAND_SIZE + colorIndex) {
@@ -73,13 +87,22 @@ var DeckBuilder = React.createClass({
       var game = Types.Game.of(R.evolve({
         turn: oppositeColor,
         plys: R.append('draft'),
+      // Update decks with user's created deck
       }, drawHand(R.assoc(
         'decks',
-        adjust(always(Chess.shuffle(this.state.decks[this.state.selectedDeck])), colorIndex, this.state.game.decks),
+        adjust(
+          always(
+            Chess.shuffle(
+              // Turn deck into [String]
+              R.map(R.prop('name'), this.state.decks[this.state.selectedDeck])
+            )
+          ),
+          colorIndex,
+          this.state.game.decks
+        ),
         this.state.game)
       )));
       GameCenter.endTurnWithGame(game);
-      //GameCenter.endTurnWithNextParticipants(game);
       this.props.navigator.replace({
         component: PlayView,
         title: 'Play the game',
@@ -91,33 +114,31 @@ var DeckBuilder = React.createClass({
     this.props.navigator.pop();
   },
   removeFromDeck: function() {
-    console.log('remove from deck');
-    // FIXME: something breaks when removing the bank
-    if (this.state.selectedCardInDeck != null) {
-      this.setState({
-        selectedCardInDeck: null,
-        decks:  R.assoc(
-                  this.state.selectedDeck,
-                  R.remove(
-                    this.state.selectedCardInDeck, 1,
-                    this.state.decks[this.state.selectedDeck]
-                  ),
-                  //R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
-                  this.state.decks
-                )
-      });
-    }
+    //if (this.state.selectedCardInDeck != null) {
+      //this.setState({
+        //selectedCardInDeck: null,
+        //decks:  R.assoc(
+                  //this.state.selectedDeck,
+                  //R.remove(
+                    //this.state.selectedCardInDeck, 1,
+                    //this.state.decks[this.state.selectedDeck]
+                  //),
+                  ////R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
+                  //this.state.decks
+                //)
+      //});
+    //}
   },
   addToDeck: function() {
-    if (this.state.selectedCardInCollection != null) {
-      this.setState({
-        decks:  R.assoc(
-                  this.state.selectedDeck,
-                  R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
-                  this.state.decks
-                )
-      });
-    }
+    //if (this.state.selectedCardInCollection != null) {
+      //this.setState({
+        //decks:  R.assoc(
+                  //this.state.selectedDeck,
+                  //R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
+                  //this.state.decks
+                //)
+      //});
+    //}
   },
   clickCardInCollection: function(card, index) {
     this.setState({
@@ -131,13 +152,7 @@ var DeckBuilder = React.createClass({
       selectedCardInCollection: null,
     });
   },
-  deck: function() {
-    // TODO if deck init is moved to Home, might not need this.
-    if (this.state.decks && this.state.decks[this.state.selectedDeck]) {
-      return this.state.decks[this.state.selectedDeck];
-    } else {
-      return [];
-    }
+  getDeck: function() {
     return this.state.decks[this.state.selectedDeck] || [];
   },
   selectDeck: function(deck) {
@@ -175,10 +190,121 @@ var DeckBuilder = React.createClass({
         }}
       ]
     );
+  },
+  onCollectionCardStartShouldSetResponder: function(e, card) {
+    this.startDragY = e.nativeEvent.pageY;
+    this.startDragX = e.nativeEvent.pageX;
+    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+    this.setState({
+      draggedCard: card,
+      draggedCardX: 0,
+      draggedCardY: 0,
+    });
+  },
+  onCollectionCardResponderGrant: function(e, card, index) {
+    this.setState({
+      selectedCardInDeck: null,
+      selectedCardInCollection: index,
+      enableCollectionScroll: false,
+      draggedCardTop: this.draggedCardTop,
+      draggedCardLeft: this.draggedCardLeft,
+    });
+  },
+  onCollectionCardResponderRelease: function(e, card) {
+    //FIXME: don't hardcode this!
+    var left = -24 + this.deckScrollOffset;
+    var margin = 10;
+    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100) {
+      this.setState({
+        enableCollectionScroll: true,
+        draggedCard: 'pawn',
+        draggedCardTop: -100,
+        draggedCardLeft: -100,
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  R.insert(
+                    R.min(
+                      this.state.decks[this.state.selectedDeck].length,
+                      dragIndex
+                    ),
+                    {name: card, key: R.filter(R.identity, this.state.decks[this.state.selectedDeck]).length < 1 ? 0 : (Math.max.apply(null, R.map(R.prop('key'), R.filter(R.identity, this.state.decks[this.state.selectedDeck]))) + 1)},
+                    // Remove any null placeholders
+                    R.filter(R.identity, this.state.decks[this.state.selectedDeck])
+                    //this.state.decks[this.state.selectedDeck]
+                  ),
+                  this.state.decks
+                )
+      });
+    } else {
+      this.setState({
+        enableCollectionScroll: true,
+        showDraggedCard: false,
+        draggedCard: 'pawn',
+        draggedCardTop: -100,
+        draggedCardLeft: -100,
+      });
+    }
+  },
+  onCollectionCardResponderMove: function(e, card) {
+    var left = -24 + this.deckScrollOffset;
+    var margin = 10;
+    var getIndex = function(x) {
+      return Math.floor(((x + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    }
 
+
+    this.setState({
+      draggedCardX: e.nativeEvent.pageX - this.startDragX,
+      draggedCardY: e.nativeEvent.pageY - this.startDragY,
+    });
+    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    var selectedDeck = this.state.decks[this.state.selectedDeck];
+    var nullIndex = this.state.decks[this.state.selectedDeck].indexOf(null);
+    if (e.nativeEvent.pageY < 170) {
+      if (selectedDeck[dragIndex] != null) {
+        this.setState({
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    R.insert(
+                      R.min(
+                        this.state.decks[this.state.selectedDeck].length,
+                        dragIndex
+                      ),
+                      null,
+                      R.filter(R.identity, this.state.decks[this.state.selectedDeck])
+                    ),
+                    this.state.decks
+                  )
+        });
+      }
+    } else {
+      if (nullIndex !== -1) {
+        console.log('removing null');
+        this.setState({
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    R.filter(R.identity, this.state.decks[this.state.selectedDeck]),
+                    this.state.decks
+                  )
+        });
+      }
+    }
+  },
+  onDeckScroll: function(e) {
+    this.deckScrollOffset = e.nativeEvent.contentOffset.x;
+  },
+  getSelectedCard: function() {
+    if (this.state.selectedCardInCollection != null) {
+      return this.state.collection[this.state.selectedCardInCollection].name;
+    } else if (this.state.selectedCardInDeck != null) {
+      return this.state.decks[this.state.selectedDeck][this.state.selectedCardInCollection].name;
+    } else {
+      return null;
+    }
   },
   render: function() {
-    var _this = this;
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
@@ -214,6 +340,29 @@ var DeckBuilder = React.createClass({
           <Text style={styles.buttonText}>Remove from Deck</Text>
        </TouchableElement>) : null;
 
+    var draggedCard = (
+      <PieceCard
+        card={this.state.draggedCard}
+        index={0}
+        key={0}
+        selected={false}
+        style={[
+          styles.draggedCard,
+          {
+            'left': this.state.draggedCardLeft,
+            'top': this.state.draggedCardTop,
+            'transform': [
+              {translateX: this.state.draggedCardX},
+              {translateY: this.state.draggedCardY},
+            ],
+          }
+        ]}
+      />
+    );
+
+    //console.log(this.getDeck());
+    //console.log(this.state.collection);
+
     return (
       <View style={styles.outerContainer}>
         <View style={styles.titleContainer}>
@@ -221,7 +370,7 @@ var DeckBuilder = React.createClass({
             ⬅︎
           </Text>
           <Text style={styles.navigation}>
-            Deck: {this.deck().length} / {MAX_DECK_SIZE}
+            Deck: {this.getDeck().length} / {MAX_DECK_SIZE}
           </Text>
           <Text onPress={this.next} style={styles.navigation}>
             Next
@@ -233,17 +382,23 @@ var DeckBuilder = React.createClass({
         <View style={[styles.scrollViewContainer, styles.deck]}>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
+                      onScroll={this.onDeckScroll}
                       showsHorizontalScrollIndicator={false}
+                      scrollEventThrottle={16}
                       contentContainerStyle={styles.scrollView}>
-            {R.values(R.mapObjIndexed((card, i, deck) => {return (
+            <View style={{
+              width: (cardWidth + 10) * this.getDeck().length
+            }}/>
+            {R.reverse(R.values(R.mapObjIndexed((card, i, deck) => {return card == null ? null : (
               <PieceCard
-                card={card}
+                card={card.name}
                 index={parseInt(i)}
-                key={parseInt(i)}
+                key={parseInt(card.key)}
                 selected={R.equals(this.state.selectedCardInDeck, parseInt(i))}
+                left={(cardWidth + 10) * parseInt(i)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
                 onPress={this.clickCardInDeck}/>
-            )}, this.deck()))}
+            )}, this.getDeck())))}
           </ScrollView>
         </View>
         <View style={styles.buttonContainer}>
@@ -252,32 +407,42 @@ var DeckBuilder = React.createClass({
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
+                      snapToInterval={cardWidth + 10}
+                      scrollEnabled={this.state.enableCollectionScroll}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>
-            {R.values(R.mapObjIndexed((card, i, deck) => {return (
+            <View style={{
+              width: (cardWidth + 10) * this.state.collection.length
+            }}/>
+            {R.reverse(R.values(R.mapObjIndexed((card, i, deck) => {return (
               <PieceCard
-                card={card}
+                card={card.name}
                 index={parseInt(i)}
-                key={parseInt(i)}
+                key={parseInt(card.key)}
+                left={(cardWidth + 10) * parseInt(i)}
                 selected={R.equals(this.state.selectedCardInCollection, parseInt(i))}
+                onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
+                onResponderGrant={this.onCollectionCardResponderGrant}
+                onResponderRelease={this.onCollectionCardResponderRelease}
+                onResponderMove={this.onCollectionCardResponderMove}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
 
                 onPress={this.clickCardInCollection}/>
-            )}, R.keys(Cards)))}
+            )}, this.state.collection)))}
           </ScrollView>
         </View>
-        <PieceInfo piece={this.state.selectedPiece}></PieceInfo>
+        <PieceInfo
+          card={this.getSelectedCard()}
+        ></PieceInfo>
         <View style={styles.buttonContainer}>
           {addToDeck}
           {removeFromDeck}
         </View>
+        {draggedCard}
       </View>
     );
   }
 });
-
-var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
-var cardHeight = cardWidth * 1.5;
 
 var styles = StyleSheet.create({
   outerContainer: {
@@ -360,6 +525,12 @@ var styles = StyleSheet.create({
     color: '#c4c4c4',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  draggedCard: {
+    position: 'absolute',
+    //top: 240,
+    //left: 0,
+    backgroundColor: 'rgba(0,0,0,0)',
   },
 });
 

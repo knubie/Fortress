@@ -35,45 +35,41 @@ var Piece = React.createClass({
       y: 0
     }
   },
+  changeColor: function(color) {
+    var val = {
+      'default selected': 0,
+      'selected': 1,
+      'default attacked': 2,
+      'attacked': 3,
+    }
+    Animated.timing(                          // Base: spring, decay, timing
+      this.state.backgroundColor,                 // Animate `bounceValue`
+      {
+        toValue: val[color],
+        duration: 150, // milliseconds
+        delay: 0, // milliseconds
+        easing: Easing.linear,
+      }
+    ).start();
+    Animated.timing(                          // Base: spring, decay, timing
+      this.state.borderBottomColor,                 // Animate `bounceValue`
+      {
+        toValue: val[color],
+        duration: 150, // milliseconds
+        delay: 0, // milliseconds
+        easing: Easing.linear,
+      }
+    ).start();
+  },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.selected) {
-      Animated.timing(                          // Base: spring, decay, timing
-        this.state.backgroundColor,                 // Animate `bounceValue`
-        {
-          toValue: 1,
-          duration: 150, // milliseconds
-          delay: 0, // milliseconds
-          easing: Easing.linear,
-        }
-      ).start();
-      Animated.timing(                          // Base: spring, decay, timing
-        this.state.borderBottomColor,                 // Animate `bounceValue`
-        {
-          toValue: 1,
-          duration: 150, // milliseconds
-          delay: 0, // milliseconds
-          easing: Easing.linear,
-        }
-      ).start();
-    } else {
-      Animated.timing(                          // Base: spring, decay, timing
-        this.state.backgroundColor,                 // Animate `bounceValue`
-        {
-          toValue: 0,
-          duration: 150, // milliseconds
-          delay: 0, // milliseconds
-          easing: Easing.linear,
-        }
-      ).start();
-      Animated.timing(                          // Base: spring, decay, timing
-        this.state.borderBottomColor,                 // Animate `bounceValue`
-        {
-          toValue: 0,
-          duration: 150, // milliseconds
-          delay: 0, // milliseconds
-          easing: Easing.linear,
-        }
-      ).start();
+      this.changeColor('selected');
+    } else if (nextProps.attacked) {
+      this.changeColor('attacked');
+    } else if (!nextProps.selected && this.state.backgroundColor._value === 1) {
+      this.changeColor('default selected');
+    } else if (!nextProps.attacked && this.state.backgroundColor._value === 3) {
+      this.changeColor('default selected');
     }
   },
   setPosition: function(e) {
@@ -116,13 +112,37 @@ var Piece = React.createClass({
   render: function() {
       //borderBottomColor: new Animated.Value('rgba(69, 69, 69, 100)'),
     var backgroundColor = this.state.backgroundColor.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgba(96, 96, 96, 100)', 'rgba(56, 117, 164, 1)'],
+      inputRange: [
+        0, // default
+        1, // blue
+        2, // default
+        3, // red
+      ],
+      outputRange: [
+        'rgba(96, 96, 96, 1)',
+        'rgba(56, 117, 164, 1)',
+        'rgba(96, 96, 96, 1)',
+        'rgba(201, 40, 51, 1)',
+      ],
     });
     var borderBottomColor = this.state.backgroundColor.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['rgba(69, 69, 69, 100)', 'rgba(41, 85, 118, 1)'],
+      inputRange: [
+        0,
+        1,
+        2,
+        3,
+      ],
+      outputRange: [
+        'rgba(69, 69, 69, 1)',
+        'rgba(41, 85, 118, 1)',
+        'rgba(69, 69, 69, 1)',
+        'rgba(114, 30, 52, 1)',
+      ],
     });
+    var movedLastStyles = this.props.movedLast &&
+                          !this.props.selected &&
+                          !this.props.attacked ?
+      {borderWidth: 2, borderColor: '#A1A1A1'} : null;
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
@@ -131,12 +151,18 @@ var Piece = React.createClass({
     if (R.contains('royal', this.props.piece.types)) {
       type = <Image style={styles.touchable} source={require('../assets/tile-royal.png')}/>;
     }
-    var className = "piece";
     return (
-      <TouchableWithoutFeedback onPress={this.onClick}>
+      <TouchableWithoutFeedback
+        style={{
+          position: 'absolute',
+          top: 0, left: 0,
+        }}
+        onPress={this.onClick}
+      >
         <Animated.View
           style={[
             styles.tile,
+            movedLastStyles,
             {backgroundColor: backgroundColor,
               borderBottomColor: borderBottomColor},
           ]}

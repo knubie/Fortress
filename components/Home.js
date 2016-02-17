@@ -150,7 +150,7 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: DeckBuilder,
       title: 'My Collection',
-      passProps: ({ game, yourTurn, route: 'DeckBuilder' }),
+      passProps: ({ game, yourTurn, decks: this.state.decks, route: 'DeckBuilder' }),
     });
     } else {
       this.props.navigator[method]({

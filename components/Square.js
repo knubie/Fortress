@@ -86,9 +86,19 @@ var Square = React.createClass({
       inputRange: [0, 1],
       outputRange: ['rgba(53, 53, 53, 1)', 'rgba(61,67,72,1)'],
     });
+
+    var movedLastStyles = this.props.movedLast && !this.props.highlight ?
+      {borderWidth: 2, borderColor: '#4A4A4A'} : null;
+
     return (
       <TouchableHighlight onPress={this.onClick}>
-        <Animated.View style={[{transform: [{scale: this.state.scale}] }, styles.square, {backgroundColor: backgroundColor}]}>
+        <Animated.View
+          style={[
+            {transform: [{scale: this.state.scale}] },
+            styles.square,
+            movedLastStyles,
+            {backgroundColor: backgroundColor}
+        ]}>
           {this.props.children}
         </Animated.View>
       </TouchableHighlight>

@@ -38,9 +38,6 @@ var PieceInfo = React.createClass({
           </View>
         </View>
       );
-      //return (<Tag type={'movement'}
-                   //text={direction + ' ' + conditions + distance + '(' + p.movement + ')'}
-              ///>);
     }, parlett);
   },
   ability: function() {
@@ -86,12 +83,31 @@ var PieceInfo = React.createClass({
       );
     }
 
+    var types;
+    if (R.is(Types.Piece, this.props.card)) {
+      types = R.map((type) => {
+        if (type === 'royal') {
+         return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
+        } else if (type === 'ranged') {
+         return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
+        }
+       }, this.props.card.types || [])
+    } else if (Pieces[this.props.card]) {
+      types = R.map((type) => {
+        if (type === 'royal') {
+         return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
+        } else if (type === 'ranged') {
+         return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
+        }
+       }, Pieces[this.props.card].types || [])
+    }
     var movementTags = null;
-    if (Pieces[this.props.card]) {
+    if (R.is(Types.Piece, this.props.card)) {
+      movementTags = this.movementTags(this.props.card.parlett);
+    } else if (Pieces[this.props.card]) {
       movementTags = this.movementTags(Pieces[this.props.card].parlett);
     }
 
-    console.log(this.props.card);
     var pieceDisplay = R.is(Types.Piece, this.props.card) ?
       PieceDisplay[this.props.card.name] :
       PieceDisplay[this.props.card];
@@ -100,6 +116,7 @@ var PieceInfo = React.createClass({
       <View style={styles.pieceDisplayContainer}>
         <View style={styles.textContainer}>
           <View style={styles.title}>
+            {types}
             <Text style={styles.name}>{pieceDisplay.displayName}</Text>
           </View>
           <Text style={styles.description}>
