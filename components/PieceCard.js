@@ -20,11 +20,8 @@ var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
 var PieceCard = React.createClass({
   shouldComponentUpdate: function(nextProps, nextState) {
-    if (R.equals(nextProps, this.props) && R.equals(nextState, this.state)) {
-      return false;
-    } else {
-      return true;
-    }
+    return R.not(R.and(R.equals(nextProps, this.props),
+            R.equals(nextState, this.state)))
   },
   propTypes: {
     card: React.PropTypes.string.isRequired,
@@ -81,6 +78,8 @@ var PieceCard = React.createClass({
     this.startDragX = e.nativeEvent.pageX;
     this.isDragging = false;
     this.isScrolling = false;
+    this.startDragTime = e.nativeEvent.timestamp;
+    // TODO: eventually take this exist check out
     if (this.props.onStartShouldSetResponder != null) {
       this.props.onStartShouldSetResponder(e, this.props.card);
     }
@@ -98,17 +97,22 @@ var PieceCard = React.createClass({
     this.isDragging = false;
   },
   onResponderMove: function(e, gestureState) {
-    if (Math.abs(this.startDragY - e.nativeEvent.pageY) > 6 &&
-        !this.isDragging && !this.isScrolling) {
-      this.isDragging = true;
-      this.props.onResponderGrant(e, this.props.card, this.props.index);
-    }
-    if (Math.abs(this.startDragX - e.nativeEvent.pageX) > 1 &&
-        !this.isDragging && !this.isScrolling) {
+    var dx = Math.abs(this.startDragX - e.nativeEvent.pageX);
+    var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
+    if (dx > dy && !this.isScrolling && !this.isDragging) {
       this.isScrolling = true;
+    } else if (dx < dy && !this.isScrolling && !this.isDragging) {
+      this.isDragging = true;
+      // TODO: eventually take this exist check out
+      if (this.props.onResponderGrant != null) {
+        this.props.onResponderGrant(e, this.props.card, this.props.index);
+      }
     }
     if (this.isDragging) {
-      this.props.onResponderMove(e, this.props.card);
+      // TODO: eventually take this exist check out
+      if (this.props.onResponderMove != null) {
+        this.props.onResponderMove(e, this.props.card);
+      }
     }
   },
   onResponderRelease: function(e, gestureState) {
@@ -138,12 +142,24 @@ var PieceCard = React.createClass({
     var cardStyle = this.props.disabled ? [styles.card, styles.disabled] : styles.card;
     return (
       <Animated.View
-        style={[{position: 'absolute', top: 0, left: this.state.left || 0, }, this.props.style]}
+        style={[{
+          position: 'absolute',
+          top: 0,
+          left: this.state.left || 0,
+          backgroundColor: 'rgba(0,0,0,0)',
+        }, this.props.style]}
         //onPressIn={this.onPressIn}
         //onPressOut={this.onPressOut}
         //onPress={this.onPress}
       >
-        <Animated.View style={[cardStyle, {transform: [{scale: this.state.scale}] }]}>
+        <Animated.View
+          style={[
+            cardStyle,
+            {
+              opacity: this.props.invisible ? 0 : 1,
+              transform: [{scale: this.state.scale}]
+            }
+        ]}>
           <View style={[styles.cardBorder, borderStyle]}>
             <Image
               source={PieceDisplay[this.props.card].image['black']}
@@ -179,8 +195,12 @@ var styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#D8D8D8',
     shadowColor: '#000000',
-    shadowOpacity: 1,
-    shadowRadius: 4,
+    shadowOpacity: 0.5,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 3,
+      height: 3,
+    },
   },
   disabled: {
     opacity: 0.5,

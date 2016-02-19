@@ -58,6 +58,8 @@ var DeckBuilder = React.createClass({
       }, R.keys(Cards))),
       selectedDeck: 'New Deck',
       enableCollectionScroll: true,
+      enableDeckScroll: true,
+      invisibleCard: -1,
       draggedCard: 'pawn',
       showDraggedCard: false,
       draggedCardTop: -100,
@@ -66,11 +68,14 @@ var DeckBuilder = React.createClass({
       draggedCardX: 0,
     }
   },
+  selectedDeck: function() {
+    return this.state.decks[this.state.selectedDeck] || [];
+  },
   next: function() {
     var oppositeColor = function(color) {
       return color === 'white' ? 'black' : 'white';
     }
-    if (this.getDeck().length > MAX_DECK_SIZE) {
+    if (this.selectedDeck().length > MAX_DECK_SIZE) {
       alert('You have too many cards.');
     } else {
       // TODO move this into the engine.
@@ -94,7 +99,7 @@ var DeckBuilder = React.createClass({
           always(
             Chess.shuffle(
               // Turn deck into [String]
-              R.map(R.prop('name'), this.state.decks[this.state.selectedDeck])
+              R.map(R.prop('name'), this.selectedDeck())
             )
           ),
           colorIndex,
@@ -121,9 +126,9 @@ var DeckBuilder = React.createClass({
                   //this.state.selectedDeck,
                   //R.remove(
                     //this.state.selectedCardInDeck, 1,
-                    //this.state.decks[this.state.selectedDeck]
+                    //this.selectedDeck()
                   //),
-                  ////R.append(this.state.selectedPiece.name, this.state.decks[this.state.selectedDeck]),
+                  ////R.append(this.state.selectedPiece.name, this.selectedDeck()),
                   //this.state.decks
                 //)
       //});
@@ -134,7 +139,7 @@ var DeckBuilder = React.createClass({
       //this.setState({
         //decks:  R.assoc(
                   //this.state.selectedDeck,
-                  //R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.state.decks[this.state.selectedDeck]),
+                  //R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.selectedDeck()),
                   //this.state.decks
                 //)
       //});
@@ -152,9 +157,6 @@ var DeckBuilder = React.createClass({
       selectedCardInCollection: null,
     });
   },
-  getDeck: function() {
-    return this.state.decks[this.state.selectedDeck] || [];
-  },
   selectDeck: function(deck) {
     this.setState({
       selectedDeck: deck,
@@ -165,7 +167,7 @@ var DeckBuilder = React.createClass({
     AlertIOS.prompt('Save Deck', 'What do you want to call this deck?', (name) => {
       name = name || 'Untitled Deck';
       this.setState({
-        decks: R.assoc('New Deck', [], R.assoc(name, this.state.decks[this.state.selectedDeck], this.state.decks)),
+        decks: R.assoc('New Deck', [], R.assoc(name, this.selectedDeck(), this.state.decks)),
         selectedDeck: name
       });
       AsyncStorage.setItem('decks', JSON.stringify(this.state.decks), function(error) {
@@ -202,6 +204,15 @@ var DeckBuilder = React.createClass({
       draggedCardY: 0,
     });
   },
+  onDeckCardResponderGrant: function(e, card, index) {
+    this.setState({
+      selectedCardInCollection: null,
+      draggedCardTop: this.draggedCardTop,
+      draggedCardLeft: this.draggedCardLeft,
+      enableDeckScroll: false,
+      invisibleCard: index,
+    });
+  },
   onCollectionCardResponderGrant: function(e, card, index) {
     this.setState({
       selectedCardInDeck: null,
@@ -210,6 +221,32 @@ var DeckBuilder = React.createClass({
       draggedCardTop: this.draggedCardTop,
       draggedCardLeft: this.draggedCardLeft,
     });
+  },
+  onDeckCardResponderRelease: function(e, card) {
+    if (e.nativeEvent.pageY > 170) {
+      this.setState({
+        enableDeckScroll: true,
+        draggedCard: 'pawn',
+        draggedCardTop: -100,
+        draggedCardLeft: -100,
+        invisibleCard: -1,
+        removeInvisibleCard: false,
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  R.init(this.selectedDeck()),
+                  this.state.decks
+                )
+      });
+    } else {
+      this.setState({
+        enableDeckScroll: true,
+        draggedCard: 'pawn',
+        draggedCardTop: -100,
+        draggedCardLeft: -100,
+        invisibleCard: -1,
+        removeInvisibleCard: false,
+      });
+    }
   },
   onCollectionCardResponderRelease: function(e, card) {
     //FIXME: don't hardcode this!
@@ -226,13 +263,13 @@ var DeckBuilder = React.createClass({
                   this.state.selectedDeck,
                   R.insert(
                     R.min(
-                      this.state.decks[this.state.selectedDeck].length,
+                      this.selectedDeck().length,
                       dragIndex
                     ),
-                    {name: card, key: R.filter(R.identity, this.state.decks[this.state.selectedDeck]).length < 1 ? 0 : (Math.max.apply(null, R.map(R.prop('key'), R.filter(R.identity, this.state.decks[this.state.selectedDeck]))) + 1)},
+                    {name: card, key: R.filter(R.identity, this.selectedDeck()).length < 1 ? 0 : (Math.max.apply(null, R.map(R.prop('key'), R.filter(R.identity, this.selectedDeck()))) + 1)},
                     // Remove any null placeholders
-                    R.filter(R.identity, this.state.decks[this.state.selectedDeck])
-                    //this.state.decks[this.state.selectedDeck]
+                    R.filter(R.identity, this.selectedDeck())
+                    //this.selectedDeck()
                   ),
                   this.state.decks
                 )
@@ -240,54 +277,125 @@ var DeckBuilder = React.createClass({
     } else {
       this.setState({
         enableCollectionScroll: true,
-        showDraggedCard: false,
         draggedCard: 'pawn',
         draggedCardTop: -100,
         draggedCardLeft: -100,
       });
     }
   },
-  onCollectionCardResponderMove: function(e, card) {
-    var left = -24 + this.deckScrollOffset;
-    var margin = 10;
-    var getIndex = function(x) {
-      return Math.floor(((x + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
-    }
-
-
+  onDeckCardResponderMove: function(e, card) {
     this.setState({
       draggedCardX: e.nativeEvent.pageX - this.startDragX,
       draggedCardY: e.nativeEvent.pageY - this.startDragY,
     });
-    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
-    var selectedDeck = this.state.decks[this.state.selectedDeck];
-    var nullIndex = this.state.decks[this.state.selectedDeck].indexOf(null);
-    if (e.nativeEvent.pageY < 170) {
-      if (selectedDeck[dragIndex] != null) {
+    if (e.nativeEvent.pageY > 170) {
+      if (!this.state.removeInvisibleCard) {
         this.setState({
+          // TODO: this is misleadin because the card count will still reflect
+          // the card being in the deck.
+          removeInvisibleCard: true,
+          invisibleCard: this.selectedDeck().length - 1,
           decks:  R.assoc(
                     this.state.selectedDeck,
-                    R.insert(
-                      R.min(
-                        this.state.decks[this.state.selectedDeck].length,
-                        dragIndex
-                      ),
-                      null,
-                      R.filter(R.identity, this.state.decks[this.state.selectedDeck])
+                    R.append(
+                      this.selectedDeck()[this.state.invisibleCard],
+                      R.remove(this.state.invisibleCard, 1, this.selectedDeck())
                     ),
                     this.state.decks
                   )
         });
       }
     } else {
+      var left = -24 + this.deckScrollOffset;
+      var margin = 10;
+      var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+      if (this.state.removeInvisibleCard) {
+        this.setState({
+          removeInvisibleCard: false,
+          invisibleCard: R.min(
+                           this.selectedDeck().length - 1,
+                           dragIndex
+                         ),
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    R.insert(
+                      R.min(
+                        this.selectedDeck().length - 1,
+                        dragIndex
+                      ),
+                      R.head(R.reverse(this.selectedDeck())),
+                      R.init(this.selectedDeck())
+                    ),
+                    this.state.decks
+                  )
+        });
+      } else if (R.min(this.selectedDeck().length - 1, dragIndex) !== this.state.invisibleCard) {
+        console.log('need to rearrange');
+        this.setState({
+          invisibleCard: R.min(this.selectedDeck().length - 1, dragIndex),
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    R.insert(
+                      R.min(
+                        this.selectedDeck().length - 1,
+                        dragIndex
+                      ),
+                      this.selectedDeck()[this.state.invisibleCard],
+                      R.remove(this.state.invisibleCard, 1, this.selectedDeck())
+                    ),
+                    this.state.decks
+                  )
+        });
+      }
+    }
+  },
+  onCollectionCardResponderMove: function(e, card) {
+    var left = -24 + this.deckScrollOffset;
+    var margin = 10;
+
+    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    var selectedDeck = this.selectedDeck();
+    var nullIndex = this.selectedDeck().indexOf(null);
+    if (e.nativeEvent.pageY < 170) {
+      if (selectedDeck[dragIndex] != null) {
+        this.setState({
+          draggedCardX: e.nativeEvent.pageX - this.startDragX,
+          draggedCardY: e.nativeEvent.pageY - this.startDragY,
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    R.insert(
+                      R.min(
+                        this.selectedDeck().length,
+                        dragIndex
+                      ),
+                      null,
+                      R.filter(R.identity, this.selectedDeck())
+                    ),
+                    this.state.decks
+                  )
+        });
+      } else {
+        this.setState({
+          draggedCardX: e.nativeEvent.pageX - this.startDragX,
+          draggedCardY: e.nativeEvent.pageY - this.startDragY,
+        });
+      }
+    } else {
       if (nullIndex !== -1) {
         console.log('removing null');
         this.setState({
+          draggedCardX: e.nativeEvent.pageX - this.startDragX,
+          draggedCardY: e.nativeEvent.pageY - this.startDragY,
           decks:  R.assoc(
                     this.state.selectedDeck,
-                    R.filter(R.identity, this.state.decks[this.state.selectedDeck]),
+                    R.filter(R.identity, this.selectedDeck()),
                     this.state.decks
                   )
+        });
+      } else {
+        this.setState({
+          draggedCardX: e.nativeEvent.pageX - this.startDragX,
+          draggedCardY: e.nativeEvent.pageY - this.startDragY,
         });
       }
     }
@@ -299,7 +407,7 @@ var DeckBuilder = React.createClass({
     if (this.state.selectedCardInCollection != null) {
       return this.state.collection[this.state.selectedCardInCollection].name;
     } else if (this.state.selectedCardInDeck != null) {
-      return this.state.decks[this.state.selectedDeck][this.state.selectedCardInCollection].name;
+      return this.selectedDeck()[this.state.selectedCardInCollection].name;
     } else {
       return null;
     }
@@ -360,9 +468,6 @@ var DeckBuilder = React.createClass({
       />
     );
 
-    //console.log(this.getDeck());
-    //console.log(this.state.collection);
-
     return (
       <View style={styles.outerContainer}>
         <View style={styles.titleContainer}>
@@ -370,7 +475,7 @@ var DeckBuilder = React.createClass({
             ⬅︎
           </Text>
           <Text style={styles.navigation}>
-            Deck: {this.getDeck().length} / {MAX_DECK_SIZE}
+            Deck: {this.selectedDeck().length} / {MAX_DECK_SIZE}
           </Text>
           <Text onPress={this.next} style={styles.navigation}>
             Next
@@ -384,21 +489,28 @@ var DeckBuilder = React.createClass({
                       horizontal={true}
                       onScroll={this.onDeckScroll}
                       showsHorizontalScrollIndicator={false}
+                      scrollEnabled={this.state.enableDeckScroll}
                       scrollEventThrottle={16}
                       contentContainerStyle={styles.scrollView}>
             <View style={{
-              width: (cardWidth + 10) * this.getDeck().length
+              width: (cardWidth + 10) * this.selectedDeck().length
             }}/>
             {R.reverse(R.values(R.mapObjIndexed((card, i, deck) => {return card == null ? null : (
               <PieceCard
                 card={card.name}
                 index={parseInt(i)}
+                invisible={parseInt(i) === this.state.invisibleCard}
                 key={parseInt(card.key)}
                 selected={R.equals(this.state.selectedCardInDeck, parseInt(i))}
                 left={(cardWidth + 10) * parseInt(i)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
-                onPress={this.clickCardInDeck}/>
-            )}, this.getDeck())))}
+                onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
+                onResponderGrant={this.onDeckCardResponderGrant}
+                onResponderMove={this.onDeckCardResponderMove}
+                onResponderRelease={this.onDeckCardResponderRelease}
+                //onPress={this.clickCardInDeck}
+              />
+            )}, this.selectedDeck())))}
           </ScrollView>
         </View>
         <View style={styles.buttonContainer}>

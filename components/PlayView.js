@@ -305,6 +305,9 @@ var PlayView = React.createClass({
                 {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}/20
               </Text>
             </TouchableHighlight>
+            <View style={{
+              width: (cardWidth + 10) * this.state.game.hands[this.colorToIndex(this.state.playerColor)].length
+            }}/>
             {R.values(R.mapObjIndexed((card, i, deck) => {
               var index = parseInt(i);
               return (
