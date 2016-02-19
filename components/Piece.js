@@ -26,11 +26,11 @@ var Piece = React.createClass({
   },
   getInitialState: function() {
     //this._backgroundColor = new Animated.Value(0);
-    //this._borderBottomColor = new Animated.Value(0);
+    //this._shadowColor = new Animated.Value(0);
     return {
       dragging: false,
       backgroundColor: new Animated.Value(0),
-      borderBottomColor: new Animated.Value(0),
+      shadowColor: new Animated.Value(0),
       x: 0,
       y: 0
     }
@@ -52,7 +52,7 @@ var Piece = React.createClass({
       }
     ).start();
     Animated.timing(                          // Base: spring, decay, timing
-      this.state.borderBottomColor,                 // Animate `bounceValue`
+      this.state.shadowColor,                 // Animate `bounceValue`
       {
         toValue: val[color],
         duration: 150, // milliseconds
@@ -110,7 +110,7 @@ var Piece = React.createClass({
     this.props.onClick(this.props.piece);
   },
   render: function() {
-      //borderBottomColor: new Animated.Value('rgba(69, 69, 69, 100)'),
+      //shadowColor: new Animated.Value('rgba(69, 69, 69, 100)'),
     var backgroundColor = this.state.backgroundColor.interpolate({
       inputRange: [
         0, // default
@@ -125,7 +125,7 @@ var Piece = React.createClass({
         'rgba(201, 40, 51, 1)',
       ],
     });
-    var borderBottomColor = this.state.backgroundColor.interpolate({
+    var shadowColor = this.state.backgroundColor.interpolate({
       inputRange: [
         0,
         1,
@@ -142,7 +142,7 @@ var Piece = React.createClass({
     var movedLastStyles = this.props.movedLast &&
                           !this.props.selected &&
                           !this.props.attacked ?
-      {borderWidth: 2, borderColor: '#A1A1A1'} : null;
+      {borderWidth: 2, borderColor: '#7F7F7F'} : null;
     var TouchableElement = TouchableHighlight;
     if (Platform.OS === 'android') {
      TouchableElement = TouchableNativeFeedback;
@@ -164,7 +164,7 @@ var Piece = React.createClass({
             styles.tile,
             movedLastStyles,
             {backgroundColor: backgroundColor,
-              borderBottomColor: borderBottomColor},
+              shadowColor: shadowColor},
           ]}
         >
           <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
@@ -185,17 +185,22 @@ var styles = StyleSheet.create({
     top: 0,
     left: 0,
     width: squareSize,
-    height: squareSize,
+    height: squareSize - 3,
     borderRadius: 4,
-    borderBottomWidth: 3,
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
   },
   black: {
     backgroundColor: '#606060',
-    borderBottomColor: '#454545',
+    shadowColor: '#454545',
   },
   white: {
     backgroundColor: '#606060',
-    borderBottomColor: '#454545',
+    shadowColor: '#454545',
   },
   touchable: {
     position: 'relative',
@@ -210,7 +215,7 @@ var styles = StyleSheet.create({
   },
   selected: {
     backgroundColor: '#3875A4',
-    borderBottomColor: '#295576',
+    shadowColor: '#295576',
   },
 });
 
