@@ -26,7 +26,7 @@ var PieceCard = React.createClass({
   propTypes: {
     card: React.PropTypes.string.isRequired,
   },
-  componentWillReceiveProps: function(nextProps) {
+  componentWillUpdate: function(nextProps) {
     if (nextProps.left !== this.state.left._value) {
       Animated.timing(                          // Base: spring, decay, timing
         this.state.left,                 // Animate `bounceValue`
@@ -126,10 +126,10 @@ var PieceCard = React.createClass({
     }
   },
   onResponderTerminationRequest: function(e) {
-    return false;
+    return true;
   },
   onResponderTerminate: function(e) {
-    this.isDragging = false;
+    //this.isDragging = false;
   },
   render: function() {
     var borderStyle = styles.unselected;

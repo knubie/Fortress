@@ -15,6 +15,8 @@ var GameCenter = require('../back-ends/game-center')
 var TitleBar = require('./TitleBar.js');
 
 var {
+  Animated,
+  Easing,
   AlertIOS,
   AsyncStorage,
   Dimensions,
@@ -67,6 +69,24 @@ var DeckBuilder = React.createClass({
       draggedCardLeft: -100,
       draggedCardY: 0,
       draggedCardX: 0,
+      deckWidth: new Animated.Value(0),
+    }
+  },
+  componentWillMount: function() {
+    this.state.deckWidth.setValue((cardWidth + 10) * this.selectedDeck().length);
+
+  },
+  componentWillUpdate: function(nextProps, nextState) {
+    if (this.selectedDeck().length !== nextState.decks[nextState.selectedDeck].length) {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.deckWidth,                 // Animate `bounceValue`
+        {
+          toValue: (cardWidth + 10) * nextState.decks[nextState.selectedDeck].length,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
     }
   },
   selectedDeck: function() {
@@ -223,6 +243,23 @@ var DeckBuilder = React.createClass({
       draggedCardLeft: this.draggedCardLeft,
     });
   },
+  onDeckMoveShouldSetResponder: function() {
+    if (this.state.draggedCardTop > -100) {
+      return true;
+    } else {
+      return false;
+    }
+  },
+  onDeckResponderMove: function(e) {
+    if (this.state.draggedCardTop > -100) {
+      this.onDeckCardResponderMove(e)
+    } else {
+      return false;
+    }
+  },
+  onDeckResponderRelease: function(e) {
+    this.onDeckCardResponderRelease(e);
+  },
   onDeckCardResponderRelease: function(e, card) {
     if (e.nativeEvent.pageY > 170) {
       this.setState({
@@ -294,25 +331,31 @@ var DeckBuilder = React.createClass({
         this.setState({
           // TODO: this is misleadin because the card count will still reflect
           // the card being in the deck.
-          removeInvisibleCard: true,
-          invisibleCard: this.selectedDeck().length - 1,
+          removeInvisibleCard: this.selectedDeck()[this.state.invisibleCard],
+          invisibleCard: -1,
           decks:  R.assoc(
                     this.state.selectedDeck,
-                    R.append(
-                      this.selectedDeck()[this.state.invisibleCard],
-                      R.remove(this.state.invisibleCard, 1, this.selectedDeck())
-                    ),
+                    R.remove(this.state.invisibleCard, 1, this.selectedDeck()),
                     this.state.decks
                   )
+          //decks:  R.assoc(
+                    //this.state.selectedDeck,
+                    //R.append(
+                      //this.selectedDeck()[this.state.invisibleCard],
+                      //R.remove(this.state.invisibleCard, 1, this.selectedDeck())
+                    //),
+                    //this.state.decks
+                  //)
         });
       }
     } else {
       var left = -24 + this.deckScrollOffset;
       var margin = 10;
       var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+      //var normalized
       if (this.state.removeInvisibleCard) {
         this.setState({
-          removeInvisibleCard: false,
+          removeInvisibleCard: null,
           invisibleCard: R.min(
                            this.selectedDeck().length - 1,
                            dragIndex
@@ -324,14 +367,13 @@ var DeckBuilder = React.createClass({
                         this.selectedDeck().length - 1,
                         dragIndex
                       ),
-                      R.head(R.reverse(this.selectedDeck())),
-                      R.init(this.selectedDeck())
+                      this.state.removeInvisibleCard,
+                      this.selectedDeck()
                     ),
                     this.state.decks
                   )
         });
       } else if (R.min(this.selectedDeck().length - 1, dragIndex) !== this.state.invisibleCard) {
-        console.log('need to rearrange');
         this.setState({
           invisibleCard: R.min(this.selectedDeck().length - 1, dragIndex),
           decks:  R.assoc(
@@ -489,10 +531,11 @@ var DeckBuilder = React.createClass({
                       showsHorizontalScrollIndicator={false}
                       scrollEnabled={this.state.enableDeckScroll}
                       scrollEventThrottle={16}
+                      onMoveShouldSetResponder={this.onDeckMoveShouldSetResponder}
+                      onResponderMove={this.onDeckResponderMove}
+                      onResponderRelease={this.onDeckResponderRelease}
                       contentContainerStyle={styles.scrollView}>
-            <View style={{
-              width: (cardWidth + 10) * this.selectedDeck().length
-            }}/>
+            <Animated.View style={{width: this.state.deckWidth}}/>
             {R.reverse(R.values(R.mapObjIndexed((card, i, deck) => {return card == null ? null : (
               <PieceCard
                 card={card.name}
