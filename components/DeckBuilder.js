@@ -12,6 +12,7 @@ var Cards = require('../engine/Cards');
 var Types = require('../engine/Types');
 var PieceDisplay = require('../lib/piece-display');
 var GameCenter = require('../back-ends/game-center')
+var TitleBar = require('./TitleBar.js');
 
 var {
   AlertIOS,
@@ -216,7 +217,7 @@ var DeckBuilder = React.createClass({
   onCollectionCardResponderGrant: function(e, card, index) {
     this.setState({
       selectedCardInDeck: null,
-      selectedCardInCollection: index,
+      selectedCardInCollection: null,
       enableCollectionScroll: false,
       draggedCardTop: this.draggedCardTop,
       draggedCardLeft: this.draggedCardLeft,
@@ -470,17 +471,14 @@ var DeckBuilder = React.createClass({
 
     return (
       <View style={styles.outerContainer}>
-        <View style={styles.titleContainer}>
-          <Text onPress={this.back} style={styles.navigation}>
-            ⬅︎
-          </Text>
-          <Text style={styles.navigation}>
-            Deck: {this.selectedDeck().length} / {MAX_DECK_SIZE}
-          </Text>
-          <Text onPress={this.next} style={styles.navigation}>
-            Next
-          </Text>
-        </View>
+        <TitleBar
+          onLeftPress={this.back}
+          onCenterPress={() => { return; }}
+          onRightPress={this.next}
+          leftText={'‹'}
+          centerText={'Deck: ' + this.selectedDeck().length + ' / ' + MAX_DECK_SIZE}
+          rightText={'Next'}
+        />
         <View style={styles.deckList}>
           {decks}
         </View>

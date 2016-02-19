@@ -7,6 +7,7 @@ var Types = require('../engine/Types');
 var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
+var TitleBar = require('./TitleBar.js');
 
 var GameCenter = require('../back-ends/game-center')
 
@@ -19,7 +20,6 @@ var {
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
-  ProgressViewIOS,
   ScrollView,
   NativeAppEventEmitter,
 } = React;
@@ -273,17 +273,14 @@ var PlayView = React.createClass({
 
     return (
       <View>
-        <View style={styles.titleContainer}>
-          <Text onPress={this.back} style={styles.navigation}>
-            ‹ 
-          </Text>
-          <Text style={styles.turnMessage}>
-            {this.yourTurn() ? 'Your Turn' : 'Their Turn'}
-          </Text>
-          <Text style={styles.turnMessage}>
-            Gold: {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
-          </Text>
-        </View>
+        <TitleBar
+          onLeftPress={this.back}
+          onCenterPress={() => { return; }}
+          onRightPress={() => { return; }}
+          leftText={'‹'}
+          centerText={this.yourTurn() ? 'Your Turn' : 'Their Turn'}
+          rightText={'Gold: ' + this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
+        />
         <Board
           board={this.state.game.board}
           possibleMoves={this.state.possibleMoves}
