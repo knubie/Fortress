@@ -63,13 +63,15 @@ var Piece = React.createClass({
   },
   componentWillReceiveProps: function(nextProps) {
     if (nextProps.selected) {
+      this.state.backgroundColor.setValue(0);
       this.changeColor('selected');
     } else if (nextProps.attacked) {
+      this.state.backgroundColor.setValue(2);
       this.changeColor('attacked');
     } else if (!nextProps.selected && this.state.backgroundColor._value === 1) {
       this.changeColor('default selected');
     } else if (!nextProps.attacked && this.state.backgroundColor._value === 3) {
-      this.changeColor('default selected');
+      this.changeColor('default attacked');
     }
   },
   setPosition: function(e) {
