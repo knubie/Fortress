@@ -261,30 +261,14 @@ var DeckBuilder = React.createClass({
     this.onDeckCardResponderRelease(e);
   },
   onDeckCardResponderRelease: function(e, card) {
-    if (e.nativeEvent.pageY > 170) {
-      this.setState({
-        enableDeckScroll: true,
-        draggedCard: 'pawn',
-        draggedCardTop: -100,
-        draggedCardLeft: -100,
-        invisibleCard: -1,
-        removeInvisibleCard: false,
-        decks:  R.assoc(
-                  this.state.selectedDeck,
-                  R.init(this.selectedDeck()),
-                  this.state.decks
-                )
-      });
-    } else {
-      this.setState({
-        enableDeckScroll: true,
-        draggedCard: 'pawn',
-        draggedCardTop: -100,
-        draggedCardLeft: -100,
-        invisibleCard: -1,
-        removeInvisibleCard: false,
-      });
-    }
+    this.setState({
+      enableDeckScroll: true,
+      draggedCard: 'pawn',
+      draggedCardTop: -100,
+      draggedCardLeft: -100,
+      invisibleCard: -1,
+      removeInvisibleCard: null,
+    });
   },
   onCollectionCardResponderRelease: function(e, card) {
     //FIXME: don't hardcode this!
