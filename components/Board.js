@@ -25,8 +25,8 @@ var Board = React.createClass({
   },
   getLastMove: function() {
     return [
-      R.path(['position'], this.props.lastPly),
-      R.path(['piece', 'position'], this.props.lastPly),
+      R.path(['position'], this.props.lastPly) || {},
+      R.path(['piece', 'position'], this.props.lastPly) || {},
     ];
   },
   render: function() {
