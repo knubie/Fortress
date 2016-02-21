@@ -14,6 +14,7 @@ var {
   TouchableNativeFeedback,
 } = React;
 
+var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
 var Square = React.createClass({
   getInitialState: function() {
     return {
@@ -96,9 +97,9 @@ var Square = React.createClass({
           style={[
             {transform: [{scale: this.state.scale}] },
             styles.square,
-            movedLastStyles,
             {backgroundColor: backgroundColor}
         ]}>
+          <View style={[movedLastStyles, {borderRadius: 4, width: squareSize, height: squareSize, position: 'absolute', top: 0, left: 0}]}/>
           {this.props.children}
         </Animated.View>
       </TouchableHighlight>
@@ -106,7 +107,6 @@ var Square = React.createClass({
   }
 });
 
-var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
 var styles = StyleSheet.create({
   square: {
     width: squareSize,

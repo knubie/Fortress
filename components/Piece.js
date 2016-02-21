@@ -124,7 +124,7 @@ var Piece = React.createClass({
         'rgba(96, 96, 96, 1)',
         'rgba(56, 117, 164, 1)',
         'rgba(96, 96, 96, 1)',
-        'rgba(201, 40, 51, 1)',
+        'rgba(158, 0, 9, 1)',
       ],
     });
     var shadowColor = this.state.backgroundColor.interpolate({
@@ -138,7 +138,7 @@ var Piece = React.createClass({
         'rgba(69, 69, 69, 1)',
         'rgba(41, 85, 118, 1)',
         'rgba(69, 69, 69, 1)',
-        'rgba(114, 30, 52, 1)',
+        'rgba(100, 0, 6, 1)',
       ],
     });
     var movedLastStyles = this.props.movedLast &&
@@ -164,11 +164,11 @@ var Piece = React.createClass({
         <Animated.View
           style={[
             styles.tile,
-            movedLastStyles,
             {backgroundColor: backgroundColor,
               shadowColor: shadowColor},
           ]}
         >
+          <View style={[movedLastStyles, {borderRadius: 4, width: squareSize, height: squareSize - 3, position: 'absolute', top: 0, left: 0}]}/>
           <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
             style={[this.getDragStyle(), styles.touchable]}
           >
