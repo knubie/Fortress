@@ -215,6 +215,26 @@ var pieceCallbacks = {
       return newGame;
     })
   },
+  steal: {
+    // use :: Game -> Game
+    use: curry(function(game) {
+      var color = game.turn;
+      var playerIndex = colorToIndex(color);
+      var oppIndex = playerIndex === 0 ? 1 : 0;
+      return Game.of(evolve({
+        resources: compose(
+                     adjust(
+                       add(min(2, game.resources[oppIndex])),
+                       playerIndex
+                     ),
+                     adjust(
+                       subtract(__, min(2, game.resources[oppIndex])),
+                       oppIndex
+                     )
+                   )
+      }, game));
+    })
+  },
   teleporter: {
     // onCapture :: (Piece, Piece, Piece, Game) -> Game
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
@@ -682,6 +702,8 @@ module.exports = {
   getDefends,
   addPiece,
   getPieceAtPosition,
+  getAnyPieceAtPosition,
+  colorToIndex,
   makePly,
   isGameOver,
   draftPiece,

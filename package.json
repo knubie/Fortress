@@ -6,6 +6,7 @@
     "start": "react-native start"
   },
   "dependencies": {
+    "jasmine": "^2.4.1",
     "ramda": "^0.19.1",
     "react-native": "^0.17.0"
   }

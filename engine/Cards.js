@@ -7,6 +7,9 @@ module.exports = {
   'perception': {
     points: 1,
   },
+  'steal': {
+    points: 0,
+  },
   'pawn': {
     points: 1
   },
