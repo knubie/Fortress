@@ -85,7 +85,7 @@ var Home = React.createClass({
         if (data.match.yourTurn) {
           player.color = game.turn;
         }
-        this.loadMatch(game, baseGame);
+        this.loadMatch(game, baseGame, data.match.yourName, data.match.theirName);
       }
     );
     GameCenterManager.clearMatch();
@@ -138,7 +138,7 @@ var Home = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
-  loadMatch: function(game, baseGame) {
+  loadMatch: function(game, baseGame, yourName, theirName) {
     var method = 'push';
     if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
       method = 'push';
@@ -150,7 +150,12 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: DeckBuilder,
       title: 'My Collection',
-      passProps: ({ game, yourTurn, decks: this.state.decks, route: 'DeckBuilder' }),
+      passProps: ({
+        game,
+        yourTurn,
+        decks: this.state.decks,
+        route: 'DeckBuilder'
+      }),
     });
     } else {
       this.props.navigator[method]({
@@ -160,6 +165,8 @@ var Home = React.createClass({
           game,
           baseGame,
           yourTurn,
+          yourName,
+          theirName,
           decks: this.state.decks,
           route: 'PlayView'
         }),

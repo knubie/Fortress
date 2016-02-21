@@ -74,18 +74,8 @@ RCT_EXPORT_MODULE();
           matchData = [[NSString alloc] initWithData:rawMatchData
                                             encoding:NSUTF8StringEncoding];
         }
-        GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-        NSDictionary *event = @{
-                                @"match": @{
-                                    //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
-                                    @"matchID": match.matchID,
-                                    @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                                    @"newMatch": rawMatchData.length == 0 ? @(YES) : @(NO),
-                                    @"matchData": matchData,
-                                    //      @"message": match.message,
-                                    //      @"currentParticipant": match.currentParticipant.player.playerID,
-                                    }
-                                };
+        NSDictionary *event = [self createEventFromMatch:match andMatchData:rawMatchData];
+
         // TODO: only update if not your turn
         [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
       }
@@ -201,29 +191,8 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive
 {
   NSLog(@"received turn event for match");
-  NSString* matchData;
-  if (match.matchData.length == 0)
-  {
-    matchData = @"";
-    NSLog(@"match data is empty");
-  } else {
-    matchData = [[NSString alloc] initWithData:match.matchData
-                                  encoding:NSUTF8StringEncoding];
-    NSLog(@"match data is NOT empty");
-//        NSLog(matchData);
-  }
-  GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-  NSDictionary *event = @{
-                          @"match": @{
-                              //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
-                              @"matchID": match.matchID,
-                              @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                              @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
-                              @"matchData": matchData,
-                              //      @"message": match.message,
-                              //      @"currentParticipant": match.currentParticipant.player.playerID,
-                              }
-                          };
+  NSDictionary *event = [self createEventFromMatch:match andMatchData:match.matchData];
+
   // DidBecomeActive when launching from GKTurnBasedMatchmakerViewController
   if (didBecomeActive) {
     NSLog(@"did become active");
@@ -242,19 +211,12 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 //        NSLog(match.matchID);
 //    self.currentMatch = match;
     // Update matchdata?
-    NSDictionary *event = @{
-                            @"match": @{
-                                @"matchID": match.matchID,
-                                @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                                @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
-                                @"matchData": matchData,
-                                }
-                            };
-    // FIXME: Don't send this even unless the current match ID matches the new event match ID
+    NSDictionary *event = [self createEventFromMatch:match andMatchData:match.matchData];
 
     if ([match.matchID isEqualToString:self.currentMatch.matchID]) {
       NSLog(@"match is currentMatch");
       [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event];
+      self.currentMatch = match;
     } else {
       NSLog(@"currentMatch is NOT match");
       NSLog(@"incoming matchID:");
@@ -305,27 +267,8 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   
   UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
                                                           [[UIApplication sharedApplication]delegate] window] rootViewController];
-  
-  NSString* matchData;
-  if (match.matchData.length == 0)
-  {
-    matchData = @"";
-  } else {
-    matchData = [[NSString alloc] initWithData:match.matchData
-                                      encoding:NSUTF8StringEncoding];
-  }
-  GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-  NSDictionary *event = @{
-                          @"match": @{
-                              //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
-                              @"matchID": match.matchID,
-                              @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
-                              @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
-                              @"matchData": matchData,
-                              //      @"message": match.message,
-                              //      @"currentParticipant": match.currentParticipant.player.playerID,
-                              }
-                          };
+
+  NSDictionary *event = [self createEventFromMatch:match andMatchData:match.matchData];
   
   self.currentMatch = match;
   [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event];
@@ -361,6 +304,40 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
                                                           [[UIApplication sharedApplication]delegate] window] rootViewController];
   [rootController dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (NSDictionary *)createEventFromMatch:(GKTurnBasedMatch *) match andMatchData:(NSData *)rawMatchData {
+  NSString* matchData;
+  if (rawMatchData.length == 0)
+  {
+    matchData = @"";
+  } else {
+    matchData = [[NSString alloc] initWithData:rawMatchData
+                                      encoding:NSUTF8StringEncoding];
+  }
+  
+  GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+  
+  NSString *yourName = localPlayer.alias;
+  NSString *nameOne = match.participants[0].player.alias;
+  NSString *nameTwo = match.participants[1].player.alias;
+  NSString *theirName = nameOne == yourName ? nameTwo : nameOne;
+  theirName = theirName.length == 0 ? @"" : theirName;
+  
+  NSDictionary *event = @{
+                          @"match": @{
+                              //      @"creationDate": [NSNumber numberWithDouble:[match.creationDate timeIntervalSinceReferenceDate]],
+                              @"matchID": match.matchID,
+                              @"yourTurn": match.currentParticipant.player == localPlayer ? @(YES) : @(NO),
+                              @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
+                              @"matchData": matchData,
+                              @"yourName": yourName,
+                              @"theirName": theirName
+                              //      @"message": match.message,
+                              //      @"currentParticipant": match.currentParticipant.player.playerID,
+                              }
+                          };
+  return event;
 }
 
 
