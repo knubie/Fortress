@@ -274,7 +274,9 @@ var DeckBuilder = React.createClass({
     //FIXME: don't hardcode this!
     var left = -24 + this.deckScrollOffset;
     var margin = 10;
-    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
+    dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
+    //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
     if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100) {
       this.setState({
         enableCollectionScroll: true,
@@ -335,7 +337,9 @@ var DeckBuilder = React.createClass({
     } else {
       var left = -24 + this.deckScrollOffset;
       var margin = 10;
-      var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+      var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
+      dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
+      //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
       //var normalized
       if (this.state.removeInvisibleCard) {
         this.setState({
@@ -380,7 +384,9 @@ var DeckBuilder = React.createClass({
     var left = -24 + this.deckScrollOffset;
     var margin = 10;
 
-    var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
+    var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
+    dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
+    //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
     var selectedDeck = this.selectedDeck();
     var nullIndex = this.selectedDeck().indexOf(null);
     if (e.nativeEvent.pageY < 170) {
@@ -481,6 +487,7 @@ var DeckBuilder = React.createClass({
         index={0}
         key={0}
         selected={false}
+        hover={this.state.draggedCardTop > -100}
         style={[
           styles.draggedCard,
           {
