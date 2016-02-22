@@ -353,7 +353,7 @@ var pieceCallbacks = {
         color: equals(piece.color),
       }), game.board.pieces).length;
       return Game.of(evolve({
-        resources: adjust(compose(min(MAX_GOLD), add(1), add(amount)), index) // Add one to resources of same color as piece.
+        resources: adjust(compose(min(MAX_GOLD), add(amount)), index)
       }, game));
     }),
   },
