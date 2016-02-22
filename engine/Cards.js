@@ -70,10 +70,10 @@ module.exports = {
     points: 2
   },
   'wazir': {
-    points: 1.5
+    points: 1
   },
   'ferz': {
-    points: 1.5
+    points: 1
   },
   'archbishop': {
     points: 7
