@@ -342,7 +342,6 @@ var pieceCallbacks = {
     ability: curry(function(piece, game) {
       var index = piece.color === 'white' ? 0 : 1;
       var amount = filter(where({
-        name: equals('pawn'),
         color: equals(piece.color),
       }), game.board.pieces).length;
       return Game.of(evolve({
