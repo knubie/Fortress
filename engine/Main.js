@@ -137,7 +137,11 @@ var getDraftSquares = curry(function(board, card, color) {
     var yStart = 0;
     var yEnd = 1;
     // TODO bake this into Pieces.js
-    if (card === 'pawn' || card === 'berolina' || card === 'wall') {
+    if (card === 'pawn' ||
+        card === 'berolina' ||
+        card === 'wall' ||
+        card === 'ferz' ||
+        card === 'wazir') {
       var yEnd = 2;
     }
     moves = flatten(map(function(y) {
@@ -148,7 +152,11 @@ var getDraftSquares = curry(function(board, card, color) {
   } else {
     var yStart = board.size;
     var yEnd = board.size - 1;
-    if (card === 'pawn' || card === 'berolina' || card === 'wall') {
+    if (card === 'pawn' ||
+        card === 'berolina' ||
+        card === 'wall' ||
+        card === 'ferz' ||
+        card === 'wazir') {
       var yEnd = board.size - 2;
     }
     moves = flatten(map(function(y) {
