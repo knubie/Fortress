@@ -32,6 +32,7 @@ module.exports = {
       movement: '1/1',
       distance: 'n'
     }],
+    types: ['pious'],
     points: 3
   },
   'knight': {
@@ -39,6 +40,7 @@ module.exports = {
       movement: '1/2',
       distance: '1'
     }],
+    types: ['mounted'],
     points: 3
   },
   'rook': {
@@ -254,6 +256,7 @@ module.exports = {
       movement: '2/2',
       distance: '1'
     }],
+    types: ['mounted'],
     points: 2
   },
   'wazir': {
@@ -281,6 +284,7 @@ module.exports = {
         distance: 'n'
       }
     ],
+    types: ['pious', 'mounted'],
     points: 7
   },
   'empress': {
@@ -294,6 +298,7 @@ module.exports = {
         distance: 'n'
       }
     ],
+    types: ['mounted'],
     points: 8
   },
   'nightrider': {
@@ -301,6 +306,7 @@ module.exports = {
       movement: '1/2',
       distance: 'n'
     }],
+    types: ['mounted'],
     points: 9
   },
 };

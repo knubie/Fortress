@@ -452,4 +452,46 @@ describe('Pieces', function() {
     expect(newGame.resources[0]).toBe(5);
     expect(newGame.resources[1]).toBe(0);
   });
+  it('Church and State card should give +1(1/0) to all friendly Pious units on the board.', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'bishop',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        new Piece({
+          name: 'bishop',
+          color: 'white',
+          position: new Position({x: 4, y: 2})
+        }),
+        new Piece({
+          name: 'bishop',
+          color: 'black',
+          position: new Position({x: 4, y: 5})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [4, 1],
+      hands: [['church and state'], []],
+      decks: [[],[]],
+    });
+    var newGame = Chess.useCardPly('white', 0, { }, game);
+    expect(R.contains({
+      movement: '1/0',
+      distance: '1',
+    }, newGame.board.pieces[0].parlett)).toBe(true);
+    expect(R.contains({
+      movement: '1/0',
+      distance: '1',
+    }, newGame.board.pieces[1].parlett)).toBe(true);
+    expect(R.not(R.contains({
+      movement: '1/0',
+      distance: '1',
+    }, newGame.board.pieces[2].parlett))).toBe(true);
+  });
 });

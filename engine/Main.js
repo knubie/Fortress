@@ -209,6 +209,26 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'church and state': {
+    use: curry(function(game) {
+      return Game.of(evolve({
+        board: compose(Board.of, evolve({
+          pieces: map(function(piece) {
+            var parlett = {movement: '1/0', distance: '1'};
+            if (piece.color === game.turn &&
+                contains('pious', piece.types) &&
+                not(contains(parlett, piece.parlett))) {
+              return Piece.of(evolve({
+                parlett: append(parlett)
+              }, piece));
+            } else {
+              return piece
+            }
+          })
+        }))
+      }, game));
+    })
+  },
   perception: {
     use: curry(function(game) {
       var color = game.turn;

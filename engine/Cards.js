@@ -4,6 +4,9 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
+  'church and state': {
+    points: 3,
+  },
   'perception': {
     points: 1,
   },
