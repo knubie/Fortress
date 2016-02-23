@@ -274,12 +274,9 @@ var DeckBuilder = React.createClass({
   },
   // ScrollView responder just calls cardResponder.
   onDeckResponderRelease: function(e) {
-    this.onDeckCardResponderRelease(e);
+    this.onCardResponderRelease(e);
   },
-  onDeckCardResponderRelease: function(e, card) {
-    this.onCollectionCardResponderRelease(e, card);
-  },
-  onCollectionCardResponderRelease: function(e, card) {
+  onCardResponderRelease: function(e, card) {
     var e = e;
     var dragIndex = this.getDragIndex(e);
     if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100 && dragIndex > -1) {
@@ -315,6 +312,7 @@ var DeckBuilder = React.createClass({
         });
         this.setState({
           enableCollectionScroll: true,
+          enableDeckScroll: true,
           decks:  R.assoc(
                     this.state.selectedDeck,
                     // Insert new null placeholder
@@ -519,7 +517,7 @@ var DeckBuilder = React.createClass({
                 onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
                 onResponderGrant={this.onDeckCardResponderGrant}
                 onResponderMove={this.onCardResponderMove}
-                onResponderRelease={this.onDeckCardResponderRelease}
+                onResponderRelease={this.onCardResponderRelease}
                 //onPress={this.clickCardInDeck}
               />
             )}, this.selectedDeck())))}
@@ -547,7 +545,7 @@ var DeckBuilder = React.createClass({
                 selected={R.equals(this.state.selectedCardInCollection, parseInt(i))}
                 onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
                 onResponderGrant={this.onCollectionCardResponderGrant}
-                onResponderRelease={this.onCollectionCardResponderRelease}
+                onResponderRelease={this.onCardResponderRelease}
                 onResponderMove={this.onCardResponderMove}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
 
