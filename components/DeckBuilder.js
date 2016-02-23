@@ -67,14 +67,14 @@ var DeckBuilder = React.createClass({
       showDraggedCard: false,
       draggedCardTop: -100,
       draggedCardLeft: -100,
-      draggedCardY: 0,
-      draggedCardX: 0,
+      draggedCardY: new Animated.Value(0),
+      draggedCardX: new Animated.Value(0),
       deckWidth: new Animated.Value(0),
+      cardHover: false,
     }
   },
   componentWillMount: function() {
     this.state.deckWidth.setValue((cardWidth + 10) * this.selectedDeck().length);
-
   },
   componentWillUpdate: function(nextProps, nextState) {
     if (this.selectedDeck().length !== nextState.decks[nextState.selectedDeck].length) {
@@ -219,10 +219,10 @@ var DeckBuilder = React.createClass({
     this.startDragX = e.nativeEvent.pageX;
     this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
     this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+    this.state.draggedCardX.setValue(0);
+    this.state.draggedCardY.setValue(0);
     this.setState({
       draggedCard: card,
-      draggedCardX: 0,
-      draggedCardY: 0,
     });
   },
   onDeckCardResponderGrant: function(e, card, index) {
@@ -231,18 +231,32 @@ var DeckBuilder = React.createClass({
       draggedCardTop: this.draggedCardTop,
       draggedCardLeft: this.draggedCardLeft,
       enableDeckScroll: false,
-      invisibleCard: index,
+      cardHover: true,
+      decks:  R.assoc(
+                this.state.selectedDeck,
+                // Insert new null placeholder
+                R.insert(
+                  index,
+                  null,
+                  // Remove any other null placeholders
+                  R.filter(R.identity, R.remove(index, 1, this.selectedDeck()))
+                ),
+                this.state.decks
+              )
+      //invisibleCard: index,
     });
   },
   onCollectionCardResponderGrant: function(e, card, index) {
     this.setState({
-      selectedCardInDeck: null,
       selectedCardInCollection: null,
+      selectedCardInDeck: null,
       enableCollectionScroll: false,
       draggedCardTop: this.draggedCardTop,
       draggedCardLeft: this.draggedCardLeft,
+      cardHover: true,
     });
   },
+  // ScrollView should become responder in case Card is removed.
   onDeckMoveShouldSetResponder: function() {
     if (this.state.draggedCardTop > -100) {
       return true;
@@ -250,187 +264,150 @@ var DeckBuilder = React.createClass({
       return false;
     }
   },
+  // ScrollView responder just calls cardResponder.
   onDeckResponderMove: function(e) {
     if (this.state.draggedCardTop > -100) {
-      this.onDeckCardResponderMove(e)
+      this.onCardResponderMove(e)
     } else {
       return false;
     }
   },
+  // ScrollView responder just calls cardResponder.
   onDeckResponderRelease: function(e) {
     this.onDeckCardResponderRelease(e);
   },
   onDeckCardResponderRelease: function(e, card) {
-    this.setState({
-      enableDeckScroll: true,
-      draggedCard: 'pawn',
-      draggedCardTop: -100,
-      draggedCardLeft: -100,
-      invisibleCard: -1,
-      removeInvisibleCard: null,
-    });
+    this.onCollectionCardResponderRelease(e, card);
   },
   onCollectionCardResponderRelease: function(e, card) {
-    //FIXME: don't hardcode this!
+    var e = e;
+    var dragIndex = this.getDragIndex(e);
+    if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100 && dragIndex > -1) {
+      var left = -24 + this.deckScrollOffset;
+      this.setState({
+        cardHover: false,
+      });
+      Animated.timing(
+        this.state.draggedCardX,
+        {
+          toValue: ((dragIndex * (cardWidth + 10)) - left) - this.state.draggedCardLeft,
+          duration: 100,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+      Animated.timing(
+        this.state.draggedCardY,
+        {
+          toValue: 78.5 - this.state.draggedCardTop,
+          duration: 100,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start((result) => {
+        var filteredDeck = R.filter(R.identity, this.selectedDeck());
+        // Delay the remove over the draggedCard to avoid flickering.
+        requestAnimationFrame(() => {
+          this.setState({
+            draggedCardTop: -100,
+            draggedCardLeft: -100,
+          });
+        });
+        this.setState({
+          enableCollectionScroll: true,
+          decks:  R.assoc(
+                    this.state.selectedDeck,
+                    // Insert new null placeholder
+                    R.insert(
+                      dragIndex,
+                      {
+                        name: this.state.draggedCard,
+                        key: filteredDeck.length < 1 ? 0 :
+                               (Math.max.apply(null, R.map(R.prop('key'), filteredDeck)) + 1)
+                      },
+                      // Remove any other null placeholders
+                      filteredDeck
+                    ),
+                    this.state.decks
+                  )
+        });
+      });
+    } else {
+      this.state.draggedCardX.setValue(0);
+      this.state.draggedCardY.setValue(0);
+      this.setState({
+        cardHover: false,
+        draggedCardTop: -100,
+        draggedCardLeft: -100,
+      });
+    }
+  },
+  getDragIndex: function(e) {
     var left = -24 + this.deckScrollOffset;
     var margin = 10;
     var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
-    dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
-    //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
-    if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100) {
+    var invisibleCard = this.selectedDeck().indexOf(null) !== -1 ? this.selectedDeck().indexOf(null) : this.state.invisibleCard;
+    // TODO: change this to nullIndex instead of invisibleCard.
+    dragIndex = invisibleCard !== -1 && dragIndex - 1 >= invisibleCard ? dragIndex - 1 : dragIndex;
+    return R.min(this.selectedDeck().length, dragIndex);
+  },
+  insertPlaceholderCard: function(index) {
+    if (this.selectedDeck()[index] != null) {
       this.setState({
-        enableCollectionScroll: true,
-        draggedCard: 'pawn',
-        draggedCardTop: -100,
-        draggedCardLeft: -100,
         decks:  R.assoc(
                   this.state.selectedDeck,
+                  // Insert new null placeholder
                   R.insert(
-                    R.min(
-                      this.selectedDeck().length,
-                      dragIndex
-                    ),
-                    {name: card, key: R.filter(R.identity, this.selectedDeck()).length < 1 ? 0 : (Math.max.apply(null, R.map(R.prop('key'), R.filter(R.identity, this.selectedDeck()))) + 1)},
-                    // Remove any null placeholders
+                    index,
+                    null,
+                    // Remove any other null placeholders
                     R.filter(R.identity, this.selectedDeck())
-                    //this.selectedDeck()
                   ),
                   this.state.decks
                 )
       });
-    } else {
+    }
+  },
+  removePlaceholderCard: function() {
+    // If null placeholder exists.
+    if (this.selectedDeck().indexOf(null) !== -1) {
       this.setState({
-        enableCollectionScroll: true,
-        draggedCard: 'pawn',
-        draggedCardTop: -100,
-        draggedCardLeft: -100,
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  R.filter(R.identity, this.selectedDeck()),
+                  this.state.decks
+                )
       });
     }
   },
-  onDeckCardResponderMove: function(e, card) {
-    this.setState({
-      draggedCardX: e.nativeEvent.pageX - this.startDragX,
-      draggedCardY: e.nativeEvent.pageY - this.startDragY,
-    });
-    if (e.nativeEvent.pageY > 170) {
-      if (!this.state.removeInvisibleCard) {
-        this.setState({
-          // TODO: this is misleadin because the card count will still reflect
-          // the card being in the deck.
-          removeInvisibleCard: this.selectedDeck()[this.state.invisibleCard],
-          invisibleCard: -1,
-          decks:  R.assoc(
-                    this.state.selectedDeck,
-                    R.remove(this.state.invisibleCard, 1, this.selectedDeck()),
-                    this.state.decks
-                  )
-          //decks:  R.assoc(
-                    //this.state.selectedDeck,
-                    //R.append(
-                      //this.selectedDeck()[this.state.invisibleCard],
-                      //R.remove(this.state.invisibleCard, 1, this.selectedDeck())
-                    //),
-                    //this.state.decks
-                  //)
-        });
+  updateDraggedCard: function(e) {
+    Animated.timing(
+      this.state.draggedCardX,
+      {
+        toValue: e.nativeEvent.pageX - this.startDragX,
+        duration: 100,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
       }
-    } else {
-      var left = -24 + this.deckScrollOffset;
-      var margin = 10;
-      var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
-      dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
-      //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
-      //var normalized
-      if (this.state.removeInvisibleCard) {
-        this.setState({
-          removeInvisibleCard: null,
-          invisibleCard: R.min(
-                           this.selectedDeck().length - 1,
-                           dragIndex
-                         ),
-          decks:  R.assoc(
-                    this.state.selectedDeck,
-                    R.insert(
-                      R.min(
-                        this.selectedDeck().length - 1,
-                        dragIndex
-                      ),
-                      this.state.removeInvisibleCard,
-                      this.selectedDeck()
-                    ),
-                    this.state.decks
-                  )
-        });
-      } else if (R.min(this.selectedDeck().length - 1, dragIndex) !== this.state.invisibleCard) {
-        this.setState({
-          invisibleCard: R.min(this.selectedDeck().length - 1, dragIndex),
-          decks:  R.assoc(
-                    this.state.selectedDeck,
-                    R.insert(
-                      R.min(
-                        this.selectedDeck().length - 1,
-                        dragIndex
-                      ),
-                      this.selectedDeck()[this.state.invisibleCard],
-                      R.remove(this.state.invisibleCard, 1, this.selectedDeck())
-                    ),
-                    this.state.decks
-                  )
-        });
+    ).start();
+    Animated.timing(
+      this.state.draggedCardY,
+      {
+        toValue: e.nativeEvent.pageY - this.startDragY,
+        duration: 100,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
       }
-    }
+    ).start();
   },
-  onCollectionCardResponderMove: function(e, card) {
-    var left = -24 + this.deckScrollOffset;
-    var margin = 10;
-
-    var dragIndex = Math.round((e.nativeEvent.pageX + left) / (cardWidth + margin));
-    dragIndex = this.state.invisibleCard !== -1 && dragIndex - 1 >= this.state.invisibleCard ? dragIndex - 1 : dragIndex;
-    //var dragIndex = Math.floor(((e.nativeEvent.pageX + left) + ((cardWidth / 2) + margin)) / (cardWidth + margin));
-    var selectedDeck = this.selectedDeck();
-    var nullIndex = this.selectedDeck().indexOf(null);
+  onCardResponderMove: function(e, card) {
+    this.updateDraggedCard(e);
+    // If dragging inside the mat
     if (e.nativeEvent.pageY < 170) {
-      if (selectedDeck[dragIndex] != null) {
-        this.setState({
-          draggedCardX: e.nativeEvent.pageX - this.startDragX,
-          draggedCardY: e.nativeEvent.pageY - this.startDragY,
-          decks:  R.assoc(
-                    this.state.selectedDeck,
-                    R.insert(
-                      R.min(
-                        this.selectedDeck().length,
-                        dragIndex
-                      ),
-                      null,
-                      R.filter(R.identity, this.selectedDeck())
-                    ),
-                    this.state.decks
-                  )
-        });
-      } else {
-        this.setState({
-          draggedCardX: e.nativeEvent.pageX - this.startDragX,
-          draggedCardY: e.nativeEvent.pageY - this.startDragY,
-        });
-      }
+      this.insertPlaceholderCard(this.getDragIndex(e));
+    // If dragging outside the mat.
     } else {
-      if (nullIndex !== -1) {
-        console.log('removing null');
-        this.setState({
-          draggedCardX: e.nativeEvent.pageX - this.startDragX,
-          draggedCardY: e.nativeEvent.pageY - this.startDragY,
-          decks:  R.assoc(
-                    this.state.selectedDeck,
-                    R.filter(R.identity, this.selectedDeck()),
-                    this.state.decks
-                  )
-        });
-      } else {
-        this.setState({
-          draggedCardX: e.nativeEvent.pageX - this.startDragX,
-          draggedCardY: e.nativeEvent.pageY - this.startDragY,
-        });
-      }
+      this.removePlaceholderCard();
     }
   },
   onDeckScroll: function(e) {
@@ -482,12 +459,7 @@ var DeckBuilder = React.createClass({
        </TouchableElement>) : null;
 
     var draggedCard = (
-      <PieceCard
-        card={this.state.draggedCard}
-        index={0}
-        key={0}
-        selected={false}
-        hover={this.state.draggedCardTop > -100}
+      <Animated.View
         style={[
           styles.draggedCard,
           {
@@ -499,7 +471,15 @@ var DeckBuilder = React.createClass({
             ],
           }
         ]}
-      />
+      >
+        <PieceCard
+          card={this.state.draggedCard}
+          index={0}
+          key={0}
+          selected={false}
+          hover={this.state.cardHover}
+        />
+      </Animated.View>
     );
 
     return (
@@ -538,7 +518,7 @@ var DeckBuilder = React.createClass({
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
                 onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
                 onResponderGrant={this.onDeckCardResponderGrant}
-                onResponderMove={this.onDeckCardResponderMove}
+                onResponderMove={this.onCardResponderMove}
                 onResponderRelease={this.onDeckCardResponderRelease}
                 //onPress={this.clickCardInDeck}
               />
@@ -568,7 +548,7 @@ var DeckBuilder = React.createClass({
                 onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
                 onResponderGrant={this.onCollectionCardResponderGrant}
                 onResponderRelease={this.onCollectionCardResponderRelease}
-                onResponderMove={this.onCollectionCardResponderMove}
+                onResponderMove={this.onCardResponderMove}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
 
                 onPress={this.clickCardInCollection}/>
