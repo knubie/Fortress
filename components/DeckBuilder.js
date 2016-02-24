@@ -139,33 +139,6 @@ var DeckBuilder = React.createClass({
   back: function() {
     this.props.navigator.pop();
   },
-  removeFromDeck: function() {
-    //if (this.state.selectedCardInDeck != null) {
-      //this.setState({
-        //selectedCardInDeck: null,
-        //decks:  R.assoc(
-                  //this.state.selectedDeck,
-                  //R.remove(
-                    //this.state.selectedCardInDeck, 1,
-                    //this.selectedDeck()
-                  //),
-                  ////R.append(this.state.selectedPiece.name, this.selectedDeck()),
-                  //this.state.decks
-                //)
-      //});
-    //}
-  },
-  addToDeck: function() {
-    //if (this.state.selectedCardInCollection != null) {
-      //this.setState({
-        //decks:  R.assoc(
-                  //this.state.selectedDeck,
-                  //R.prepend(R.keys(Cards)[this.state.selectedCardInCollection], this.selectedDeck()),
-                  //this.state.decks
-                //)
-      //});
-    //}
-  },
   clickCardInCollection: function(card, index) {
     this.setState({
       selectedCardInDeck: null,
@@ -226,6 +199,9 @@ var DeckBuilder = React.createClass({
     });
   },
   onDeckCardResponderGrant: function(e, card, index) {
+    this.startDragX = e.nativeEvent.pageX;
+    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
     this.setState({
       selectedCardInCollection: null,
       draggedCardTop: this.draggedCardTop,
@@ -247,6 +223,9 @@ var DeckBuilder = React.createClass({
     });
   },
   onCollectionCardResponderGrant: function(e, card, index) {
+    this.startDragX = e.nativeEvent.pageX;
+    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
     this.setState({
       selectedCardInCollection: null,
       selectedCardInDeck: null,
@@ -335,6 +314,8 @@ var DeckBuilder = React.createClass({
       this.state.draggedCardY.setValue(0);
       this.setState({
         cardHover: false,
+        enableCollectionScroll: true,
+        enableDeckScroll: true,
         draggedCardTop: -100,
         draggedCardLeft: -100,
       });
@@ -445,17 +426,6 @@ var DeckBuilder = React.createClass({
         <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
       </TouchableElement>);
     
-    var addToDeck = this.state.selectedCardInCollection != null ?
-      (<TouchableElement style={styles.button}
-          onPress={this.addToDeck}>
-          <Text style={styles.buttonText}>Add to Deck</Text>
-       </TouchableElement>) : null;
-    var removeFromDeck = this.state.selectedCardInDeck != null ?
-      (<TouchableElement style={styles.button}
-          onPress={this.removeFromDeck}>
-          <Text style={styles.buttonText}>Remove from Deck</Text>
-       </TouchableElement>) : null;
-
     var draggedCard = (
       <Animated.View
         style={[
@@ -556,10 +526,6 @@ var DeckBuilder = React.createClass({
         <PieceInfo
           card={this.getSelectedCard()}
         ></PieceInfo>
-        <View style={styles.buttonContainer}>
-          {addToDeck}
-          {removeFromDeck}
-        </View>
         {draggedCard}
       </View>
     );

@@ -84,7 +84,11 @@ var PieceInfo = React.createClass({
     }
 
     var types;
+    var typeList = '';
     if (R.is(Types.Piece, this.props.card)) {
+      typeList = R.reduce((prev, type) => {
+        return prev + ' ' + type.charAt(0).toUpperCase() + type.slice(1);
+      }, '  –  ', this.props.card.types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -93,6 +97,9 @@ var PieceInfo = React.createClass({
         }
        }, this.props.card.types || [])
     } else if (Pieces[this.props.card]) {
+      typeList = R.reduce((prev, type) => {
+        return prev + ' ' + type.charAt(0).toUpperCase() + type.slice(1);
+      }, '  –  ', Pieces[this.props.card].types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -101,6 +108,9 @@ var PieceInfo = React.createClass({
         }
        }, Pieces[this.props.card].types || [])
     }
+
+    typeList = typeList === '  –  ' ? '' : typeList;
+
     var movementTags = null;
     if (R.is(Types.Piece, this.props.card)) {
       movementTags = this.movementTags(this.props.card.parlett);
@@ -119,6 +129,13 @@ var PieceInfo = React.createClass({
             {types}
             <Text style={styles.name}>{pieceDisplay.displayName}</Text>
           </View>
+          <View>
+            <Text style={styles.cardTypes}>
+              {Pieces[this.props.card] ? 'Piece' : 'Action'}
+              {typeList}
+            </Text>
+          </View>
+          <View style={styles.divider}/>
           <Text style={styles.description}>
             {pieceDisplay.description}
           </Text>
@@ -144,13 +161,25 @@ var styles = StyleSheet.create({
   title: {
     justifyContent: 'flex-start',
     flexDirection: 'row',
+    marginBottom: 5,
   },
   name: {
     fontFamily: 'Helvetica Neue',
     fontSize: 14,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#D8D8D8',
+  },
+  cardTypes: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    color: '#636363',
+  },
+  divider: {
+    width: 70,
+    paddingBottom: 7,
     marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3B3B3B',
   },
   description: {
     fontFamily: 'Helvetica Neue',
