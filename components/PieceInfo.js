@@ -1,6 +1,7 @@
 var R = require('ramda');
 var React = require('react-native');
 var Tag = require('./Tag');
+var MovementTag = require('./MovementTag');
 var PieceDisplay = require('../lib/piece-display');
 var Cards = require('../engine/Cards');
 var Pieces = require('../engine/Pieces');
@@ -18,28 +19,6 @@ var {
 } = React;
 
 var PieceInfo = React.createClass({
-  movementTags: function(parlett) {
-    return R.map((p) => {
-      direction = p.direction === 'forwards' ? '↑' : '';
-      conditions = p.conditions ? p.conditions.join('') : '';
-      distance = p.distance === 'n' ? '∞' : p.distance;
-      distanceSize = p.distance === 'n' ? styles.distanceInfinite : null;
-      movement = p.movement.split('/');
-      var movementDivider = p.conditions ? (<View style={styles.movementDivider}/>) : null;
-      return (
-        <View style={styles.movement}>
-          <Text style={[styles.movementText, styles.movementOuterText]}>{direction + ' ' + conditions}</Text>
-          {movementDivider}
-          <Text style={[styles.movementText, styles.movementOuterText, distanceSize]}>{distance}</Text>
-          <View style={styles.movementInner}>
-            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[0]}</Text>
-            <View style={styles.movementInnerDivider}/>
-            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[1]}</Text>
-          </View>
-        </View>
-      );
-    }, parlett);
-  },
   ability: function() {
     if (R.is(Types.Piece, this.props.card)) {
       this.props.onAbility(this.props.card);
@@ -113,9 +92,13 @@ var PieceInfo = React.createClass({
 
     var movementTags = null;
     if (R.is(Types.Piece, this.props.card)) {
-      movementTags = this.movementTags(this.props.card.parlett);
+      movementTags = R.map((p) => {
+        return (<MovementTag parlett={p}/>);
+      }, this.props.card.parlett);
     } else if (Pieces[this.props.card]) {
-      movementTags = this.movementTags(Pieces[this.props.card].parlett);
+      movementTags = R.map((p) => {
+        return (<MovementTag parlett={p}/>);
+      }, Pieces[this.props.card].parlett);
     }
 
     var pieceDisplay = R.is(Types.Piece, this.props.card) ?
@@ -233,60 +216,6 @@ var styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#c4c4c4',
-  },
-  movement: {
-    borderRadius: 7,
-    backgroundColor: '#6D6D6D',
-    height: 14,
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    paddingLeft: 4,
-    marginHorizontal: 3,
-  },
-  movementDivider: {
-    width: 1,
-    height: 14,
-    marginHorizontal: 5,
-    backgroundColor: '#484848',
-  },
-  movementInnerDivider: {
-    width: 2,
-    height: 12,
-    marginHorizontal: 3,
-    backgroundColor: '#6D6D6D',
-  },
-  movementText: {
-    fontFamily: 'Helvetica Neue',
-    fontSize: 10,
-    fontWeight: '500',
-    color: 'white',
-    backgroundColor: 'transparent',
-  },
-  distanceInfinite: {
-    position: 'relative',
-    top: -4,
-    fontSize: 15,
-  },
-  movementOuterText: {
-    position: 'relative',
-    top: 0.5,
-  },
-  movementInnerText: {
-    position: 'relative',
-    bottom: 0.5,
-  },
-  movementInner: {
-    borderRadius: 7,
-    backgroundColor: '#545454',
-    paddingLeft: 5,
-    paddingRight: 4,
-    height: 12,
-    margin: 1,
-    marginLeft: 3,
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
   },
 });
 
