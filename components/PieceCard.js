@@ -3,6 +3,7 @@ var React = require('react-native');
 var PieceDisplay = require('../lib/piece-display');
 var Types = require('../engine/Types');
 var Cards = require('../engine/Cards');
+var Pieces = require('../engine/Pieces');
 
 var {
   Easing,
@@ -38,10 +39,29 @@ var PieceCard = React.createClass({
         }
       ).start();
     }
+    if (nextProps.hover && nextProps.hover !== this.props.hover) {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.scale,                 // Animate `bounceValue`
+        {
+          toValue: 1.2,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+    } else if (!nextProps.hover && nextProps.hover !== this.props.hover) {
+      Animated.timing(                          // Base: spring, decay, timing
+        this.state.scale,                 // Animate `bounceValue`
+        {
+          toValue: 1,
+          duration: 150, // milliseconds
+          delay: 0, // milliseconds
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+    }
   },
   getInitialState: function() {
-    // TODO this is clunky.
-    // It also breaks because the keys are not unique.
     return {
       translate: 0,
       scale: new Animated.Value(1),
@@ -99,9 +119,12 @@ var PieceCard = React.createClass({
   onResponderMove: function(e, gestureState) {
     var dx = Math.abs(this.startDragX - e.nativeEvent.pageX);
     var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
-    if (dx > dy && !this.isScrolling && !this.isDragging) {
-      this.isScrolling = true;
-    } else if (dx < dy && !this.isScrolling && !this.isDragging) {
+    if (dy > 60 && !this.isDragging) {
+      console.log('start dragging');
+
+    //if (dx > dy && !this.isScrolling && !this.isDragging) {
+      //this.isScrolling = true;
+    //} else if (dx < dy && !this.isScrolling && !this.isDragging) {
       this.isDragging = true;
       // TODO: eventually take this exist check out
       if (this.props.onResponderGrant != null) {
@@ -126,7 +149,7 @@ var PieceCard = React.createClass({
     }
   },
   onResponderTerminationRequest: function(e) {
-    return true;
+    return false;
   },
   onResponderTerminate: function(e) {
     //this.isDragging = false;
@@ -157,16 +180,29 @@ var PieceCard = React.createClass({
             cardStyle,
             {
               opacity: this.props.invisible ? 0 : 1,
-              transform: [{scale: this.state.scale}]
+              transform: [{scale: this.state.scale}],
+              //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#DAB900' : '#D8D8D8',
             }
         ]}>
-          <View style={[styles.cardBorder, borderStyle]}>
+          <View style={[
+            styles.cardBorder,
+            borderStyle,
+            {
+              //borderColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#FFF09E' : '#979797',
+
+            },
+          ]}>
             <Image
               source={PieceDisplay[this.props.card].image['black']}
               style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
             />
           </View>
-          <View style={styles.points}>
+          <View style={[
+            styles.points,
+            {
+              //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#A48B00' : '#979797',
+            },
+          ]}>
             <Text style={styles.pointText}>{Cards[this.props.card].points}</Text>
           </View>
         </Animated.View>
@@ -209,7 +245,7 @@ var styles = StyleSheet.create({
     margin: 4,
     borderRadius: 4,
     borderWidth: 2,
-    backgroundColor: '#D8D8D8',
+    backgroundColor: 'rgba(0,0,0,0)',
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',

@@ -107,6 +107,20 @@ var uncompressGame = function(game) {
   return R.reduce(makePly, R.assoc('plys', [], baseGame), baseGame.plys);
 }
 
+var getBaseGame = function(game) {
+  return Types.Game.of(R.evolve({
+    plys: R.always([]),
+    board: R.compose(Types.Board.of, R.evolve({
+      pieces: R.map(R.compose(Types.Piece.of, R.evolve({
+        position: Types.Position.of
+      })))
+    })),
+  }, game));
+}
+
+//  getGameFromPlys :: (Game, [Ply]) -> Game
+var getGameFromPlys = R.reduce(makePly);
+
 //  encode :: (Game) -> String(JSON)
 var encode = R.compose(JSON.stringify, compressGame);
 
@@ -123,8 +137,11 @@ module.exports = {
   endTurnWithNextParticipants: function(game) {
     GameCenterManager.endTurnWithNextParticipants(encode(game));
   },
-  endMatchInTurnWithMatchData: function(game) {
-    GameCenterManager.endMatchInTurnWithMatchData(encode(game));
+  endMatchInTurnWithMatchData: function(baseGame, plys) {
+    GameCenterManager.
+      endMatchInTurnWithMatchData(
+          JSON.stringify(
+            compressGame(R.assoc('plys', plys, baseGame))));
   },
   getBaseGame: function(data) {
     return JSON.parse(data);

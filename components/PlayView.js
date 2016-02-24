@@ -8,6 +8,7 @@ var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var TitleBar = require('./TitleBar.js');
+var PieceDisplay = require('../lib/piece-display');
 
 var GameCenter = require('../back-ends/game-center')
 
@@ -36,11 +37,31 @@ var PlayView = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
       data => {
+        var decodedGame = GameCenter.decode(data.match.matchData);
+        var yourTurnMessage = "It's your turn!";
+        var theirName = this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent';
+        switch(R.last(decodedGame.plys).type) {
+          case 'DrawPly':
+            yourTurnMessage += " " + theirName + " drew a card.";
+            break;
+          case 'AbilityPly':
+            var piece = R.last(decodedGame.plys).piece;
+            var abilityName = PieceDisplay[piece.name]['ability'];
+            yourTurnMessage += " " + theirName + " used the ability " + abilityName + ".";
+            break;
+          case 'UseCardPly':
+            var card = R.last(decodedGame.plys).card;
+            yourTurnMessage += " " + theirName + " used the card " + card + ".";
+            break;
+          case 'MovePly':
+            yourTurnMessage += " " + theirName + " moved a piece.";
+            break;
+        }
         var game = Types.Game.of(
           R.assoc(
             'message',
             (!this.yourTurn() && data.match.yourTurn) ?
-              "It's your turn!" : '',
+              yourTurnMessage : '',
             GameCenter.decode(data.match.matchData)
           )
         );
@@ -110,7 +131,6 @@ var PlayView = React.createClass({
     }
   },
   clickCard: function(card, index) {
-    console.log('click card');
     this.selectCard(index);
   },
   selectCard: function(card) {
@@ -294,16 +314,29 @@ var PlayView = React.createClass({
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
+        <View style={{marginLeft: 20, flexDirection: 'row', flexWrap: 'wrap',}}>
+          <Text style={{fontSize: 10, color: '#DAB900'}}>Gold:
+          {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}</Text>
+          {R.map((i) => {
+            if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] >= i) {
+              return (<View style={{marginTop: 7, marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
+            } else {
+              return (<View style={{marginTop: 7, marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
+            }
+          }, [1,2,3,4,5,6,7,8,9,10])}
+        </View>
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>
+            <View style={styles.addCardBottom}/>
             <TouchableHighlight style={styles.addCard} onPress={this.drawCard}>
-              <Text style={styles.addCardText}>
-                Draw a Card{'\n'}
-                {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}/20
-              </Text>
+              <View style={styles.addCardInner}>
+                <Text style={styles.addCardText}>
+                  {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}
+                </Text>
+              </View>
             </TouchableHighlight>
             <View style={{
               width: (cardWidth + 10) * this.state.game.hands[this.colorToIndex(this.state.playerColor)].length
@@ -360,6 +393,7 @@ var styles = StyleSheet.create({
   scrollViewContainer: {
     height: cardHeight + 8,
     margin: 20,
+    marginTop: 7,
     marginBottom: 20 - 8,
   },
   scrollView: {
@@ -369,18 +403,50 @@ var styles = StyleSheet.create({
   addCard: {
     width: cardWidth,
     height: cardHeight,
-    borderWidth: 2,
+    backgroundColor: '#D8D8D8',
     borderRadius: 4,
-    borderColor: '#979797',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
+    shadowOpacity: 0.5,
+    shadowRadius: 1,
+    shadowOffset: {
+      width: 1,
+      height: 0,
+    },
+  },
+  addCardBottom: {
+    width: cardWidth,
+    height: cardHeight,
+    backgroundColor: '#D8D8D8',
+    borderRadius: 4,
+    position: 'absolute',
+    top: 0,
+    left: 2,
+    shadowOpacity: 0.5,
+    shadowRadius: 0,
+    shadowOffset: {
+      width: 3,
+      height: 3,
+    },
+  },
+  addCardInner: {
+    width: cardWidth - 6,
+    height: cardHeight - 6,
+    backgroundColor: '#8C8C8C',
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addCardText: {
     textAlign: 'center',
     fontSize: 10,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
+    borderRadius: 2,
     fontWeight: 'bold',
-    color: '#979797',
+    color: '#8C8C8C',
+    backgroundColor: '#D8D8D8',
   },
 });
 Math.random() * (max - min) + min

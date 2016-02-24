@@ -132,6 +132,7 @@ var DeckBuilder = React.createClass({
       this.props.navigator.replace({
         component: PlayView,
         title: 'Play the game',
+        // TODO: add names
         passProps: ({ game, baseGame: game, yourTurn: false }),
       });
     }
