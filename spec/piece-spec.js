@@ -169,10 +169,11 @@ describe('Pieces', function() {
       turn: 'white',
       board: board
     });
-    var actualGame = Chess.makePly('move', game, {
-      startingPosition: Position.of({x: 3, y: 1}),
-      targetPosition: Position.of({x: 3, y: 2})
-    });
+    var actualGame = Chess.movePly(
+      board.pieces[4],
+      Position.of({x: 3, y: 2}),
+      game
+    );
     var expectedBoard = new Board({
       size: 8,
       pieces: [
@@ -301,9 +302,6 @@ describe('Pieces', function() {
       board: board
     });
     var actualGame = Chess.abilityPly(board.pieces[4], game);
-    //var actualGame = Chess.makePly('ability', game, {
-      //startingPosition: Position.of({x: 3, y: 1})
-    //});
     var expectedBoard = new Board({
       size: 8,
       pieces: [
@@ -315,27 +313,6 @@ describe('Pieces', function() {
       ],
     });
     expect(equals(expectedBoard, actualGame.board)).toBe(true);
-  });
-  it('The mine\'s ability should add one resource to the players resources.', function() {
-    var board = new Board({
-      size: 8,
-      pieces: [
-        new Piece({
-          name: 'mine',
-          color: 'white',
-          position: new Position({x: 4, y: 4})
-        })
-      ],
-    });
-    var game = new Game({
-      turn: 'white',
-      resources: [8, 8],
-      board: board
-    });
-    var actualGame = Chess.makePly('ability', game, {
-      startingPosition: Position.of({x: 4, y: 4})
-    });
-    expect(actualGame.resources[0]).toBe(10);
   });
   it('Gold should not exceed MAX_GOLD', function() {
     var board = new Board({
@@ -353,9 +330,7 @@ describe('Pieces', function() {
       resources: [10, 10],
       board: board
     });
-    var actualGame = Chess.makePly('ability', game, {
-      startingPosition: Position.of({x: 4, y: 4})
-    });
+    var actualGame = Chess.abilityPly(board.pieces[0], game);
     expect(actualGame.resources[0]).toBe(10);
   });
   it('A wall cannot be captured', function() {
@@ -476,7 +451,7 @@ describe('Pieces', function() {
     var game = new Game({
       turn: 'white',
       board: board,
-      resources: [4, 1],
+      resources: [5, 1],
       hands: [['church and state'], []],
       decks: [[],[]],
     });
@@ -494,4 +469,82 @@ describe('Pieces', function() {
       distance: '1',
     }, newGame.board.pieces[2].parlett))).toBe(true);
   });
+  it('Fortify should make a piece invincible for one turn.', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'bishop',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        new Piece({
+          name: 'bishop',
+          color: 'white',
+          position: new Position({x: 4, y: 2})
+        }),
+        new Piece({
+          name: 'bishop',
+          color: 'black',
+          position: new Position({x: 4, y: 5})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [4, 1],
+      hands: [['fortify'], []],
+      decks: [[],[]],
+    });
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [Position.of({x: 4, y: 4})]
+    }, game);
+
+
+    expect(R.contains(
+      'Invincible until the end of the next turn.',
+      newGame.board.pieces[0].additionalEffects
+    )).toBe(true);
+    expect(R.contains(
+      'invincible',
+      newGame.board.pieces[0].types
+    )).toBe(true);
+
+
+    var newGame = Chess.movePly(
+      board.pieces[2],
+      Position.of({x: 5, y: 6}),
+      newGame
+    );
+
+    expect(R.not(R.contains(
+      'Invincible until the end of the next turn.',
+      newGame.board.pieces[0].additionalEffects
+    ))).toBe(true);
+    expect(R.not(R.contains(
+      'invincible',
+      newGame.board.pieces[0].types
+    ))).toBe(true);
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

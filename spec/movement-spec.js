@@ -877,7 +877,7 @@ describe('Movement', function() {
         }),
       ],
     });
-    var actualMoves = Chess.getDraftSquares(board, 'queen', 'white');
+    var actualMoves = Chess.getCardUsePositions(board, 'queen', 'white');
     var expectedMoves = [
       {x: 0, y: 0},
       {x: 1, y: 0},

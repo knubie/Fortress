@@ -87,8 +87,8 @@ var PieceInfo = React.createClass({
     var typeList = '';
     if (R.is(Types.Piece, this.props.card)) {
       typeList = R.reduce((prev, type) => {
-        return prev + ' ' + type.charAt(0).toUpperCase() + type.slice(1);
-      }, '  –  ', this.props.card.types || [])
+        return prev + (prev === '  – ' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
+      }, '  – ', this.props.card.types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -98,8 +98,8 @@ var PieceInfo = React.createClass({
        }, this.props.card.types || [])
     } else if (Pieces[this.props.card]) {
       typeList = R.reduce((prev, type) => {
-        return prev + ' ' + type.charAt(0).toUpperCase() + type.slice(1);
-      }, '  –  ', Pieces[this.props.card].types || [])
+        return prev + (prev === '  – ' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
+      }, '  – ', Pieces[this.props.card].types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -109,7 +109,7 @@ var PieceInfo = React.createClass({
        }, Pieces[this.props.card].types || [])
     }
 
-    typeList = typeList === '  –  ' ? '' : typeList;
+    typeList = typeList === '  – ' ? '' : typeList;
 
     var movementTags = null;
     if (R.is(Types.Piece, this.props.card)) {
@@ -131,7 +131,7 @@ var PieceInfo = React.createClass({
           </View>
           <View>
             <Text style={styles.cardTypes}>
-              {Pieces[this.props.card] ? 'Piece' : 'Action'}
+              {(Pieces[this.props.card] || R.is(Types.Piece, this.props.card)) ? 'Piece' : 'Action'}
               {typeList}
             </Text>
           </View>

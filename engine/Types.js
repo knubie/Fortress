@@ -133,6 +133,8 @@ function Piece(opts) {
   this.moves = this.moves || 0;
   this.captures = this.captures || 0;
   this.onCapture = pieces[opts.name].onCapture || identity;
+  this.additionalEffects = this.additionalEffects || [];
+  this.afterPly = this.afterPly || null;
 }
 
 Piece.of = function(x) { return new Piece(x); };

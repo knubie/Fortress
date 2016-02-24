@@ -124,7 +124,8 @@ var PlayView = React.createClass({
     } else {
       this.setState({
         // account for other card types
-        possibleMoves: Chess.getDraftSquares(this.state.game.board, this.playersHand()[card], this.state.playerColor),
+        possibleMoves: Chess.getCardUsePositions(this.state.game.board, this.playersHand()[card], this.state.playerColor) || [],
+        //possibleMoves: Chess.getDraftSquares(this.state.game.board, this.playersHand()[card], this.state.playerColor),
         possibleCaptures: [],
         selectedPiece: null,
         selectedCard: card,
@@ -134,15 +135,17 @@ var PlayView = React.createClass({
   clickPiece: function(piece) {
     // TODO: move turn checking to the engine.
     if (R.not(this.yourTurn()) ||
-        this.state.selectedPiece == null ||
-        this.state.selectedPiece.color !== this.state.playerColor) {
+        (this.state.selectedPiece == null && this.state.selectedCard == null) ||
+        (this.state.selectedPiece !== null && this.state.selectedPiece.color !== this.state.playerColor) ||
+        !R.contains(R.prop('position', piece), this.state.possibleMoves)
+    ) {
       this.selectPiece(piece);
-    } else {
-      if (R.contains(R.prop('position', piece), this.state.possibleMoves)) {
-        this.makePly(Chess.movePly(this.state.selectedPiece, piece.position, this.state.game));
-      } else {
-        this.selectPiece(piece);
-      }
+    } else if (this.state.selectedPiece != null) {
+      this.makePly(Chess.movePly(this.state.selectedPiece, piece.position, this.state.game));
+    } else if (this.state.selectedCard != null) {
+      this.makePly(Chess.useCardPly(this.state.playerColor, this.state.selectedCard, {
+        positions: [piece.position],
+      }, this.state.game));
     }
   },
   clickSquare: function(x, y) {
@@ -213,7 +216,7 @@ var PlayView = React.createClass({
             if (!this.yourTurn()) {
               if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
                 alert('You win!');
-                GameCenter.endMatchInTurnWithMatchData(this.state.game);
+                GameCenter.endMatchInTurnWithMatchData(this.state.baseGame, this.state.plys);
               } else {
                 //GameCenter.endTurnWithNextParticipants(this.state.game);
                 GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);

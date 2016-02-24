@@ -1,7 +1,8 @@
 var R        = require('ramda');
 var check    = require('./lib/type-checker').checkAll;
-var Cards   = require('./Cards');
+var Cards    = require('./Cards');
 var Types    = require('./Types');
+var Pieces   = require('./Pieces');
 var Game     = Types.Game;
 var Board    = Types.Board;
 var Piece    = Types.Piece;
@@ -129,43 +130,51 @@ var legalPosition = curry(function(board, position) {
   return position.x >= 0 && position.x < board.size && position.y >= 0 && position.y < board.size;
 });
 
-//  getDraftSquares :: (Board, String, String) -> [Position]
-var getDraftSquares = curry(function(board, card, color) {
-  // TODO: rewrite this, baking into the Pieces.js
-  var moves = [];
-  if (color === 'white') {
-    var yStart = 0;
-    var yEnd = 1;
-    // TODO bake this into Pieces.js
-    if (card === 'pawn' ||
-        card === 'berolina' ||
-        card === 'wall' ||
-        card === 'ferz' ||
-        card === 'wazir') {
-      var yEnd = 2;
+//  getCardUsePositions :: (Board, String, String) -> [Position]
+var getCardUsePositions = curry(function(board, card, color) {
+  if (Pieces[card]) {
+    // TODO: rewrite this, baking into the Pieces.js
+    var moves = [];
+    if (color === 'white') {
+      var yStart = 0;
+      var yEnd = 1;
+      // TODO bake this into Pieces.js
+      if (card === 'pawn' ||
+          card === 'berolina' ||
+          card === 'wall' ||
+          card === 'ferz' ||
+          card === 'wazir') {
+        var yEnd = 2;
+      }
+      moves = flatten(map(function(y) {
+        return map(function(x) {
+          return Position.of({x: x, y: y});
+        }, range(0, board.size));
+      }, range(yStart, yEnd)));
+    } else {
+      var yStart = board.size;
+      var yEnd = board.size - 1;
+      if (card === 'pawn' ||
+          card === 'berolina' ||
+          card === 'wall' ||
+          card === 'ferz' ||
+          card === 'wazir') {
+        var yEnd = board.size - 2;
+      }
+      moves = flatten(map(function(y) {
+        return map(function(x) {
+          return Position.of({x: x, y: y});
+        }, range(0, board.size));
+      }, range(yEnd, yStart)));
     }
-    moves = flatten(map(function(y) {
-      return map(function(x) {
-        return Position.of({x: x, y: y});
-      }, range(0, board.size));
-    }, range(yStart, yEnd)));
+    return reject(getAnyPieceAtPosition(board), moves);
   } else {
-    var yStart = board.size;
-    var yEnd = board.size - 1;
-    if (card === 'pawn' ||
-        card === 'berolina' ||
-        card === 'wall' ||
-        card === 'ferz' ||
-        card === 'wazir') {
-      var yEnd = board.size - 2;
+    if (path([card, 'useagePositions'], pieceCallbacks)) {
+      return pieceCallbacks[card].useagePositions(color, board);
+    } else {
+      return null;
     }
-    moves = flatten(map(function(y) {
-      return map(function(x) {
-        return Position.of({x: x, y: y});
-      }, range(0, board.size));
-    }, range(yEnd, yStart)));
   }
-  return reject(getAnyPieceAtPosition(board), moves);
 });
 
 //  getMoves :: (Board, Piece) -> [Position]
@@ -209,6 +218,40 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'fortify': {
+    use: curry(function(game, positions) {
+      var index = indexOf(positions[0], map(prop('position'), game.board.pieces));
+      return Game.of(evolve({
+        board: compose(Board.of, evolve({
+          pieces: adjust(function(piece) {
+            return Piece.of(evolve({
+              afterPly: always(
+                (function() {
+                  var plysBeforeRemoval = 2;
+                  return function(piece2) {
+                    plysBeforeRemoval --;
+                    if (plysBeforeRemoval === 0) {
+                      return Piece.of(evolve({
+                        types: remove(piece.types.length, 1),
+                        additionalEffects: remove(piece.additionalEffects.length, 1),
+                      }, piece2));
+                    } else {
+                      return piece2;
+                    }
+                  }
+                })()
+              ),
+              types: append('invincible'),
+              additionalEffects: append('Invincible until the end of the next turn.')
+            }, piece));
+          }, index),
+        }))
+      }, game));
+    }),
+    useagePositions: curry(function(color, board) {
+      return map(prop('position'), filter(propEq('color', color), board.pieces));
+    })
+  },
   'church and state': {
     use: curry(function(game) {
       return Game.of(evolve({
@@ -422,6 +465,18 @@ var customMovement = {
 //  endTurn :: (PlyType, Game) -> Game
 var endTurn = curry(function(ply, game) {
   return Game.of(evolve({
+    board: compose(
+      Board.of,
+      evolve({
+        pieces: map(function(piece) {
+          if (typeof piece.afterPly === 'function') {
+            return piece.afterPly(piece);
+          } else {
+            return piece;
+          }
+        })
+      })
+    ),
     turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
     plys: append(ply)
   }, game));
@@ -484,7 +539,7 @@ var useCardPly = curry(function(color, card, params, game) {
         resources: adjust(subtract(__, Cards[name].points), playerIndex)
       }, game));
       if (pieceCallbacks[name] && pieceCallbacks[name].use != null) {
-        newGame = pieceCallbacks[name].use(newGame)
+        newGame = pieceCallbacks[name].use(newGame, positions)
       } else {
         var piece = Piece.of({
           color: color,
@@ -515,92 +570,6 @@ var abilityPly = curry(function(piece, game) {
   } else {
     return game;
   }
-});
-//  makePly :: (String, Game, Object) -> Maybe Game
-var makePly = curry(function(plyType, game, opts) {
-  // TODO: check player's turn
-  var newGame = game
-    , startingPosition = opts.startingPosition
-    , targetPosition = opts.targetPosition;
-
-  switch (plyType) {
-    case 'move':
-      check([startingPosition, targetPosition], [Position, Position]);
-      var piece = getAnyPieceAtPosition(game.board, startingPosition);
-      if (equals(startingPosition, targetPosition) ||
-          not(equals(piece.color, game.turn)) ||
-          // movePiece returns null if it's not a valid targetPosition
-          not(movePiece(startingPosition, targetPosition, game))) {
-        // TODO: Add message.
-        newGame = game;
-      } else {
-        //newGame = movePiece(startingPosition, targetPosition, game);
-        newGame = Game.of(evolve({
-          turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-          plys: append([startingPosition, targetPosition])
-        }, movePiece(startingPosition, targetPosition, game)));
-      }
-      break;
-    case 'ability':
-      var piece = getAnyPieceAtPosition(game.board, startingPosition);
-      if (piece.name && pieceCallbacks[piece.name] && pieceCallbacks[piece.name].ability) {
-        newGame = Game.of(evolve({
-          turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-          // TODO: make this more clear.
-          plys: append([startingPosition, targetPosition || startingPosition])
-        }, pieceCallbacks[piece.name].ability(piece, game)));
-      }
-      break;
-    case 'draw':
-      // opts: {
-      //   color: enum('white', 'black')
-      //
-      var playerIndex = game.turn === 'white' ? 0 : 1;
-      var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
-      newGame = Game.of(evolve({
-        turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-        //FIXME: this is broken!!
-        plys: append('draw')
-      }, drawCard(game.turn, newGame)));
-
-      break;
-    case 'draft':
-      var color = game.turn === 'white' ? 0 : 1;
-      var pieceToAdd = Piece.of({
-        name: game.hands[color][opts.card],
-        color: game.turn,
-        position: Position.of(opts.targetPosition)
-      });
-      newGame = draftPiece(pieceToAdd, game);
-      if (newGame) {
-        newGame = Game.of(evolve({
-          hands: adjust(remove(opts.card, 1), color),
-          turn: function(turn) { return turn === 'white' ? 'black' : 'white'; },
-          //FIXME: this is broken!!
-          plys: append([targetPosition, targetPosition])
-        }, newGame));
-      } else {
-        return game; // TODO: return null if unsuccessful?
-      }
-      break;
-  }
-
-  return compose(
-    // Recursively apply them to the newGame.
-    reduce(function(game, piece) {
-      return path([piece.name, 'afterEveryPly'], pieceCallbacks)(game, piece);
-    }, newGame),
-    // Filter only those of current turn.
-    filter(propEq('color', game.turn)),
-    // Get all pieces with 'afterEveryPly' callback.
-    filter(
-      compose(
-        path(__, pieceCallbacks),
-        prepend(__, ['afterEveryPly']),
-        prop('name')
-      )
-    )
-  )(newGame.board.pieces);
 });
 
 //  movePiece :: (Position, Position, Game) -> Maybe Game
@@ -664,10 +633,6 @@ var isGameOver = curry(function(board, color) {
 //  addPiece :: ([Piece], Piece) -> [Piece]
 var addPiece = curry(function(pieces, piece) {
   check(arguments, [[Piece], Piece]);
-  //compose(
-    //append(piece),
-    //reject(propEq('position', piece.position))
-  //)
   return append(piece, reject(propEq('position', piece.position), pieces));
 });
 
@@ -731,7 +696,6 @@ module.exports = {
   getPieceAtPosition,
   getAnyPieceAtPosition,
   colorToIndex,
-  makePly,
   isGameOver,
   draftPiece,
   drawCard,
@@ -739,6 +703,6 @@ module.exports = {
   useCardPly,
   movePly,
   abilityPly,
-  getDraftSquares,
   shuffle,
+  getCardUsePositions,
 };
