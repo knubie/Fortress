@@ -521,7 +521,9 @@ var movePly = curry(function(piece, position, game) {
 
 // (Number)
 var useCardPly = curry(function(color, card, params, game) {
+  console.log(arguments);
   var playerIndex = game.turn === 'white' ? 0 : 1;
+  console.log(game.hands[playerIndex][card]);
   var {positions, pieces, cards} = params;
   if (not(equals(color, game.turn))) {
     return message('It\'s not your turn!', game);

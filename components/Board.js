@@ -24,10 +24,11 @@ var Board = React.createClass({
     }
   },
   getLastMove: function() {
-    return [
+    return R.flatten([
       R.path(['position'], this.props.lastPly) || {},
       R.path(['piece', 'position'], this.props.lastPly) || {},
-    ];
+      R.path(['params', 'positions'], this.props.lastPly) || {},
+    ]);
   },
   render: function() {
     var returnPiece = piece => {

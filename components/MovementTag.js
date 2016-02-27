@@ -40,7 +40,7 @@ var styles = StyleSheet.create({
     flexWrap: 'wrap',
     flexDirection: 'row',
     paddingLeft: 4,
-    marginHorizontal: 3,
+    margin: 3,
   },
   movementDivider: {
     width: 1,

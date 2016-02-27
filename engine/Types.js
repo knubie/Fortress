@@ -35,6 +35,7 @@ DrawPly.of = function(x) { return new DrawPly(x); };
 function UseCardPly(opts) {
   check([opts,   opts.card],
         [Object, Number]);
+  // opts.params
   for (k in opts) {
     if (opts.hasOwnProperty(k)) {
       this[k] = opts[k];

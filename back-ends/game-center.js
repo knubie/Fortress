@@ -76,6 +76,7 @@ var compressGame = R.evolve({
 
 //  instantiateObjects :: (Object) -> Game
 var instantiateObjects = R.compose(Types.Game.of, R.evolve({
+  plys: R.always([]),
   board: R.compose(Types.Board.of, R.evolve({
     pieces: R.map(R.compose(Types.Piece.of, R.evolve({
       position: Types.Position.of
@@ -146,6 +147,8 @@ module.exports = {
   getBaseGame: function(data) {
     return JSON.parse(data);
   },
+  instantiateObjects: instantiateObjects,
+  makePly: makePly,
 //decode :: (String(JSON)) -> Game
   //decode: R.compose(instantiateObjects, JSON.parse)
   decode: R.compose(uncompressGame, JSON.parse)

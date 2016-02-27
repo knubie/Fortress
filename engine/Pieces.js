@@ -211,7 +211,7 @@ module.exports = {
       },
       {
         movement: '1/0',
-        distance: '1'
+        distance: '2'
       }
     ],
     points: 4

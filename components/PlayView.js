@@ -8,7 +8,9 @@ var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var TitleBar = require('./TitleBar.js');
+var CardIcon = require('./icons/Card');
 var PieceDisplay = require('../lib/piece-display');
+var Colors = require('../lib/colors');
 
 var GameCenter = require('../back-ends/game-center')
 
@@ -23,6 +25,7 @@ var {
   TouchableNativeFeedback,
   ScrollView,
   NativeAppEventEmitter,
+  Image,
 } = React;
 
 var oppositeColor = function(color) {
@@ -38,30 +41,79 @@ var PlayView = React.createClass({
       'updateMatchData',
       data => {
         var decodedGame = GameCenter.decode(data.match.matchData);
+        //TODO: just use this.state.game
+        var previousGameState = R.reduce(GameCenter.makePly, GameCenter.instantiateObjects(JSON.parse(data.match.matchData)), R.init(decodedGame.plys));
         var yourTurnMessage = "It's your turn!";
         var theirName = this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent';
         switch(R.last(decodedGame.plys).type) {
+
           case 'DrawPly':
-            yourTurnMessage += " " + theirName + " drew a card.";
+            this.setState({
+              cardPlayed: null
+            });
+            yourTurnMessage = (
+              <View style={{flexWrap: 'wrap', flexDirection: 'row',}}>
+                <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                  <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew </Text><CardIcon number={'1'}/><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!
+                </Text>
+              </View>
+            );
+            //yourTurnMessage = (
+              //<Text>
+              //{"It's your turn! " + theirName + " drew a card."}
+              //</Text>
+            //);
             break;
+
           case 'AbilityPly':
             var piece = R.last(decodedGame.plys).piece;
             var abilityName = PieceDisplay[piece.name]['ability'];
-            yourTurnMessage += " " + theirName + " used the ability " + abilityName + ".";
+            this.setState({
+              cardPlayed: null
+            });
+            yourTurnMessage = (
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the ability <Text style={{fontWeight: 'bold'}}>{abilityName}</Text>.
+              </Text>
+            );
             break;
+
           case 'UseCardPly':
             var card = R.last(decodedGame.plys).card;
-            yourTurnMessage += " " + theirName + " used the card " + card + ".";
+            var cardName = previousGameState.hands[this.colorToIndex(previousGameState.turn)][card];
+            // TODO fix this
+            this.setState({
+              cardPlayed: cardName
+            });
+            //yourTurnMessage = (
+              //<PieceInfo
+                //card={cardName}
+                //onAbility={this.onAbility}
+                //useCard={this.useCard}
+              //></PieceInfo>
+            //);
+            yourTurnMessage = (
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                <Text style={{fontWeight: 'bold'}}>{theirName}</Text> played a card!
+              </Text>);
             break;
+
           case 'MovePly':
-            yourTurnMessage += " " + theirName + " moved a piece.";
+            this.setState({
+              cardPlayed: null
+            });
+            yourTurnMessage = (
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
+              </Text>
+            );
             break;
         }
         var game = Types.Game.of(
           R.assoc(
             'message',
             (!this.yourTurn() && data.match.yourTurn) ?
-              yourTurnMessage : '',
+              yourTurnMessage : this.state.game.message,
             GameCenter.decode(data.match.matchData)
           )
         );
@@ -281,6 +333,9 @@ var PlayView = React.createClass({
       game: Types.Game.of(R.assoc('message', null, this.state.game))
     });
   },
+  dummy: function() {
+    alert('foo');
+  },
   render: function() {
     //var deck = R.map( name => {
       //return Types.Piece.of({
@@ -291,8 +346,40 @@ var PlayView = React.createClass({
     //}, R.keys(Pieces));
     // TODO: change deck/hand api
 
-    var message = this.state.game.message ?
-      (<Modal onPress={this.clearMessage} text={this.state.game.message}></Modal>) : null;
+    var message = null;
+
+    if (this.state.game.message) {
+      if (this.state.cardPlayed != null) {
+        message = (<Modal
+          onPress={this.clearMessage}
+          message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
+        >
+          <Image
+            source={PieceDisplay[this.state.cardPlayed].image['black']}
+            style={{marginBottom: 10, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
+          />
+          <PieceInfo
+            light={true}
+            card={this.state.cardPlayed}
+            onAbility={this.onAbility}
+            useCard={this.useCard}
+          ></PieceInfo>
+        </Modal>);
+      } else {
+        message = (<Modal
+          onPress={this.clearMessage}
+          message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
+        >
+        </Modal>);
+      }
+    }
+        //message = (<Modal
+          //onPress={this.dummy}
+          //message={(
+            //<View style={{flexWrap: 'wrap', flexDirection: 'row',}}><Text style={{fontSize: 12, color: '#D8D8D8',}}><Text style={{fontWeight: 'bold',}}>Kim Nguyen</Text> drew </Text><Image style={{width: 14, height: 17,}} source={require('../assets/card-icon.png')}><Text style={{position: 'absolute', left: 7, top: 1, fontSize: 9, color: '#353535',}}>1</Text></Image><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!</Text></View>
+          //)}
+        //>
+        //</Modal>);
 
     return (
       <View>
@@ -314,14 +401,14 @@ var PlayView = React.createClass({
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
-        <View style={{marginLeft: 20, flexDirection: 'row', flexWrap: 'wrap',}}>
-          <Text style={{fontSize: 10, color: '#DAB900'}}>Gold:
-          {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}</Text>
+        <View style={{marginTop: 7, marginLeft: 20, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
+          <Text style={{paddingHorizontal: 2, marginRight: 4, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
+          GOLD: {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}<Text style={{color: '#836F00'}}>/10</Text></Text>
           {R.map((i) => {
             if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] >= i) {
-              return (<View style={{marginTop: 7, marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
+              return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
             } else {
-              return (<View style={{marginTop: 7, marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
+              return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
             }
           }, [1,2,3,4,5,6,7,8,9,10])}
         </View>
@@ -356,11 +443,13 @@ var PlayView = React.createClass({
             )}, this.state.game.hands[this.colorToIndex(this.state.playerColor)]))}
           </ScrollView>
         </View>
-        <PieceInfo
-          card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
-          onAbility={this.onAbility}
-          useCard={this.useCard}
-        ></PieceInfo>
+        <View style={{width: Dimensions.get('window').width - 20,}}>
+          <PieceInfo
+            card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
+            onAbility={this.onAbility}
+            useCard={this.useCard}
+          ></PieceInfo>
+        </View>
         {message}
       </View>
     );
@@ -449,5 +538,5 @@ var styles = StyleSheet.create({
     backgroundColor: '#D8D8D8',
   },
 });
-Math.random() * (max - min) + min
+
 module.exports = PlayView;
