@@ -411,6 +411,7 @@ var PlayView = React.createClass({
               return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
             }
           }, [1,2,3,4,5,6,7,8,9,10])}
+          <Text style={{color: 'white'}}>PLYS: {this.state.game.plysLeft}</Text>
         </View>
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
