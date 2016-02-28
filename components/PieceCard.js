@@ -120,7 +120,6 @@ var PieceCard = React.createClass({
     var dx = Math.abs(this.startDragX - e.nativeEvent.pageX);
     var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
     if (dy > 60 && !this.isDragging) {
-      console.log('start dragging');
 
     //if (dx > dy && !this.isScrolling && !this.isDragging) {
       //this.isScrolling = true;
@@ -130,6 +129,9 @@ var PieceCard = React.createClass({
       if (this.props.onResponderGrant != null) {
         this.props.onResponderGrant(e, this.props.card, this.props.index);
       }
+    }
+    if (dx > 5) {
+      this.isScrolling = true;
     }
     if (this.isDragging) {
       // TODO: eventually take this exist check out
