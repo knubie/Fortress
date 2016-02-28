@@ -219,6 +219,25 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'mind control': {
+    use: curry(function(game, positions) {
+      var index = indexOf(positions[0], map(prop('position'), game.board.pieces));
+      return Game.of(evolve({
+        board: compose(Board.of, evolve({
+          pieces: adjust(function(piece) {
+            return Piece.of(evolve({
+              color: (color) => { return color === 'white' ? 'black' : 'white'; },
+              asleep: always(true),
+            }, piece));
+          }, index),
+        }))
+      }, game));
+    }),
+    useagePositions: curry(function(color, board) {
+      var oppositeColor = piece.color === 'white' ? 'black' : 'white';
+      return map(prop('position'), filter(propEq('color', oppositeColor), board.pieces));
+    }),
+  },
   'fortify': {
     use: curry(function(game, positions) {
       var index = indexOf(positions[0], map(prop('position'), game.board.pieces));

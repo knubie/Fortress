@@ -560,6 +560,40 @@ describe('Pieces', function() {
       newGame.board.pieces[0].types
     ))).toBe(true);
   });
+  it("Mind Control should allow a player to take control of an opponent's piece.", function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'bishop',
+          color: 'black',
+          position: new Position({x: 4, y: 5})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['mind control'], []],
+      decks: [[],[]],
+      plysLeft: 2,
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [Position.of({x: 4, y: 5})]
+    }, game);
+
+    expect(newGame.board.pieces[0].color).toBe('white');
+
+    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 5, y: 6}),
+                                newGame);
+
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+
+  });
 });
 
 
