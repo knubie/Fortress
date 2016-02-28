@@ -13,6 +13,7 @@ var board = new Board({
     new Piece({
       name: 'rook',
       color: 'white',
+      asleep: false,
       position: new Position({x: 4, y: 4})
     })
   ],
@@ -49,6 +50,7 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           })
         ]
@@ -60,16 +62,19 @@ describe('Game', function() {
       Piece.of({
         name: 'rook',
         color: 'white',
+        asleep: false,
         position: new Position({x: 4, y: 4})
       }),
       Piece.of({
         name: 'rook',
         color: 'white',
+        asleep: false,
         position: new Position({x: 3, y: 4})
       }),
       Piece.of({
         name: 'rook',
         color: 'white',
+        asleep: false,
         position: new Position({x: 4, y: 5})
       }),
     ]
@@ -78,6 +83,7 @@ describe('Game', function() {
       Piece.of({
         name: 'bishop',
         color: 'white',
+        asleep: false,
         position: new Position({x: 3, y: 4})
       })
     )
@@ -85,16 +91,19 @@ describe('Game', function() {
       Piece.of({
         name: 'rook',
         color: 'white',
+        asleep: false,
         position: new Position({x: 4, y: 4})
       }),
       Piece.of({
         name: 'bishop',
         color: 'white',
+        asleep: false,
         position: new Position({x: 3, y: 4})
       }),
       Piece.of({
         name: 'rook',
         color: 'white',
+        asleep: false,
         position: new Position({x: 4, y: 5})
       }),
     ]
@@ -103,6 +112,7 @@ describe('Game', function() {
     var game = new Game({
       turn: 'white',
       board: board,
+      plysLeft: 1,
       decks: [['pawn', 'bishop', 'pawn'], []]
     });
     var actualGame = Chess.drawCardPly('white', game);
@@ -182,15 +192,17 @@ describe('Game', function() {
     
     expect(actualGame).toBe(null);
   });
-  it('Should change turns when a user makes a ply', function() {
+  it('Should change turns when a players uses all their plys', function() {
     var game = Game.of({
       turn: 'white',
+      hands: [['perception'], []],
       board: Board.of({
         size: 8,
         pieces: [
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           })
         ]
@@ -199,34 +211,8 @@ describe('Game', function() {
     var newGame = Chess.movePly(game.board.pieces[0], 
                                 Position.of({x: 4, y: 5}),
                                 game);
+    var newGame = Chess.useCardPly('white', 0, {}, newGame);
     expect(equals(newGame.turn, 'black')).toBe(true);
-  });
-  // TODO: revisit this with movePly()
-  it('The afterEveryPly callbacks should fire after every ply', function() {
-    var game = Game.of({
-      turn: 'white',
-      resources: [8, 8],
-      board: Board.of({
-        size: 8,
-        pieces: [
-          Piece.of({
-            name: 'rook',
-            color: 'white',
-            position: Position.of({x: 4, y: 4})
-          }),
-          Piece.of({
-            name: 'mine',
-            color: 'white',
-            position: Position.of({x:4, y:3})
-          })
-        ]
-      })
-    }); // game
-    var newGame = Chess.makePly('move', game, {
-                                  startingPosition: Position.of({x: 4, y: 4}),
-                                  targetPosition: Position.of({x: 4, y: 5})
-                                });
-    expect(newGame.resources[0]).toBe(9);
   });
   it('Should not change turns when a user moves a piece to its original position', function() {
     var game = Game.of({
@@ -237,6 +223,7 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           })
         ]
@@ -256,6 +243,7 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'black',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           })
         ]
@@ -276,6 +264,7 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           })
         ]
@@ -302,25 +291,27 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           }),
           Piece.of({
             name: 'king',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 2, y: 3})
           }),
           Piece.of({
             name: 'king',
             color: 'black',
+            asleep: false,
             position: Position.of({x: 4, y: 1})
           })
         ]
       })
     }); // game
-    var newGame = Chess.makePly('move', game, {
-                                  startingPosition: Position.of({x: 4, y: 4}),
-                                  targetPosition: Position.of({x: 4, y: 2})
-                                });
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 2}),
+                                game);
     expect(Chess.isGameOver(newGame.board, 'black')).toBe(false);
   });
   it('Should be game over if there are no royals left', function() {
@@ -332,25 +323,27 @@ describe('Game', function() {
           Piece.of({
             name: 'rook',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 4, y: 4})
           }),
           Piece.of({
             name: 'king',
             color: 'white',
+            asleep: false,
             position: Position.of({x: 2, y: 3})
           }),
           Piece.of({
             name: 'king',
             color: 'black',
+            asleep: false,
             position: Position.of({x: 4, y: 1})
           })
         ]
       })
     }); // game
-    var newGame = Chess.makePly('move', game, {
-                                  startingPosition: Position.of({x: 4, y: 4}),
-                                  targetPosition: Position.of({x: 4, y: 1})
-                                });
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 1}),
+                                game);
     expect(Chess.isGameOver(newGame.board, 'black')).toBe(true);
   });
   it("If a card's 'use' function provides a duplicate callback, it should work", function() {
@@ -362,5 +355,49 @@ describe('Game', function() {
     });
     var newGame = Chess.useCardPly('white', 3, { }, game);
     expect(equals(newGame.hands[0], ['rook', 'knight', 'pawn', 'king', 'queen', 'bishop', 'shapeshifter'])).toBe(true);
+  });
+  it("Player should not be able to move twice in one turn", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [
+          Piece.of({
+            name: 'rook',
+            color: 'white',
+            asleep: false,
+            position: Position.of({x: 4, y: 4})
+          })
+        ]
+      })
+    }); // game
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 5}),
+                                game);
+    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 4, y: 4}),
+                                newGame);
+    expect(newGame2.message).toBe("You can't move twice in one turn!");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+  });
+  it("Player should not be able to use a piece immediately after summoning it.", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [],
+      }),
+      hands: [['rook'], []]
+    }); // game
+
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [new Position({x: 4, y: 0})]
+    }, game);
+
+    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 4, y: 4}),
+                                newGame);
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
   });
 });

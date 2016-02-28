@@ -114,16 +114,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 0})
         }),
 
@@ -131,16 +134,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 1})
         }),
         new Piece({
           name: 'bomber',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 1})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 1})
         }),
 
@@ -148,11 +154,13 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 2})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 2})
         }),
 
@@ -161,6 +169,7 @@ describe('Pieces', function() {
         new Piece({
           name: 'knight',
           color: 'black',
+          asleep: false,
           position: new Position({x: 2, y: 3})
         }),
       ],
@@ -180,16 +189,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 0})
         }),
 
@@ -197,17 +209,20 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 1})
         }),
         new Piece({
           name: 'bomber',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 2}),
           moves: 1
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 1})
         }),
 
@@ -215,11 +230,13 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 2})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 2})
         }),
 
@@ -228,6 +245,7 @@ describe('Pieces', function() {
         new Piece({
           name: 'knight',
           color: 'black',
+          asleep: false,
           position: new Position({x: 2, y: 3})
         }),
       ],
@@ -241,16 +259,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 0})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 0})
         }),
 
@@ -258,16 +279,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 1})
         }),
         new Piece({
           name: 'bomber',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 1})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 1})
         }),
 
@@ -275,16 +299,19 @@ describe('Pieces', function() {
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 2, y: 2})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 3, y: 2})
         }),
         new Piece({
           name: 'pawn',
           color: 'white',
+          asleep: false,
           position: new Position({x: 4, y: 2})
         }),
 
@@ -293,6 +320,7 @@ describe('Pieces', function() {
         new Piece({
           name: 'knight',
           color: 'black',
+          asleep: false,
           position: new Position({x: 2, y: 3})
         }),
       ],
@@ -308,6 +336,7 @@ describe('Pieces', function() {
         new Piece({
           name: 'knight',
           color: 'black',
+          asleep: false,
           position: new Position({x: 2, y: 3})
         })
       ],
@@ -494,12 +523,15 @@ describe('Pieces', function() {
       turn: 'white',
       board: board,
       resources: [4, 1],
-      hands: [['fortify'], []],
+      hands: [['fortify'], ['perception']],
       decks: [[],[]],
+      plysLeft: 1,
     });
+
     var newGame = Chess.useCardPly('white', 0, {
       positions: [Position.of({x: 4, y: 4})]
     }, game);
+
 
 
     expect(R.contains(
@@ -513,10 +545,11 @@ describe('Pieces', function() {
 
 
     var newGame = Chess.movePly(
-      board.pieces[2],
+      newGame.board.pieces[2],
       Position.of({x: 5, y: 6}),
       newGame
     );
+    var newGame = Chess.useCardPly('black', 0, {}, newGame);
 
     expect(R.not(R.contains(
       'Invincible until the end of the next turn.',

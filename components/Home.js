@@ -51,6 +51,7 @@ var Home = React.createClass({
                   name: 'king',
                   color: 'white',
                   position: Types.Position.of({x: 3, y: 0}),
+                  asleep: false,
                   key: 0,
                 }),
                 //Types.Piece.of({
@@ -63,6 +64,7 @@ var Home = React.createClass({
                   name: 'king',
                   color: 'black',
                   position: Types.Position.of({x: 3, y: boardSize - 1}),
+                  asleep: false,
                   key: 2,
                 }),
                 //Types.Piece.of({

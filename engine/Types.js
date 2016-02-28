@@ -11,6 +11,8 @@ for (var k in R) {
 // TODO: R.assoc break this patter because it copies prototypes as well.
 // will need to assign the opts obj onto a this.__value member to avoid that.
 
+var PLYS_PER_TURN = 2;
+
 // MovePly { piece :: Piece, position :: Position }
 function MovePly(opts) {
   check([opts,   opts.piece, opts.position],
@@ -80,6 +82,8 @@ function Game(opts) {
   // hands[0] = white
   // hands[1] = black
   this.hands = this.hands || [[], []];
+  // The number of plys remaining for the current turn.
+  this.plysLeft = this.plysLeft || PLYS_PER_TURN;
 }
 Game.of = function(x) { return new Game(x); };
 
@@ -135,7 +139,8 @@ function Piece(opts) {
   this.captures = this.captures || 0;
   this.onCapture = pieces[opts.name].onCapture || identity;
   this.additionalEffects = this.additionalEffects || [];
-  this.afterPly = this.afterPly || null;
+  this.afterTurn = this.afterTurn || null;
+  this.asleep = this.asleep != null ? this.asleep : true;
 }
 
 Piece.of = function(x) { return new Piece(x); };

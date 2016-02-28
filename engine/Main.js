@@ -14,6 +14,7 @@ for (var k in R) {
 }
 
 var MAX_GOLD = 10;
+var PLYS_PER_TURN = 2;
 
 var concatAll = unapply(reduce(concat, []));
 
@@ -225,7 +226,7 @@ var pieceCallbacks = {
         board: compose(Board.of, evolve({
           pieces: adjust(function(piece) {
             return Piece.of(evolve({
-              afterPly: always(
+              afterTurn: always(
                 (function() {
                   var plysBeforeRemoval = 2;
                   return function(piece2) {
@@ -469,15 +470,32 @@ var endTurn = curry(function(ply, game) {
       Board.of,
       evolve({
         pieces: map(function(piece) {
-          if (typeof piece.afterPly === 'function') {
-            return piece.afterPly(piece);
+          if (typeof piece.afterTurn === 'function' && game.plysLeft === 1) {
+            return piece.afterTurn(Piece.of(assoc('asleep', false, piece)));
           } else {
-            return piece;
+            if (game.plysLeft === 1) {
+              return Piece.of(assoc('asleep', false, piece));
+            } else {
+              return piece;
+            }
           }
         })
       })
     ),
-    turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
+    turn: (turn) => {
+      if (game.plysLeft === 1) {
+        return turn === 'white' ? 'black' : 'white';
+      } else {
+        return turn;
+      }
+    },
+    plysLeft: (plysLeft) => {
+      if (plysLeft === 1) {
+        return PLYS_PER_TURN;
+      } else {
+        return subtract(plysLeft, 1);
+      }
+    },
     plys: append(ply)
   }, game));
 });
@@ -507,6 +525,10 @@ var movePly = curry(function(piece, position, game) {
     return game;
   } else if (not(equals(piece.color, game.turn))) {
     return message('It\'s not your turn!', game);
+  } else if (game.plysLeft < PLYS_PER_TURN && last(game.plys).type === 'MovePly') {
+    return message("You can't move twice in one turn!", game);
+  } else if (piece.asleep) {
+    return message("You must wait until the next turn to use this piece.", game);
   } else {
     var newGame = movePiece(piece.position, position, game);
     if (newGame) {
@@ -521,9 +543,7 @@ var movePly = curry(function(piece, position, game) {
 
 // (Number)
 var useCardPly = curry(function(color, card, params, game) {
-  console.log(arguments);
   var playerIndex = game.turn === 'white' ? 0 : 1;
-  console.log(game.hands[playerIndex][card]);
   var {positions, pieces, cards} = params;
   if (not(equals(color, game.turn))) {
     return message('It\'s not your turn!', game);
@@ -564,6 +584,8 @@ var useCardPly = curry(function(color, card, params, game) {
 var abilityPly = curry(function(piece, game) {
   if (not(equals(piece.color, game.turn))) {
     return message('It\'s not your turn!', game);
+  } else if (piece.asleep) {
+    return message("You must wait until the next turn to use this piece.", game);
   } else if (piece.name && pieceCallbacks[piece.name] && pieceCallbacks[piece.name].ability) {
     var newGame = pieceCallbacks[piece.name].ability(piece, game);
     return endTurn(
