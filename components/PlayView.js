@@ -524,7 +524,7 @@ var styles = StyleSheet.create({
   addCardInner: {
     width: cardWidth - 6,
     height: cardHeight - 6,
-    backgroundColor: '#8C8C8C',
+    backgroundColor: '#A6A6A6',
     borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',

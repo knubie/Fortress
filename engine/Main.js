@@ -13,7 +13,6 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 
-var MAX_GOLD = 10;
 var PLYS_PER_TURN = 2;
 
 var concatAll = unapply(reduce(concat, []));
@@ -219,6 +218,14 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'coffer upgrade': {
+    use: curry(function(game) {
+      var index = colorToIndex(game.turn);
+      return Game.of(evolve({
+        maxResources: adjust(add(5), index)
+      }, game));
+    }),
+  },
   'influence': {
     use: curry(function(game) {
       return Game.of(evolve({
@@ -463,7 +470,8 @@ var pieceCallbacks = {
         color: equals(piece.color),
       }), game.board.pieces).length;
       return Game.of(evolve({
-        resources: adjust(compose(min(MAX_GOLD), add(amount)), index)
+        // TODO: extract this pattern out into its own function
+        resources: adjust(compose(min(game.maxResources[index]), add(amount)), index)
       }, game));
     }),
   },
@@ -471,13 +479,13 @@ var pieceCallbacks = {
     ability: curry(function(piece, game) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(compose(min(MAX_GOLD), add(1)), index) // Add one to resources of same color as piece.
+        resources: adjust(compose(min(game.maxResources[index]), add(1)), index) // Add one to resources of same color as piece.
       }, game));
     }),
     afterEveryPly: curry(function(game, piece) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(compose(min(MAX_GOLD), add(1)), index) // Add one to resources of same color as piece.
+        resources: adjust(compose(min(game.maxResources[index]), add(1)), index) // Add one to resources of same color as piece.
       }, game));
     })
   },
@@ -486,7 +494,7 @@ var pieceCallbacks = {
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
       var index = piece.color === 'white' ? 0 : 1;
       return Game.of(evolve({
-        resources: adjust(compose(min(MAX_GOLD), add(capturedPiece.points - 1)), index)
+        resources: adjust(compose(min(game.maxResources[index]), add(capturedPiece.points - 1)), index)
       }, game));
     })
   },

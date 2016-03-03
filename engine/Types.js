@@ -76,6 +76,7 @@ function Game(opts) {
   // resources[0] = white
   // resources[1] = black
   this.resources = this.resources || [10, 10];
+  this.maxResources = this.maxResources || [10, 10];
   // decks[0] = white
   // decks[1] = black
   this.decks = this.decks || [[], []];

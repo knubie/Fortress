@@ -660,6 +660,58 @@ describe('Pieces', function() {
 
     expect(newGame.plysLeft).toBe(4);
   });
+  it("Coffer Upgrade should increase max gold by 5", function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'king',
+          color: 'white',
+          asleep: false,
+          position: new Position({x: 4, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          position: new Position({x: 3, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          position: new Position({x: 2, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          position: new Position({x: 1, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          position: new Position({x: 0, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          position: new Position({x: 5, y: 0})
+        }),
+      ],
+    });
+
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['coffer upgrade'], []],
+      decks: [[],[]],
+      plysLeft: 2,
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {}, game);
+    var actualGame = Chess.abilityPly(board.pieces[0], newGame);
+
+    expect(actualGame.resources[0]).toBe(14);
+  });
 });
 
 

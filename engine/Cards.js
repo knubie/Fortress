@@ -4,6 +4,9 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
+  'coffer upgrade': {
+    points: 2,
+  },
   'influence': {
     points: 3,
   },
