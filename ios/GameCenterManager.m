@@ -74,10 +74,12 @@ RCT_EXPORT_MODULE();
           matchData = [[NSString alloc] initWithData:rawMatchData
                                             encoding:NSUTF8StringEncoding];
         }
-        NSDictionary *event = [self createEventFromMatch:match andMatchData:rawMatchData];
-
-        // TODO: only update if not your turn
-        [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
+        GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+        if (self.currentMatch.currentParticipant.player != localPlayer)
+        {
+          NSDictionary *event = [self createEventFromMatch:match andMatchData:rawMatchData];
+          [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
+        }
       }
     }];
   }
@@ -187,7 +189,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 
 // Called when loading a match from GKTurnBasedMatchMaker
 // Called when the app is open, and the other player updates the match - did not become active
-// Called when the app is opened from notification, did become active
+// Called when the app is opened from notification - did become active
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive
 {
   NSLog(@"received turn event for match");
@@ -195,7 +197,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 
   // DidBecomeActive when launching from GKTurnBasedMatchmakerViewController
   if (didBecomeActive) {
-    NSLog(@"did become active");
+    NSLog(@"received turn event - did become active");
     // Launch the playView from didfindmatch
     self.currentMatch = match;
     [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
@@ -204,7 +206,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
     }
     // alert: false
   } else {
-    NSLog(@"did NOT become active");
+    NSLog(@"received turn event - did NOT become active");
 //        NSLog(@"Current match ID:");
 //        NSLog(self.currentMatch.matchID);
 //        NSLog(@"turn event match ID:");
@@ -318,9 +320,9 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   
   GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
   
-  NSString *yourName = localPlayer.alias;
-  NSString *nameOne = match.participants[0].player.alias;
-  NSString *nameTwo = match.participants[1].player.alias;
+  NSString *yourName = localPlayer.displayName;
+  NSString *nameOne = match.participants[0].player.displayName;
+  NSString *nameTwo = match.participants[1].player.displayName;
   NSString *theirName = nameOne == yourName ? nameTwo : nameOne;
   theirName = theirName.length == 0 ? @"" : theirName;
   

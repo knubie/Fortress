@@ -219,6 +219,26 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'demotion': {
+    use: curry(function(game, positions) {
+      var index = indexOf(positions[0], map(prop('position'), game.board.pieces));
+      return Game.of(evolve({
+        board: compose(Board.of, evolve({
+          pieces: adjust(function(piece) {
+            return Piece.of({
+              name: 'pawn',
+              color: piece.color,
+              position: piece.position,
+              asleep: false,
+            });
+          }, index),
+        }))
+      }, game));
+    }),
+    useagePositions: curry(function(color, board) {
+      return map(prop('position'), reject(compose(contains('royal'), prop('types')), board.pieces));
+    }),
+  },
   'mind control': {
     use: curry(function(game, positions) {
       var index = indexOf(positions[0], map(prop('position'), game.board.pieces));
@@ -234,8 +254,8 @@ var pieceCallbacks = {
       }, game));
     }),
     useagePositions: curry(function(color, board) {
-      var oppositeColor = piece.color === 'white' ? 'black' : 'white';
-      return map(prop('position'), filter(propEq('color', oppositeColor), board.pieces));
+      var oppositeColor = color === 'white' ? 'black' : 'white';
+      return map(prop('position'), reject(compose(contains('royal'), prop('types')), filter(propEq('color', oppositeColor), board.pieces)));
     }),
   },
   'fortify': {
@@ -492,10 +512,14 @@ var endTurn = curry(function(ply, game) {
           if (typeof piece.afterTurn === 'function' && game.plysLeft === 1) {
             return piece.afterTurn(Piece.of(assoc('asleep', false, piece)));
           } else {
-            if (game.plysLeft === 1) {
+            if (game.plysLeft === 1 && piece.asleep) {
               return Piece.of(assoc('asleep', false, piece));
             } else {
-              return piece;
+              if (contains(ply.type, ['AbilityPly', 'MovePly']) && equals(ply.piece, piece)) {
+                return Piece.of(assoc('asleep', true, piece));
+              } else {
+                return piece;
+              }
             }
           }
         })
@@ -544,8 +568,8 @@ var movePly = curry(function(piece, position, game) {
     return game;
   } else if (not(equals(piece.color, game.turn))) {
     return message('It\'s not your turn!', game);
-  } else if (game.plysLeft < PLYS_PER_TURN && last(game.plys).type === 'MovePly') {
-    return message("You can't move twice in one turn!", game);
+  //} else if (game.plysLeft < PLYS_PER_TURN && last(game.plys).type === 'MovePly') {
+    //return message("You can't move twice in one turn!", game);
   } else if (piece.asleep) {
     return message("You must wait until the next turn to use this piece.", game);
   } else {
@@ -605,7 +629,7 @@ var abilityPly = curry(function(piece, game) {
     return message('It\'s not your turn!', game);
   } else if (piece.asleep) {
     return message("You must wait until the next turn to use this piece.", game);
-  } else if (piece.name && pieceCallbacks[piece.name] && pieceCallbacks[piece.name].ability) {
+  } else if (typeof path([piece.name, 'ability'], pieceCallbacks) === 'function') {
     var newGame = pieceCallbacks[piece.name].ability(piece, game);
     return endTurn(
         Types.AbilityPly.of({piece}),
@@ -627,7 +651,6 @@ var movePiece = curry(function(startingPosition, targetPosition, game) {
     newPosition = always(startingPosition);
   }
 
-  //TODO implement teleporter
   var onCapture = capturedPiece &&
                   path([piece.name, 'onCapture'], pieceCallbacks) ||
                   curry(function(oldPiece, piece, capturedPiece, game) { return game; });

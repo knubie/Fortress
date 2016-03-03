@@ -41,6 +41,8 @@ var styles = StyleSheet.create({
     flexDirection: 'row',
     paddingLeft: 4,
     margin: 3,
+    position: 'relative',
+    bottom: 1,
   },
   movementDivider: {
     width: 1,

@@ -356,14 +356,14 @@ describe('Game', function() {
     var newGame = Chess.useCardPly('white', 3, { }, game);
     expect(equals(newGame.hands[0], ['rook', 'knight', 'pawn', 'king', 'queen', 'bishop', 'shapeshifter'])).toBe(true);
   });
-  it("Player should not be able to move twice in one turn", function() {
+  it("Player should not be able to use the same piece's ability twice in one turn", function() {
     var game = Game.of({
       turn: 'white',
       board: Board.of({
         size: 8,
         pieces: [
           Piece.of({
-            name: 'rook',
+            name: 'king',
             color: 'white',
             asleep: false,
             position: Position.of({x: 4, y: 4})
@@ -371,13 +371,11 @@ describe('Game', function() {
         ]
       })
     }); // game
-    var newGame = Chess.movePly(game.board.pieces[0], 
-                                Position.of({x: 4, y: 5}),
-                                game);
-    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
-                                Position.of({x: 4, y: 4}),
-                                newGame);
-    expect(newGame2.message).toBe("You can't move twice in one turn!");
+
+    var newGame = Chess.abilityPly(game.board.pieces[0], game);
+    var newGame2 = Chess.abilityPly(newGame.board.pieces[0], newGame);
+
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
     expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
   });
   it("Player should not be able to use a piece immediately after summoning it.", function() {

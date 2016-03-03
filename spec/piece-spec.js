@@ -592,7 +592,32 @@ describe('Pieces', function() {
 
     expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
     expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+  });
+  it("Demotion should change a piece into a pawn", function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'bishop',
+          color: 'black',
+          position: new Position({x: 4, y: 5})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['demotion'], []],
+      decks: [[],[]],
+      plysLeft: 2,
+    });
 
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [Position.of({x: 4, y: 5})]
+    }, game);
+
+    expect(newGame.board.pieces[0].name).toBe('pawn');
   });
 });
 

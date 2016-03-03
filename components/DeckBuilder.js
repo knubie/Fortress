@@ -500,7 +500,6 @@ var DeckBuilder = React.createClass({
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
-                      snapToInterval={cardWidth + 10}
                       scrollEnabled={this.state.enableCollectionScroll}
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.scrollView}>

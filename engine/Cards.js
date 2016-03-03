@@ -4,6 +4,9 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
+  'demotion': {
+    points: 4,
+  },
   'mind control': {
     points: 10,
   },

@@ -21,7 +21,9 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
+		BC4BBE431C5EED6A003EFEDD /* Anonymous Pro B.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BC4BBE381C5EEC89003EFEDD /* Anonymous Pro B.ttf */; };
 		BC4DF0DA1C265B13009530E1 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC4DF0D91C265B13009530E1 /* GameKit.framework */; };
+		BC6F50181C53EC3700540A22 /* superscript.TTF in Resources */ = {isa = PBXBuildFile; fileRef = BC6F50171C53EC3600540A22 /* superscript.TTF */; };
 		BCC619E01C1B533C00D0EE1B /* GameCenterManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BCC619DF1C1B533C00D0EE1B /* GameCenterManager.m */; };
 /* End PBXBuildFile section */
 
@@ -126,7 +128,9 @@
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
 		78C398B01ACF4ADC00677621 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
+		BC4BBE381C5EEC89003EFEDD /* Anonymous Pro B.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Anonymous Pro B.ttf"; sourceTree = "<group>"; };
 		BC4DF0D91C265B13009530E1 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		BC6F50171C53EC3600540A22 /* superscript.TTF */ = {isa = PBXFileReference; lastKnownFileType = file; name = superscript.TTF; path = ../../../Downloads/superscript/superscript.TTF; sourceTree = "<group>"; };
 		BCC619DE1C1B533C00D0EE1B /* GameCenterManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameCenterManager.h; sourceTree = "<group>"; };
 		BCC619DF1C1B533C00D0EE1B /* GameCenterManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameCenterManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -292,6 +296,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				BC4BBE381C5EEC89003EFEDD /* Anonymous Pro B.ttf */,
+				BC6F50171C53EC3600540A22 /* superscript.TTF */,
 				BC4DF0D91C265B13009530E1 /* GameKit.framework */,
 				13B07FAE1A68108700A75B9A /* Fortress */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -523,6 +529,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				BC4BBE431C5EED6A003EFEDD /* Anonymous Pro B.ttf in Resources */,
+				BC6F50181C53EC3700540A22 /* superscript.TTF in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

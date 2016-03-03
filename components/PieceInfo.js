@@ -90,7 +90,7 @@ var styles = StyleSheet.create({
   button: {
     paddingVertical: 5,
     paddingHorizontal: 12,
-    borderRadius: 5,
+    borderRadius: 13,
     borderStyle: 'solid',
     borderWidth: 1,
     borderColor: '#c4c4c4',
@@ -110,21 +110,11 @@ var styles = StyleSheet.create({
 });
 
     // FIXME: don't hardcode this.
-    if (R.is(Types.Piece, this.props.card) && this.props.card.name === 'bomber') {
-    //if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'bomber') {
+    if (R.is(Types.Piece, this.props.card) && PieceDisplay[this.props.card.name].ability != null) {
       ability = (
         <View style={styles.buttonContainer}>
           <TouchableElement style={styles.button} onPress={this.ability}>
-            <Text style={styles.buttonText}>DETONATE</Text>
-          </TouchableElement>
-        </View>
-      );
-    } else if (R.is(Types.Piece, this.props.card) && this.props.card.name === 'king') {
-    //} else if (this.props.piece && this.props.piece.position.x > -1 && this.props.piece.name === 'king') {
-      ability = (
-        <View style={styles.buttonContainer}>
-          <TouchableElement style={styles.button} onPress={this.ability}>
-            <Text style={styles.buttonText}>TAX</Text>
+            <Text style={styles.buttonText}>{PieceDisplay[this.props.card.name].ability}</Text>
           </TouchableElement>
         </View>
       );

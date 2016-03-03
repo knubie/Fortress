@@ -421,6 +421,7 @@ var PlayView = React.createClass({
             <View style={styles.addCardBottom}/>
             <TouchableHighlight style={styles.addCard} onPress={this.drawCard}>
               <View style={styles.addCardInner}>
+                <Image style={styles.cardBack} source={require('../assets/card-back-1.png')}/>
                 <Text style={styles.addCardText}>
                   {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}
                 </Text>
@@ -444,7 +445,7 @@ var PlayView = React.createClass({
             )}, this.state.game.hands[this.colorToIndex(this.state.playerColor)]))}
           </ScrollView>
         </View>
-        <View style={{width: Dimensions.get('window').width - 20,}}>
+        <View style={{marginLeft: 10, width: Dimensions.get('window').width - 20,}}>
           <PieceInfo
             card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
             onAbility={this.onAbility}
@@ -527,16 +528,23 @@ var styles = StyleSheet.create({
     borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   addCardText: {
     textAlign: 'center',
     fontSize: 10,
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 2,
     fontWeight: 'bold',
     color: '#8C8C8C',
     backgroundColor: '#D8D8D8',
+  },
+  cardBack: {
+    width: 56,
+    height: 101,
+    position: 'absolute',
+    top: -6, left: -8,
   },
 });
 

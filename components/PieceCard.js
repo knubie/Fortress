@@ -164,6 +164,8 @@ var PieceCard = React.createClass({
     if (this.props.selected) {
       borderStyle = styles.selected;
     }
+    var isAction = Pieces[this.props.card] == null;
+    var cardType = isAction ? styles.cardAction : styles.cardPiece;
     var cardStyle = this.props.disabled ? [styles.card, styles.disabled] : styles.card;
     return (
       <Animated.View
@@ -180,25 +182,17 @@ var PieceCard = React.createClass({
         <Animated.View
           style={[
             cardStyle,
+            cardType,
             {
               opacity: this.props.invisible ? 0 : 1,
               transform: [{scale: this.state.scale}],
               //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#DAB900' : '#D8D8D8',
             }
         ]}>
-          <View style={[
-            styles.cardBorder,
-            borderStyle,
-            {
-              //borderColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#FFF09E' : '#979797',
-
-            },
-          ]}>
-            <Image
-              source={PieceDisplay[this.props.card].image['black']}
-              style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
-            />
-          </View>
+          <Image
+            source={isAction ? PieceDisplay[this.props.card].image['black'] : PieceDisplay[this.props.card].image['white']}
+            style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
+          />
           <View style={[
             styles.points,
             {
@@ -233,6 +227,10 @@ var styles = StyleSheet.create({
     marginTop: 2,
     borderRadius: 4,
     backgroundColor: '#D8D8D8',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000000',
     shadowOpacity: 0.5,
     shadowRadius: 0,
@@ -241,27 +239,22 @@ var styles = StyleSheet.create({
       height: 3,
     },
   },
+  cardPiece: {
+    backgroundColor: '#353535',
+  },
+  cardAction: {
+  },
   disabled: {
     opacity: 0.5,
   },
-  cardBorder: {
-    margin: 3,
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: 'rgba(0,0,0,0)',
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   selected: {
-    borderColor: '#00BBFF',
+    //borderColor: '#00BBFF',
   },
   unselected: {
-    borderColor: '#979797',
+    //borderColor: '#979797',
   },
   borderRoyal: {
-    borderColor: '#979797',
+    //borderColor: '#979797',
   },
   points: {
     position: 'absolute',

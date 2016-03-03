@@ -16,7 +16,7 @@ var CardIcon = React.createClass({
             top: 1,
             fontSize: 9,
             color: '#353535',
-            backgroundColor: 'rgba(0,0,0,0',
+            backgroundColor: 'rgba(0,0,0,0)',
           }}
         >
           {this.props.number}
