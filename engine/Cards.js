@@ -4,6 +4,9 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
+  'influence': {
+    points: 3,
+  },
   'demotion': {
     points: 4,
   },

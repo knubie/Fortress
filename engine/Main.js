@@ -219,6 +219,13 @@ var getDefends = curry(function(board, piece) {
 });
 
 var pieceCallbacks = {
+  'influence': {
+    use: curry(function(game) {
+      return Game.of(evolve({
+        plysLeft: add(2)
+      }, game));
+    }),
+  },
   'demotion': {
     use: curry(function(game, positions) {
       var index = indexOf(positions[0], map(prop('position'), game.board.pieces));

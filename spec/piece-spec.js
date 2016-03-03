@@ -619,6 +619,47 @@ describe('Pieces', function() {
 
     expect(newGame.board.pieces[0].name).toBe('pawn');
   });
+  it("Influence should add 2 plys to the current players plys", function() {
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['influence'], []],
+      decks: [[],[]],
+      plysLeft: 2,
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {}, game);
+
+    expect(newGame.plysLeft).toBe(3);
+
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['influence'], []],
+      decks: [[],[]],
+      plysLeft: 1,
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {}, game);
+
+    expect(newGame.plysLeft).toBe(2);
+
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['influence', 'influence'], []],
+      decks: [[],[]],
+      plysLeft: 2,
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {}, game);
+    var newGame = Chess.useCardPly('white', 0, {}, newGame);
+
+    expect(newGame.plysLeft).toBe(4);
+  });
 });
 
 
