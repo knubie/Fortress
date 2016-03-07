@@ -17,23 +17,34 @@ var Modal = React.createClass({
   },
   getInitialState: function() {
     return {
-      backgroundOpacity: new Animated.Value(0.7),
+      backgroundOpacity: new Animated.Value(0),
+      messageTop: new Animated.Value(0),
       boxTop: new Animated.Value(0),
       draggedCardX: 0,
       draggedCardY: 0,
     };
   },
   componentDidMount: function() {
-    //this.state.backgroundOpacity.setValue(0);
-    //Animated.timing(                          // Base: spring, decay, timing
-      //this.state.backgroundOpacity,                 // Animate `bounceValue`
-      //{
-        //toValue: 0.5,                         // Animate to smaller size
-        //duration: 150, // milliseconds
-        //delay: 0, // milliseconds
-        //easing: Easing.out(Easing.ease),
-      //}
-    //).start();
+    this.state.backgroundOpacity.setValue(0);
+    Animated.timing(
+      this.state.backgroundOpacity,
+      {
+        toValue: 0.8,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
+    this.state.messageTop.setValue(-25);
+    Animated.timing(
+      this.state.messageTop,
+      {
+        toValue: 0,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
     //this.state.boxTop.setValue(-100);
     //Animated.spring(                          // Base: spring, decay, timing
       //this.state.boxTop,                 // Animate `bounceValue`
@@ -48,16 +59,27 @@ var Modal = React.createClass({
     //).start();
   },
   onPress: function() {
-    this.props.onPress();
-    //Animated.timing(                          // Base: spring, decay, timing
-      //this.state.backgroundOpacity,                 // Animate `bounceValue`
-      //{
-        //toValue: 0,                         // Animate to smaller size
-        //duration: 150, // milliseconds
-        //delay: 0, // milliseconds
-        //easing: Easing.in(Easing.ease),
-      //}
-    //).start();
+    Animated.timing(
+      this.state.backgroundOpacity,
+      {
+        toValue: 0,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
+    Animated.timing(
+      this.state.messageTop,
+      {
+        toValue: 20,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start((result) => {
+      this.state.messageTop.setValue(0);
+      this.props.onPress();
+    });
     //Animated.timing(                          // Base: spring, decay, timing
       //this.state.boxTop,                 // Animate `bounceValue`
       //{
@@ -92,7 +114,7 @@ var Modal = React.createClass({
     var dx = Math.abs(this.startDragX - e.nativeEvent.pageX);
     var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
     if (dx > 60 || dy > 60) {
-      this.props.onPress();
+      this.onPress();
     }
   },
   onResponderTerminationRequest: function(e) {
@@ -103,7 +125,7 @@ var Modal = React.createClass({
     return true;
   },
   onModalResponderRelease: function(e) {
-    this.props.onPress();
+    this.onPress();
   },
   render: function() {
     var children = this.props.children ? 
@@ -141,7 +163,16 @@ var Modal = React.createClass({
         >
         </Animated.View>
 
-        <View style={[styles.message, ]}>{this.props.message}</View>
+        <Animated.View style={[
+          styles.message,
+          {
+            position: 'relative',
+            top: this.state.messageTop,
+            opacity: this.state.backgroundOpacity,
+          }
+        ]}>
+          {this.props.message}
+        </Animated.View>
         {children}
       </View>
     );

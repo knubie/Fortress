@@ -183,6 +183,7 @@ var PieceCard = React.createClass({
           style={[
             cardStyle,
             cardType,
+            borderStyle,
             {
               opacity: this.props.invisible ? 0 : 1,
               transform: [{scale: this.state.scale}],
@@ -193,12 +194,7 @@ var PieceCard = React.createClass({
             source={isAction ? PieceDisplay[this.props.card].image['black'] : PieceDisplay[this.props.card].image['white']}
             style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
           />
-          <View style={[
-            styles.points,
-            {
-              //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#A48B00' : '#979797',
-            },
-          ]}>
+          <View style={[styles.points,]}>
             <Text style={styles.pointText}>{Cards[this.props.card].points}</Text>
           </View>
         </Animated.View>
@@ -227,6 +223,8 @@ var styles = StyleSheet.create({
     marginTop: 2,
     borderRadius: 4,
     backgroundColor: '#D8D8D8',
+    borderWidth: 1,
+    borderColor: '#D8D8D8',
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -241,6 +239,7 @@ var styles = StyleSheet.create({
   },
   cardPiece: {
     backgroundColor: '#353535',
+    borderColor: '#353535',
   },
   cardAction: {
   },
@@ -248,7 +247,15 @@ var styles = StyleSheet.create({
     opacity: 0.5,
   },
   selected: {
-    //borderColor: '#00BBFF',
+    borderWidth: 1,
+    borderColor: '#00BBFF',
+    //shadowColor: '#00BBFF',
+    //shadowOpacity: 1,
+    //shadowRadius: 2,
+    //shadowOffset: {
+      //width: 0,
+      //height: 0,
+    //},
   },
   unselected: {
     //borderColor: '#979797',

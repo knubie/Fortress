@@ -40,92 +40,110 @@ var PlayView = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
       data => {
-        var decodedGame = GameCenter.decode(data.match.matchData);
-        //TODO: just use this.state.game
-        var previousGameState = R.reduce(GameCenter.makePly, GameCenter.instantiateObjects(JSON.parse(data.match.matchData)), R.init(decodedGame.plys));
-        var yourTurnMessage = "It's your turn!";
-        var theirName = this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent';
-        switch(R.last(decodedGame.plys).type) {
-
-          case 'DrawPly':
-            this.setState({
-              cardPlayed: null
-            });
-            yourTurnMessage = (
-              <View style={{flexWrap: 'wrap', flexDirection: 'row',}}>
-                <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                  <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew </Text><CardIcon number={'1'}/><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!
-                </Text>
-              </View>
-            );
-            //yourTurnMessage = (
-              //<Text>
-              //{"It's your turn! " + theirName + " drew a card."}
-              //</Text>
-            //);
-            break;
-
-          case 'AbilityPly':
-            var piece = R.last(decodedGame.plys).piece;
-            var abilityName = PieceDisplay[piece.name]['ability'];
-            this.setState({
-              cardPlayed: null
-            });
-            yourTurnMessage = (
-              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the ability <Text style={{fontWeight: 'bold'}}>{abilityName}</Text>.
-              </Text>
-            );
-            break;
-
-          case 'UseCardPly':
-            var card = R.last(decodedGame.plys).card;
-            var cardName = previousGameState.hands[this.colorToIndex(previousGameState.turn)][card];
-            // TODO fix this
-            this.setState({
-              cardPlayed: cardName
-            });
-            //yourTurnMessage = (
-              //<PieceInfo
-                //card={cardName}
-                //onAbility={this.onAbility}
-                //useCard={this.useCard}
-              //></PieceInfo>
-            //);
-            yourTurnMessage = (
-              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                <Text style={{fontWeight: 'bold'}}>{theirName}</Text> played a card!
-              </Text>);
-            break;
-
-          case 'MovePly':
-            this.setState({
-              cardPlayed: null
-            });
-            yourTurnMessage = (
-              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
-              </Text>
-            );
-            break;
-        }
-        var game = Types.Game.of(
-          R.assoc(
-            'message',
-            (!this.yourTurn() && data.match.yourTurn) ?
-              yourTurnMessage : this.state.game.message,
-            GameCenter.decode(data.match.matchData)
-          )
-        );
+        // Load up-to-date Game data into state.
         this.setState({
-          possibleMoves: [],
-          possibleCaptures: [],
-          selectedPiece: null,
+          // TODO: Only need to set this once. From Home.js?
           baseGame: GameCenter.getBaseGame(data.match.matchData),
-          game: game,
+          latestGame: GameCenter.decode(data.match.matchData)
         });
+
+        // Load next game state if applicable
+        if (!this.state.game.message) {
+          this.loadNextGameState();
+        }
       }
     );
+  },
+  loadNextGameState: function() {
+    // If latest game is newer than current game, load it.
+    if (this.state.game.plys.length < R.path(['latestGame', 'plys', 'length'], this.state)) {
+      // Get the next ply.
+        console.log(R.take(this.state.game.plys.length + 1, this.state.latestGame.plys));
+      var nextGameState = R.reduce(
+        GameCenter.makePly,
+        // TODO: Need to implement this.
+        this.state.baseGame,
+        R.take(this.state.game.plys.length + 1, this.state.latestGame.plys)
+      );
+      var yourTurnMessage = "";
+      var theirName = this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent';
+
+      // Determine Game message.
+      switch(R.last(nextGameState.plys).type) {
+        case 'DrawPly':
+          this.setState({
+            cardPlayed: null
+          });
+          yourTurnMessage = (
+            <View style={{flexWrap: 'wrap', flexDirection: 'row',}}>
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew </Text><CardIcon number={'1'}/><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!
+              </Text>
+            </View>
+          );
+          break;
+
+        case 'AbilityPly':
+          var piece = R.last(nextGameState.plys).piece;
+          var abilityName = PieceDisplay[piece.name]['ability'];
+          this.setState({
+            cardPlayed: null
+          });
+          yourTurnMessage = (
+            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+              It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the ability <Text style={{fontWeight: 'bold'}}>{abilityName}</Text>.
+            </Text>
+          );
+          break;
+
+        case 'UseCardPly':
+          var card = R.last(nextGameState.plys).card;
+          var cardName = this.state.game.hands[this.colorToIndex(this.state.game.turn)][card];
+          // TODO fix this
+          this.setState({
+            cardPlayed: cardName
+          });
+          yourTurnMessage = (
+            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> played a card!
+            </Text>);
+          break;
+
+        case 'MovePly':
+          this.setState({
+            cardPlayed: null
+          });
+          yourTurnMessage = (
+            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+              It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
+            </Text>
+          );
+          break;
+      }
+
+      // Set the Game message.
+      var game = Types.Game.of(
+        R.assoc(
+          'message',
+          yourTurnMessage,
+          nextGameState
+        )
+      );
+      // Set the Game state.
+      this.setState({
+        possibleMoves: [],
+        possibleCaptures: [],
+        selectedPiece: null,
+        game: game,
+      });
+    }
+  },
+  clearMessage: function() {
+    // Clear Game message
+    this.setState({
+      game: Types.Game.of(R.assoc('message', null, this.state.game))
+    });
+    this.loadNextGameState();
   },
   back: function() {
     this.props.navigator.pop();
@@ -327,11 +345,6 @@ var PlayView = React.createClass({
   },
   playersHand: function() {
     return this.state.game.hands[this.colorToIndex(this.state.playerColor)];
-  },
-  clearMessage: function() {
-    this.setState({
-      game: Types.Game.of(R.assoc('message', null, this.state.game))
-    });
   },
   dummy: function() {
     alert('foo');
@@ -541,7 +554,7 @@ var styles = StyleSheet.create({
     backgroundColor: '#D8D8D8',
   },
   cardBack: {
-    width: 56,
+    width: Math.floor(56 * (Dimensions.get('window').width / 320)),
     height: 101,
     position: 'absolute',
     top: -6, left: -8,

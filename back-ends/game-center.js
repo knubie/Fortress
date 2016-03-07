@@ -145,7 +145,7 @@ module.exports = {
             compressGame(R.assoc('plys', plys, baseGame))));
   },
   getBaseGame: function(data) {
-    return JSON.parse(data);
+    return getBaseGame(JSON.parse(data));
   },
   instantiateObjects: instantiateObjects,
   makePly: makePly,

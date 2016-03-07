@@ -264,14 +264,15 @@ module.exports = {
       movement: '1/0',
       distance: '1'
     }],
-    points: 1.5
+    points: 1
   },
   'ferz': {
     parlett: [{
       movement: '1/1',
+      types: ['pious'],
       distance: '1'
     }],
-    points: 1.5
+    points: 1
   },
   'archbishop': {
     parlett: [
