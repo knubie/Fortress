@@ -37,6 +37,32 @@ var compare = function(arr1, arr2, i) {
 }
 
 describe('Pieces', function() {
+  it('King tax should gain one gold per friendly piece on the board', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'king',
+          color: 'white',
+          asleep: false,
+          position: new Position({x: 2, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          asleep: false,
+          position: new Position({x: 3, y: 0})
+        }),
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [2, 2],
+    });
+    var actualGame = Chess.abilityPly(board.pieces[0], game);
+    expect(actualGame.resources[0]).toBe(4);
+  });
   it('Teleporter should swap pieces with friendly pieces', function() {
     var board = new Board({
       size: 8,
@@ -343,24 +369,31 @@ describe('Pieces', function() {
     });
     expect(equals(expectedBoard, actualGame.board)).toBe(true);
   });
-  it('Gold should not exceed MAX_GOLD', function() {
+  it('Gold should not exceed maxResources', function() {
     var board = new Board({
       size: 8,
       pieces: [
         new Piece({
-          name: 'mine',
+          name: 'king',
           color: 'white',
-          position: new Position({x: 4, y: 4})
-        })
+          asleep: false,
+          position: new Position({x: 2, y: 0})
+        }),
+        new Piece({
+          name: 'pawn',
+          color: 'white',
+          asleep: false,
+          position: new Position({x: 3, y: 0})
+        }),
       ],
     });
     var game = new Game({
       turn: 'white',
-      resources: [10, 10],
-      board: board
+      board: board,
+      resources: [9, 2],
     });
     var actualGame = Chess.abilityPly(board.pieces[0], game);
-    expect(actualGame.resources[0]).toBe(10);
+    expect(actualGame.resources[0]).toBe(actualGame.maxResources[0]);
   });
   it('A wall cannot be captured', function() {
     var board = new Board({
@@ -433,18 +466,48 @@ describe('Pieces', function() {
     expect(actualGame.resources[0]).toBe(4);
   });
   it('Steal card should steal 2 gold from opponent and give to player', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 3})
+        })
+      ],
+    });
     var game = new Game({
       turn: 'white',
       board: board,
-      resources: [4, 7],
+      resources: [4, 10],
       hands: [['steal'], []],
       decks: [[],[]],
     });
     var newGame = Chess.useCardPly('white', 0, { }, game);
-    expect(newGame.resources[0]).toBe(6);
-    expect(newGame.resources[1]).toBe(5);
+    expect(newGame.resources[0]).toBe(8);
+    expect(newGame.resources[1]).toBe(6);
   });
   it('Steal card should not steal more gold than the opponent has.', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 3})
+        })
+      ],
+    });
     var game = new Game({
       turn: 'white',
       board: board,
@@ -454,6 +517,33 @@ describe('Pieces', function() {
     });
     var newGame = Chess.useCardPly('white', 0, { }, game);
     expect(newGame.resources[0]).toBe(5);
+    expect(newGame.resources[1]).toBe(0);
+  });
+  it('Steal card should not exceed maxResources', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        new Piece({
+          name: 'thief',
+          color: 'white',
+          position: new Position({x: 4, y: 3})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [9, 4],
+      hands: [['steal'], []],
+      decks: [[],[]],
+    });
+    var newGame = Chess.useCardPly('white', 0, { }, game);
+    expect(newGame.resources[0]).toBe(newGame.maxResources[0]);
     expect(newGame.resources[1]).toBe(0);
   });
   it('Church and State card should give +1(1/0) to all friendly Pious units on the board.', function() {

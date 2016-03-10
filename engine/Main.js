@@ -307,7 +307,9 @@ var pieceCallbacks = {
                     turnsBeforeRemoval --;
                     if (turnsBeforeRemoval === 0) {
                       return Piece.of(evolve({
+                        // get index instead of using length
                         types: remove(piece.types.length, 1),
+                        // get index instead of using length
                         additionalEffects: remove(piece.additionalEffects.length, 1),
                       }, piece2));
                     } else {
@@ -367,14 +369,25 @@ var pieceCallbacks = {
       var color = game.turn;
       var playerIndex = colorToIndex(color);
       var oppIndex = playerIndex === 0 ? 1 : 0;
+      var STEAL_PER_THIEF = 2
+
+      // Amount to steal; number of thieves on the board.
+      var amount = filter(where({
+        color: equals(game.turn),
+        name: equals('thief'),
+      }), game.board.pieces).length * STEAL_PER_THIEF;
+
       return Game.of(evolve({
         resources: compose(
                      adjust(
-                       add(min(2, game.resources[oppIndex])),
+                       compose(
+                         min(game.maxResources[playerIndex]),
+                         add(min(amount, game.resources[oppIndex]))
+                       ),
                        playerIndex
                      ),
                      adjust(
-                       subtract(__, min(2, game.resources[oppIndex])),
+                       subtract(__, min(amount, game.resources[oppIndex])),
                        oppIndex
                      )
                    )
@@ -490,10 +503,7 @@ var pieceCallbacks = {
       var amount = filter(where({
         color: equals(piece.color),
       }), game.board.pieces).length;
-      return Game.of(evolve({
-        // TODO: extract this pattern out into its own function
-        resources: adjust(compose(min(game.maxResources[index]), add(amount)), index)
-      }, game));
+      return addResources(game, index, amount);
     }),
   },
   mine: {
@@ -520,6 +530,19 @@ var pieceCallbacks = {
     })
   },
 };
+
+//  addResources :: (Game, Number, Number) -> Game
+var addResources = curry(function(game, playerIndex, amount) {
+  return Game.of(evolve({
+    resources: adjust(
+      compose(
+        min(game.maxResources[playerIndex]),
+        add(amount)
+      ),
+      playerIndex)
+  }, game));
+});
+
 var customMovement = {
   'teleporter': function(board, piece) {
     // Get all squares
