@@ -8,10 +8,10 @@ module.exports = {
     points: 2,
   },
   'influence': {
-    points: 3,
+    points: 4,
   },
   'demotion': {
-    points: 4,
+    points: 5,
   },
   'mind control': {
     points: 10,
