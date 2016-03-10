@@ -112,7 +112,7 @@ describe('Game', function() {
     var game = new Game({
       turn: 'white',
       board: board,
-      plysLeft: 1,
+      plysLeft: [1, 2],
       decks: [['pawn', 'bishop', 'pawn'], []]
     });
     var actualGame = Chess.drawCardPly('white', game);

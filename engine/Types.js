@@ -83,8 +83,12 @@ function Game(opts) {
   // hands[0] = white
   // hands[1] = black
   this.hands = this.hands || [[], []];
+  // Total plys available per turn per player.
+  this.plysPerTurn = this.plysPerTurn || [2, 2];
   // The number of plys remaining for the current turn.
-  this.plysLeft = this.plysLeft || PLYS_PER_TURN;
+  this.plysLeft = this.plysLeft || [2, 2];
+  //this.plysLeft = this.plysLeft || PLYS_PER_TURN;
+  this.afterTurn = this.afterTurn || [];
 }
 Game.of = function(x) { return new Game(x); };
 

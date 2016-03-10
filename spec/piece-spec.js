@@ -525,7 +525,7 @@ describe('Pieces', function() {
       resources: [4, 1],
       hands: [['fortify'], ['perception']],
       decks: [[],[]],
-      plysLeft: 1,
+      plysLeft: [1, 2],
     });
 
     var newGame = Chess.useCardPly('white', 0, {
@@ -619,46 +619,82 @@ describe('Pieces', function() {
 
     expect(newGame.board.pieces[0].name).toBe('pawn');
   });
-  it("Influence should add 2 plys to the current players plys", function() {
+  it("Influence should add 1 plys to the current players plys next turn", function() {
     var game = new Game({
       turn: 'white',
       board: board,
       resources: [10, 1],
       hands: [['influence'], []],
-      decks: [[],[]],
-      plysLeft: 2,
+      decks: [['pawn', 'pawn', 'pawn'],['pawn', 'pawn']],
+      plysLeft: [1, 2],
     });
 
     var newGame = Chess.useCardPly('white', 0, {}, game);
 
-    expect(newGame.plysLeft).toBe(3);
+    expect(newGame.plysPerTurn).toEqual([3, 2]);
 
-    var game = new Game({
-      turn: 'white',
-      board: board,
-      resources: [10, 1],
-      hands: [['influence'], []],
-      decks: [[],[]],
-      plysLeft: 1,
-    });
+    var newGame = Chess.drawCardPly('black', newGame);
+    var newGame = Chess.drawCardPly('black', newGame);
 
-    var newGame = Chess.useCardPly('white', 0, {}, game);
+    expect(newGame.plysPerTurn).toEqual([3, 2]);
 
-    expect(newGame.plysLeft).toBe(2);
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
 
+    expect(newGame.plysPerTurn).toEqual([2, 2]);
+  });
+  it("Influence should stack", function() {
     var game = new Game({
       turn: 'white',
       board: board,
       resources: [10, 1],
       hands: [['influence', 'influence'], []],
-      decks: [[],[]],
-      plysLeft: 2,
+      decks: [['pawn', 'pawn', 'pawn', 'pawn'],['pawn', 'pawn']],
+      plysLeft: [2, 2],
     });
 
     var newGame = Chess.useCardPly('white', 0, {}, game);
     var newGame = Chess.useCardPly('white', 0, {}, newGame);
 
-    expect(newGame.plysLeft).toBe(4);
+    expect(newGame.plysPerTurn).toEqual([4, 2]);
+
+    var newGame = Chess.drawCardPly('black', newGame);
+    var newGame = Chess.drawCardPly('black', newGame);
+
+    expect(newGame.plysPerTurn).toEqual([4, 2]);
+
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+
+    expect(newGame.plysPerTurn).toEqual([2, 2]);
+  });
+  it("Influence should not interfere with itself", function() {
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [10, 1],
+      hands: [['influence', 'influence'], []],
+      decks: [['pawn', 'pawn', 'pawn', 'pawn'],['pawn', 'pawn']],
+      plysLeft: [1, 2],
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {}, game);
+
+    expect(newGame.plysPerTurn).toEqual([3, 2]);
+
+    var newGame = Chess.drawCardPly('black', newGame);
+    var newGame = Chess.drawCardPly('black', newGame);
+
+    expect(newGame.plysPerTurn).toEqual([3, 2]);
+
+    var newGame = Chess.useCardPly('white', 0, {}, newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+
+    expect(newGame.plysPerTurn).toEqual([3, 2]);
   });
   it("Coffer Upgrade should increase max gold by 5", function() {
     var board = new Board({

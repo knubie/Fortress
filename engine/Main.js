@@ -228,8 +228,28 @@ var pieceCallbacks = {
   },
   'influence': {
     use: curry(function(game) {
+      var count = 0;
+      var turnIndex = colorToIndex(game.turn);
       return Game.of(evolve({
-        plysLeft: add(2)
+        afterTurn: append((game) => {
+          if (count === 0) { // Ending turn. (Now opponent's turn)
+            count++;
+            // Add a ply
+            return Game.of(evolve({
+              plysPerTurn: adjust(add(1), turnIndex)
+            }, game));
+          } else if (count === 1) { // Opponent ends turn. (Now your turn)
+            count++;
+            //do nothing.
+            return game;
+          } else if (count === 2) { // End turn again. (Now opponent's turn)
+            count++;
+            // Remove a ply
+            return Game.of(evolve({
+              plysPerTurn: adjust(subtract(__, 1), turnIndex)
+            }, game));
+          }
+        })
       }, game));
     }),
   },
@@ -278,13 +298,14 @@ var pieceCallbacks = {
       return Game.of(evolve({
         board: compose(Board.of, evolve({
           pieces: adjust(function(piece) {
+            // FIXME: this won't work!
             return Piece.of(evolve({
               afterTurn: always(
                 (function() {
-                  var plysBeforeRemoval = 2;
+                  var turnsBeforeRemoval = 2;
                   return function(piece2) {
-                    plysBeforeRemoval --;
-                    if (plysBeforeRemoval === 0) {
+                    turnsBeforeRemoval --;
+                    if (turnsBeforeRemoval === 0) {
                       return Piece.of(evolve({
                         types: remove(piece.types.length, 1),
                         additionalEffects: remove(piece.additionalEffects.length, 1),
@@ -519,15 +540,16 @@ var customMovement = {
 
 //  endTurn :: (PlyType, Game) -> Game
 var endTurn = curry(function(ply, game) {
-  return Game.of(evolve({
+  var turnIndex = colorToIndex(game.turn);
+  var newGame = Game.of(evolve({
     board: compose(
       Board.of,
       evolve({
         pieces: map(function(piece) {
-          if (typeof piece.afterTurn === 'function' && game.plysLeft === 1) {
+          if (typeof piece.afterTurn === 'function' && game.plysLeft[turnIndex] === 1) {
             return piece.afterTurn(Piece.of(assoc('asleep', false, piece)));
           } else {
-            if (game.plysLeft === 1 && piece.asleep) {
+            if (game.plysLeft[turnIndex] === 1 && piece.asleep) {
               return Piece.of(assoc('asleep', false, piece));
             } else {
               if (contains(ply.type, ['AbilityPly', 'MovePly']) && equals(ply.piece, piece)) {
@@ -541,21 +563,32 @@ var endTurn = curry(function(ply, game) {
       })
     ),
     turn: (turn) => {
-      if (game.plysLeft === 1) {
+      if (game.plysLeft[turnIndex] === 1) {
         return turn === 'white' ? 'black' : 'white';
       } else {
         return turn;
       }
     },
     plysLeft: (plysLeft) => {
-      if (plysLeft === 1) {
-        return PLYS_PER_TURN;
+      if (plysLeft[turnIndex] === 1) {
+        return adjust(
+          always(game.plysPerTurn[turnIndex]),
+          turnIndex,
+          plysLeft);
       } else {
-        return subtract(plysLeft, 1);
+        return adjust(
+          subtract(__, 1),
+          turnIndex,
+          plysLeft);
       }
     },
     plys: append(ply)
   }, game));
+  if (newGame.turn !== game.turn) {
+    return reduce(flip(call), newGame, newGame.afterTurn)
+  } else {
+    return newGame;
+  }
 });
 
 //  drawCardPly :: (String, Game) -> Game
