@@ -194,7 +194,7 @@ var PieceCard = React.createClass({
             source={isAction ? PieceDisplay[this.props.card].image['black'] : PieceDisplay[this.props.card].image['white']}
             style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
           />
-          <View style={[styles.points,]}>
+          <View style={[styles.points, isAction ? styles.pointsLight : styles.pointsDark]}>
             <Text style={styles.pointText}>{Cards[this.props.card].points}</Text>
           </View>
         </Animated.View>
@@ -222,11 +222,11 @@ var styles = StyleSheet.create({
     height: cardHeight,
     marginTop: 2,
     borderRadius: 4,
-    backgroundColor: '#D8D8D8',
+    backgroundColor: '#C4C4C4',
     borderWidth: 1,
-    borderColor: '#D8D8D8',
+    borderColor: '#C4C4C4',
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
@@ -248,7 +248,7 @@ var styles = StyleSheet.create({
   },
   selected: {
     borderWidth: 1,
-    borderColor: '#00BBFF',
+    borderColor: '#007099',
     //shadowColor: '#00BBFF',
     //shadowOpacity: 1,
     //shadowRadius: 2,
@@ -264,28 +264,22 @@ var styles = StyleSheet.create({
     //borderColor: '#979797',
   },
   points: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#DAB900',
-    flex: 1,
+    borderRadius: 4,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 4,
     justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOpacity: 0.25,
-    shadowRadius: 0,
-    shadowOffset: {
-      width: 1,
-      height: 1,
-    },
+    marginTop: 5,
+  },
+  pointsDark: {
+    backgroundColor: '#212121',
+  },
+  pointsLight: {
+    backgroundColor: '#A6A6A6',
   },
   pointText: {
+    color: '#555555',
     fontSize: 10,
-    color: '#645500',
     fontFamily: 'Helvetica Neue',
     fontWeight: '700',
   },
