@@ -414,17 +414,31 @@ var PlayView = React.createClass({
           clickSquare={this.clickSquare}
           clickPiece={this.clickPiece}
         ></Board>
-        <View style={{marginTop: 7, marginLeft: 20, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
-          <Text style={{paddingHorizontal: 2, marginRight: 4, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
-          GOLD: {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}<Text style={{color: '#836F00'}}>/10</Text></Text>
-          {R.map((i) => {
-            if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] >= i) {
-              return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
-            } else {
-              return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
-            }
-          }, [1,2,3,4,5,6,7,8,9,10])}
-          <Text style={{color: 'white'}}>PLYS: {this.state.game.plysLeft}</Text>
+        <View style={{marginTop: 7, marginHorizontal: 20, justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
+          <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
+            <Text style={{paddingHorizontal: 2, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
+              <Text style={{fontWeight: '400'}}>GOLD</Text> {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
+            </Text>
+              {R.map((i) => {
+                if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] >= i) {
+                  return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
+                } else {
+                  return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
+                }
+              }, [1,2,3,4,5,6,7,8,9,10])}
+          </View>
+          <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
+            <Text style={{paddingHorizontal: 2, fontWeight: 'bold', fontSize: 10, color: '#C4C4C4',}}>
+              <Text style={{fontWeight: '400'}}>ACTIONS</Text> {this.state.game.plysLeft}
+            </Text>
+              {R.map((i) => {
+                if (this.state.game.plysLeft >= i) {
+                  return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#C4C4C4'}}/>);
+                } else {
+                  return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
+                }
+              }, [1,2])}
+            </View>
         </View>
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}

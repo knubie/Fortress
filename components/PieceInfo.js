@@ -51,14 +51,14 @@ var styles = StyleSheet.create({
     marginBottom: 5,
   },
   name: {
-    fontFamily: 'Helvetica Neue',
-    fontSize: 14,
+    fontFamily: 'Source Code Pro',
+    fontSize: 12,
     fontWeight: '600',
     color: this.props.light ? '#212121' : '#D8D8D8',
   },
   cardTypes: {
-    fontSize: 11,
-    fontStyle: 'italic',
+    fontFamily: 'Source Code Pro',
+    fontSize: 9,
     color: this.props.light ? '#9B9B9B' : '#636363',
   },
   divider: {
@@ -132,8 +132,8 @@ var styles = StyleSheet.create({
     var typeList = '';
     if (R.is(Types.Piece, this.props.card)) {
       typeList = R.reduce((prev, type) => {
-        return prev + (prev === '  – ' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
-      }, '  – ', this.props.card.types || [])
+        return prev + (prev === ' –' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
+      }, ' –', this.props.card.types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -143,8 +143,8 @@ var styles = StyleSheet.create({
        }, this.props.card.types || [])
     } else if (Pieces[this.props.card]) {
       typeList = R.reduce((prev, type) => {
-        return prev + (prev === '  – ' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
-      }, '  – ', Pieces[this.props.card].types || [])
+        return prev + (prev === ' –' ? ' ' : ', ') + type.charAt(0).toUpperCase() + type.slice(1);
+      }, ' –', Pieces[this.props.card].types || [])
       types = R.map((type) => {
         if (type === 'royal') {
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
@@ -154,7 +154,7 @@ var styles = StyleSheet.create({
        }, Pieces[this.props.card].types || [])
     }
 
-    typeList = typeList === '  – ' ? '' : typeList;
+    typeList = typeList === ' –' ? '' : typeList;
 
     var movementTags = null;
     if (R.is(Types.Piece, this.props.card)) {
@@ -175,7 +175,7 @@ var styles = StyleSheet.create({
       <View style={styles.pieceDisplayContainer}>
         <View style={styles.title}>
           {types}
-          <Text style={styles.name}>{pieceDisplay.displayName}</Text>
+          <Text style={styles.name}>{pieceDisplay.displayName.toUpperCase()}</Text>
         </View>
         <View>
           <Text style={styles.cardTypes}>
@@ -186,8 +186,8 @@ var styles = StyleSheet.create({
         <View style={styles.divider}/>
         <View style={styles.description}>
           {pieceDisplay.description({
-            fontFamily: 'Helvetica Neue',
-            fontSize: 12,
+            fontFamily: 'Source Code Pro',
+            fontSize: 10,
             fontWeight: '400',
             color: this.props.light ? '#646464' : '#979797',
             textAlign: 'center',
