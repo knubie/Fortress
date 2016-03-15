@@ -94,7 +94,6 @@ var Home = React.createClass({
     // Load in a default preset deck.
     AsyncStorage.getItem('decks', (error, result) => {
       console.log(error);
-      console.log(result);
       if (result == null) {
         var decks = {
           'New Deck': [],

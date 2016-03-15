@@ -1,7 +1,11 @@
 var React = require('react-native');
+var Pieces = require('../engine/Pieces');
+var PieceInfo = require('./PieceInfo.js');
+var PieceDisplay = require('../lib/piece-display');
 
 var {
   Easing,
+  Image,
   Animated,
   Dimensions,
   View,
@@ -128,9 +132,11 @@ var Modal = React.createClass({
     this.onPress();
   },
   render: function() {
-    var children = this.props.children ? 
+    var isAction = Pieces[this.props.card] == null;
+    var children = this.props.card ? 
         (<Animated.View
           style={[
+            isAction ? styles.boxLight : styles.boxDark,
             styles.box,
             {
               top: this.state.boxTop,
@@ -148,7 +154,16 @@ var Modal = React.createClass({
           onResponderTerminationRequest={this.onResponderTerminationRequest}
           onResponderTerminate={this.onResponderTerminate}
         >
-          {this.props.children}
+          <Image
+            source={PieceDisplay[this.props.card].image[isAction ? 'black' : 'white']}
+            style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
+          />
+          <PieceInfo
+            light={isAction}
+            card={this.props.card}
+            onAbility={this.onAbility}
+            useCard={this.useCard}
+          ></PieceInfo>
         </Animated.View>) : null;
 
     return (
@@ -205,7 +220,6 @@ var styles = StyleSheet.create({
   },
   box: {
     padding: 10,
-    backgroundColor: '#D8D8D8',
     borderRadius: 8,
     width: 180,
     height: 253,
@@ -213,7 +227,12 @@ var styles = StyleSheet.create({
     //height: Math.floor(Dimensions.get('window').width * 0.53 * 1.48),
     alignItems: 'center',
     flexDirection: 'column',
-    justifyContent: 'center',
+  },
+  boxDark: {
+    backgroundColor: '#353535',
+  },
+  boxLight: {
+    backgroundColor: '#D8D8D8',
   },
   modal: {
     position: 'absolute',

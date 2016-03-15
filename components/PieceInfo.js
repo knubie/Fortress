@@ -3,6 +3,7 @@ var React = require('react-native');
 var Tag = require('./Tag');
 var MovementTag = require('./MovementTag');
 var PieceDisplay = require('../lib/piece-display');
+var Colors = require('../lib/colors');
 var Cards = require('../engine/Cards');
 var Pieces = require('../engine/Pieces');
 var Types = require('../engine/Types');
@@ -48,18 +49,19 @@ var styles = StyleSheet.create({
   title: {
     justifyContent: 'flex-start',
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 5,
   },
   name: {
     fontFamily: 'Source Code Pro',
     fontSize: 12,
     fontWeight: '600',
-    color: this.props.light ? '#212121' : '#D8D8D8',
+    color: this.props.light ? Colors.background : Colors.foreground,
   },
   cardTypes: {
     fontFamily: 'Source Code Pro',
     fontSize: 9,
-    color: this.props.light ? '#9B9B9B' : '#636363',
+    color: this.props.light ? '#898989' : '#636363',
   },
   divider: {
     width: 70,
@@ -110,22 +112,24 @@ var styles = StyleSheet.create({
 });
 
     // FIXME: don't hardcode this.
-    if (R.is(Types.Piece, this.props.card) && PieceDisplay[this.props.card.name].ability != null) {
-      ability = (
-        <View style={styles.buttonContainer}>
-          <TouchableElement style={styles.button} onPress={this.ability}>
-            <Text style={styles.buttonText}>{PieceDisplay[this.props.card.name].ability}</Text>
-          </TouchableElement>
-        </View>
-      );
-    } else if (!R.is(Types.Piece, this.props.card) && !Pieces[this.props.card]) {
-      ability = (
-        <View style={styles.buttonContainer}>
-          <TouchableElement style={styles.button} onPress={this.useCard}>
-            <Text style={styles.buttonText}>USE</Text>
-          </TouchableElement>
-        </View>
-      );
+    if (this.props.abilityButton) {
+      if (R.is(Types.Piece, this.props.card) && PieceDisplay[this.props.card.name].ability != null) {
+        ability = (
+          <View style={styles.buttonContainer}>
+            <TouchableElement style={styles.button} onPress={this.ability}>
+              <Text style={styles.buttonText}>{PieceDisplay[this.props.card.name].ability}</Text>
+            </TouchableElement>
+          </View>
+        );
+      } else if (!R.is(Types.Piece, this.props.card) && !Pieces[this.props.card]) {
+        ability = (
+          <View style={styles.buttonContainer}>
+            <TouchableElement style={styles.button} onPress={this.useCard}>
+              <Text style={styles.buttonText}>USE</Text>
+            </TouchableElement>
+          </View>
+        );
+      }
     }
 
     var types;
