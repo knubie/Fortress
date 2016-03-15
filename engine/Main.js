@@ -578,7 +578,9 @@ var endTurn = curry(function(ply, game) {
             if (game.plysLeft[turnIndex] === 1 && piece.asleep) {
               return Piece.of(assoc('asleep', false, piece));
             } else {
-              if (contains(ply.type, ['AbilityPly', 'MovePly']) && equals(ply.piece, piece)) {
+              if (contains(ply.type, ['AbilityPly', 'MovePly'])
+              && (equals(ply.piece, piece) ||
+                  eqProps('position', ply, piece))) {
                 return Piece.of(assoc('asleep', true, piece));
               } else {
                 return piece;
@@ -611,7 +613,7 @@ var endTurn = curry(function(ply, game) {
     plys: append(ply)
   }, game));
   if (newGame.turn !== game.turn) {
-    return reduce(flip(call), newGame, newGame.afterTurn)
+    return reduce(flip(call), newGame, newGame.afterTurn);
   } else {
     return newGame;
   }

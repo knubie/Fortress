@@ -378,6 +378,80 @@ describe('Game', function() {
     expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
     expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
   });
+  it("Player should not be able to move the same piece more than once a turn", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [
+          Piece.of({
+            name: 'king',
+            color: 'white',
+            asleep: false,
+            position: Position.of({x: 4, y: 4})
+          })
+        ]
+      })
+    }); // game
+
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 5}),
+                                game);
+    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 4, y: 4}),
+                                newGame);
+
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+  });
+  it("Player should not be able to move a piece after using its ability in the same turn", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [
+          Piece.of({
+            name: 'king',
+            color: 'white',
+            asleep: false,
+            position: Position.of({x: 4, y: 4})
+          })
+        ]
+      })
+    }); // game
+
+    var newGame = Chess.abilityPly(game.board.pieces[0], game);
+    var newGame2 = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 4, y: 5}),
+                                newGame);
+
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+  });
+  it("Player should not be able to use a piece's ability after moving it in the same turn", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [
+          Piece.of({
+            name: 'king',
+            color: 'white',
+            asleep: false,
+            position: Position.of({x: 4, y: 4})
+          })
+        ]
+      })
+    }); // game
+
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 5}),
+                                game);
+    var newGame2 = Chess.abilityPly(newGame.board.pieces[0], newGame);
+
+    expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
+    expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
+  });
   it("Player should not be able to use a piece immediately after summoning it.", function() {
     var game = Game.of({
       turn: 'white',

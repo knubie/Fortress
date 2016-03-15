@@ -241,7 +241,7 @@ describe('Pieces', function() {
         new Piece({
           name: 'bomber',
           color: 'white',
-          asleep: false,
+          asleep: true,
           position: new Position({x: 3, y: 2}),
           moves: 1
         }),
