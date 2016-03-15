@@ -48,6 +48,8 @@ var makePly = function(game, ply) {
     }, game);
   } else { // draft
     return Types.Game.of(R.evolve({
+      // TODO: change to integer.
+      turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
       plys: R.append('draft'),
     }, game));
     //return game;

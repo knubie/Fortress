@@ -232,6 +232,7 @@ var pieceCallbacks = {
       var turnIndex = colorToIndex(game.turn);
       return Game.of(evolve({
         afterTurn: append((game) => {
+          // TODO: remove this function when finished.
           if (count === 0) { // Ending turn. (Now opponent's turn)
             count++;
             // Add a ply
@@ -248,6 +249,8 @@ var pieceCallbacks = {
             return Game.of(evolve({
               plysPerTurn: adjust(subtract(__, 1), turnIndex)
             }, game));
+          } else {
+            return game;
           }
         })
       }, game));
@@ -263,7 +266,7 @@ var pieceCallbacks = {
               name: 'pawn',
               color: piece.color,
               position: piece.position,
-              asleep: false,
+              asleep: piece.asleep,
             });
           }, index),
         }))
