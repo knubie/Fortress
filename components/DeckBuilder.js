@@ -165,8 +165,11 @@ var DeckBuilder = React.createClass({
         decks: R.assoc('New Deck', [], R.assoc(name, this.selectedDeck(), this.state.decks)),
         selectedDeck: name
       });
-      AsyncStorage.setItem('decks', JSON.stringify(this.state.decks), function(error) {
-        console.log(error);
+      AsyncStorage.setItem(
+        'decks',
+        JSON.stringify(R.map(R.map(R.prop('name')), this.state.decks)),
+        function(error) {
+          console.log(error);
       });
     });
   },
@@ -199,42 +202,52 @@ var DeckBuilder = React.createClass({
       draggedCard: card,
     });
   },
-  onDeckCardResponderGrant: function(e, card, index) {
-    this.startDragX = e.nativeEvent.pageX;
-    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
-    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
-    this.setState({
-      selectedCardInCollection: null,
-      draggedCardTop: this.draggedCardTop,
-      draggedCardLeft: this.draggedCardLeft,
-      enableDeckScroll: false,
-      cardHover: true,
-      decks:  R.assoc(
-                this.state.selectedDeck,
-                // Insert new null placeholder
-                R.insert(
-                  index,
-                  null,
-                  // Remove any other null placeholders
-                  R.filter(R.identity, R.remove(index, 1, this.selectedDeck()))
-                ),
-                this.state.decks
-              )
-      //invisibleCard: index,
-    });
+  onDeckCardResponderGrant: function(e, card, index, isDragging) {
+    if (isDragging) {
+      this.startDragX = e.nativeEvent.pageX;
+      this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+      this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+      this.setState({
+        selectedCardInCollection: null,
+        draggedCardTop: this.draggedCardTop,
+        draggedCardLeft: this.draggedCardLeft,
+        cardHover: true,
+        decks:  R.assoc(
+                  this.state.selectedDeck,
+                  // Insert new null placeholder
+                  R.insert(
+                    index,
+                    null,
+                    // Remove any other null placeholders
+                    R.filter(R.identity, R.remove(index, 1, this.selectedDeck()))
+                  ),
+                  this.state.decks
+                )
+        //invisibleCard: index,
+      });
+    } else {
+      this.setState({
+        enableDeckScroll: false,
+      });
+    }
   },
-  onCollectionCardResponderGrant: function(e, card, index) {
-    this.startDragX = e.nativeEvent.pageX;
-    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
-    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
-    this.setState({
-      selectedCardInCollection: null,
-      selectedCardInDeck: null,
-      enableCollectionScroll: false,
-      draggedCardTop: this.draggedCardTop,
-      draggedCardLeft: this.draggedCardLeft,
-      cardHover: true,
-    });
+  onCollectionCardResponderGrant: function(e, card, index, isDragging) {
+    if (isDragging) {
+      this.startDragX = e.nativeEvent.pageX;
+      this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+      this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+      this.setState({
+        selectedCardInCollection: null,
+        selectedCardInDeck: null,
+        draggedCardTop: this.draggedCardTop,
+        draggedCardLeft: this.draggedCardLeft,
+        cardHover: true,
+      });
+    } else {
+      this.setState({
+        enableCollectionScroll: false,
+      });
+    }
   },
   // ScrollView should become responder in case Card is removed.
   onDeckMoveShouldSetResponder: function() {

@@ -98,6 +98,7 @@ var PieceCard = React.createClass({
     this.startDragX = e.nativeEvent.pageX;
     this.isDragging = false;
     this.isScrolling = false;
+    this.granted = false;
     this.startDragTime = e.nativeEvent.timestamp;
     // TODO: eventually take this exist check out
     if (this.props.onStartShouldSetResponder != null) {
@@ -121,13 +122,19 @@ var PieceCard = React.createClass({
     var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
     if (dy > 60 && !this.isDragging) {
 
-    //if (dx > dy && !this.isScrolling && !this.isDragging) {
-      //this.isScrolling = true;
-    //} else if (dx < dy && !this.isScrolling && !this.isDragging) {
-      this.isDragging = true;
       // TODO: eventually take this exist check out
+      // We must first call onResponderGrant to disable scrolling,
+      // then once scrolling is disabled we call it again to position the
+      // dragged card. This is required, otherwise the scroll position would
+      // continue into the subsequent frame, and the initial position of the
+      // dragged card would appear off.
       if (this.props.onResponderGrant != null) {
-        this.props.onResponderGrant(e, this.props.card, this.props.index);
+        this.props.onResponderGrant(e, this.props.card, this.props.index, this.granted);
+      }
+      if (!this.granted) {
+        this.granted = true;
+      } else {
+        this.isDragging = true;
       }
     }
     if (dx > 5) {
