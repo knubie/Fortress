@@ -114,12 +114,12 @@ module.exports = {
       {
         conditions: ['o'],
         movement: '1/1',
-        distance: '3'
+        distance: '2'
       },
       {
         conditions: ['c'],
         movement: '1/1',
-        distance: '4'
+        distance: '3'
       }
     ],
     points: 3,
