@@ -2,6 +2,7 @@ var R = require('ramda');
 var React = require('react-native');
 var Board = require('./Board');
 var Modal = require('./Modal');
+var History = require('./History');
 var Chess = require('../engine/Main');
 var Types = require('../engine/Types');
 var Pieces = require('../engine/Pieces');
@@ -58,10 +59,8 @@ var PlayView = React.createClass({
     // If latest game is newer than current game, load it.
     if (this.state.game.plys.length < R.path(['latestGame', 'plys', 'length'], this.state)) {
       // Get the next ply.
-        console.log(R.take(this.state.game.plys.length + 1, this.state.latestGame.plys));
       var nextGameState = R.reduce(
         GameCenter.makePly,
-        // TODO: Need to implement this.
         this.state.baseGame,
         R.take(this.state.game.plys.length + 1, this.state.latestGame.plys)
       );
@@ -141,12 +140,24 @@ var PlayView = React.createClass({
   clearMessage: function() {
     // Clear Game message
     this.setState({
-      game: Types.Game.of(R.assoc('message', null, this.state.game))
+      game: Types.Game.of(R.assoc('message', null, this.state.game)),
+      cardPlayed: null,
     });
     this.loadNextGameState();
   },
   back: function() {
     this.props.navigator.pop();
+  },
+  history: function() {
+    this.props.navigator.push({
+      component: History,
+      title: 'History',
+      passProps: ({
+        baseGame: this.state.baseGame,
+        plys: this.state.game.plys,
+        currentPlayer: this.state.playerColor,
+      }),
+    });
   },
   updateMatch: function(game) {
   },
@@ -362,47 +373,29 @@ var PlayView = React.createClass({
     var message = null;
 
     if (this.state.game.message) {
-      if (this.state.cardPlayed != null) {
-        message = (<Modal
-          onPress={this.clearMessage}
-          message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
-        >
-          <Image
-            source={PieceDisplay[this.state.cardPlayed].image['black']}
-            style={{marginBottom: 10, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
-          />
-          <PieceInfo
-            light={true}
-            card={this.state.cardPlayed}
-            onAbility={this.onAbility}
-            useCard={this.useCard}
-          ></PieceInfo>
-        </Modal>);
-      } else {
-        message = (<Modal
-          onPress={this.clearMessage}
-          message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
-        >
-        </Modal>);
-      }
+      message = (<Modal
+        onPress={this.clearMessage}
+        card={this.state.cardPlayed}
+        message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
+      >
+      </Modal>);
     }
-        //message = (<Modal
-          //onPress={this.dummy}
-          //message={(
-            //<View style={{flexWrap: 'wrap', flexDirection: 'row',}}><Text style={{fontSize: 12, color: '#D8D8D8',}}><Text style={{fontWeight: 'bold',}}>Kim Nguyen</Text> drew </Text><Image style={{width: 14, height: 17,}} source={require('../assets/card-icon.png')}><Text style={{position: 'absolute', left: 7, top: 1, fontSize: 9, color: '#353535',}}>1</Text></Image><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!</Text></View>
-          //)}
-        //>
-        //</Modal>);
+      //message = (<Modal
+        //onPress={this.clearMessage}
+        //card={'fortify'}
+        //message={(<Text style={{color: Colors.foreground}}>test message</Text>)}
+      //>
+      //</Modal>);
 
     return (
       <View>
         <TitleBar
           onLeftPress={this.back}
           onCenterPress={() => { return; }}
-          onRightPress={() => { return; }}
+          onRightPress={this.history}
           leftText={'‹'}
           centerText={this.yourTurn() ? 'Your Turn' : 'Their Turn'}
-          rightText={'Gold: ' + this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
+          rightText={'Log'}
         />
         <Board
           board={this.state.game.board}
@@ -416,7 +409,7 @@ var PlayView = React.createClass({
         ></Board>
         <View style={{marginTop: 7, marginHorizontal: 20, justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
           <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
-            <Text style={{paddingHorizontal: 2, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
+            <Text style={{fontFamily: 'Source Code Pro', marginRight: 10, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
               <Text style={{fontWeight: '400'}}>GOLD</Text> {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
             </Text>
               {R.map((i) => {
@@ -425,14 +418,14 @@ var PlayView = React.createClass({
                 } else {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
                 }
-              }, [1,2,3,4,5,6,7,8,9,10])}
+              }, R.range(1, this.state.game.maxResources[this.colorToIndex(this.state.playerColor)] + 1))}
           </View>
           <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
-            <Text style={{paddingHorizontal: 2, fontWeight: 'bold', fontSize: 10, color: '#C4C4C4',}}>
-              <Text style={{fontWeight: '400'}}>ACTIONS</Text> {this.state.game.plysLeft}
+            <Text style={{fontFamily: 'Source Code Pro', marginRight: 10, fontWeight: 'bold', fontSize: 10, color: '#C4C4C4',}}>
+              <Text style={{fontWeight: '400'}}>ACTIONS</Text> {this.state.game.plysLeft[this.colorToIndex(this.state.game.turn)]}
             </Text>
               {R.map((i) => {
-                if (this.state.game.plysLeft >= i) {
+                if (this.state.game.plysLeft[this.colorToIndex(this.state.game.turn)] >= i) {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#C4C4C4'}}/>);
                 } else {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
@@ -476,6 +469,7 @@ var PlayView = React.createClass({
           <PieceInfo
             card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
             onAbility={this.onAbility}
+            abilityButton={true}
             useCard={this.useCard}
           ></PieceInfo>
         </View>
