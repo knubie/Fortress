@@ -410,7 +410,7 @@ var DeckBuilder = React.createClass({
     if (this.state.selectedCardInCollection != null) {
       return this.state.collection[this.state.selectedCardInCollection].name;
     } else if (this.state.selectedCardInDeck != null) {
-      return this.selectedDeck()[this.state.selectedCardInCollection].name;
+      return this.selectedDeck()[this.state.selectedCardInDeck].name;
     } else {
       return null;
     }
@@ -502,7 +502,7 @@ var DeckBuilder = React.createClass({
                 onResponderGrant={this.onDeckCardResponderGrant}
                 onResponderMove={this.onCardResponderMove}
                 onResponderRelease={this.onCardResponderRelease}
-                //onPress={this.clickCardInDeck}
+                onPress={this.clickCardInDeck}
               />
             )}, this.selectedDeck())))}
           </ScrollView>
