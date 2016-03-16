@@ -61,6 +61,7 @@ var generateGameFromPlys = R.reduce(makePly, newGame());
 
 //  compressGame :: (Game) -> Object
 var compressGame = R.evolve({
+  turn: R.always('white'),
   plys: R.map(ply => {
     if (R.is(Types.MovePly, ply)) {
       return R.assoc('type', 'MovePly', ply);
