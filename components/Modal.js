@@ -15,6 +15,8 @@ var {
   TouchableWithoutFeedback,
 } = React;
 
+var CARD_WIDTH = 180;
+
 var Modal = React.createClass({
   PropTypes: {
     message: React.PropTypes.string.isRequired
@@ -22,18 +24,27 @@ var Modal = React.createClass({
   getInitialState: function() {
     return {
       backgroundOpacity: new Animated.Value(0),
+      cardOpacity: new Animated.Value(0),
       messageTop: new Animated.Value(0),
       boxTop: new Animated.Value(0),
-      draggedCardX: 0,
-      draggedCardY: 0,
+      draggedCardX: new Animated.Value(0),
+      draggedCardY: new Animated.Value(0),
     };
   },
   componentDidMount: function() {
-    this.state.backgroundOpacity.setValue(0);
     Animated.timing(
       this.state.backgroundOpacity,
       {
         toValue: 0.8,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
+    Animated.timing(
+      this.state.cardOpacity,
+      {
+        toValue: 1,
         duration: 150,
         delay: 0,
         easing: Easing.out(Easing.ease),
@@ -62,7 +73,7 @@ var Modal = React.createClass({
       //}
     //).start();
   },
-  onPress: function() {
+  onPress: function(direction) {
     Animated.timing(
       this.state.backgroundOpacity,
       {
@@ -72,6 +83,36 @@ var Modal = React.createClass({
         easing: Easing.out(Easing.ease),
       }
     ).start();
+    Animated.timing(
+      this.state.cardOpacity,
+      {
+        toValue: 0,
+        duration: 150,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
+    if (direction === 'right') {
+      Animated.timing(
+        this.state.draggedCardX,
+        {
+          toValue: (Dimensions.get('window').width / 2) + (CARD_WIDTH / 2),
+          duration: 150,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+    } else if (direction === 'left') {
+      Animated.timing(
+        this.state.draggedCardX,
+        {
+          toValue: 0 - ((Dimensions.get('window').width / 2) + (CARD_WIDTH / 2)),
+          duration: 150,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+    }
     Animated.timing(
       this.state.messageTop,
       {
@@ -109,16 +150,16 @@ var Modal = React.createClass({
   onResponderMove: function(e) {
     var dx = e.nativeEvent.pageX - this.startDragX;
     var dy = e.nativeEvent.pageY - this.startDragY;
-    this.setState({
-      draggedCardX: dx,
-      draggedCardY: dy,
-    });
+    this.state.draggedCardX.setValue(dx);
+    this.state.draggedCardY.setValue(dy);
   },
   onResponderRelease: function(e) {
-    var dx = Math.abs(this.startDragX - e.nativeEvent.pageX);
-    var dy = Math.abs(this.startDragY - e.nativeEvent.pageY);
-    if (dx > 60 || dy > 60) {
-      this.onPress();
+    var dx = this.startDragX - e.nativeEvent.pageX;
+    //var dy = Math.abs(this.startDragY - e.nativeEvent.pageY;
+    if (dx > 60) {
+      this.onPress('left');
+    } else if (dx < -60) {
+      this.onPress('right');
     }
   },
   onResponderTerminationRequest: function(e) {
@@ -139,6 +180,7 @@ var Modal = React.createClass({
             isAction ? styles.boxLight : styles.boxDark,
             styles.box,
             {
+              opacity: this.state.cardOpacity,
               top: this.state.boxTop,
               'transform': [
                 {translateX: this.state.draggedCardX},
@@ -221,7 +263,7 @@ var styles = StyleSheet.create({
   box: {
     padding: 10,
     borderRadius: 8,
-    width: 180,
+    width: CARD_WIDTH,
     height: 253,
     //width: Math.floor(Dimensions.get('window').width * 0.53),
     //height: Math.floor(Dimensions.get('window').width * 0.53 * 1.48),
