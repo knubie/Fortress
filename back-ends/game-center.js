@@ -4,61 +4,6 @@ var Types = require('../engine/Types');
 var Chess = require('../engine/Main');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 
-var newGame = function(matchID) {
-  var boardSize = 7;
-  return Types.Game.of({
-    turn: 'white',
-    matchID: matchID,
-    board: Types.Board.of({
-      size: boardSize,
-      pieces: [
-        Types.Piece.of({
-          name: 'king',
-          color: 'white',
-          position: Types.Position.of({x: 3, y: 0}),
-        }),
-        Types.Piece.of({
-          name: 'king',
-          color: 'black',
-          position: Types.Position.of({x: 3, y: boardSize - 1}),
-        }),
-      ]
-    }),
-    resources: [2, 2],
-    plys: []
-  });
-}
-
-//  makePly :: (Game, Ply) -> Game
-var makePly = function(game, ply) {
-  if (ply.type === 'MovePly') {
-    return Chess.movePly(
-      Types.Piece.of(R.evolve({position: Types.Position.of}, ply.piece)),
-      Types.Position.of(ply.position),
-      game);
-  } else if (ply.type === 'DrawPly') {
-    return Chess.drawCardPly(game.turn, game);
-  } else if (ply.type === 'AbilityPly') {
-    return Chess.abilityPly(
-      Types.Piece.of(R.evolve({position: Types.Position.of}, ply.piece)),
-      game);
-  } else if (ply.type === 'UseCardPly') {
-    return Chess.useCardPly(game.turn, ply.card, {
-      positions: R.map(Types.Position.of, ply.params.positions || [])
-    }, game);
-  } else { // draft
-    return Types.Game.of(R.evolve({
-      // TODO: change to integer.
-      turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
-      plys: R.append('draft'),
-    }, game));
-    //return game;
-  }
-}
-
-//  generateGameFromPlys :: (Ply) -> Game
-var generateGameFromPlys = R.reduce(makePly, newGame());
-
 //  compressGame :: (Game) -> Object
 var compressGame = R.evolve({
   turn: R.always('white'),
@@ -77,8 +22,8 @@ var compressGame = R.evolve({
   })
 });
 
-//  instantiateObjects :: (Object) -> Game
-var instantiateObjects = R.compose(Types.Game.of, R.evolve({
+//  instantiateGame :: (Object) -> Game
+var instantiateGame = R.compose(Types.Game.of, R.evolve({
   board: R.compose(Types.Board.of, R.evolve({
     pieces: R.map(R.compose(Types.Piece.of, R.evolve({
       position: Types.Position.of
@@ -87,27 +32,10 @@ var instantiateObjects = R.compose(Types.Game.of, R.evolve({
 }));
 
 var uncompressGame = function(game) {
-  var baseGame = Types.Game.of(R.evolve({
-    board: R.compose(Types.Board.of, R.evolve({
-      pieces: R.map(R.compose(Types.Piece.of, R.evolve({
-        position: Types.Position.of
-      })))
-    })),
-    //plys: R.map(ply => {
-      //if (ply.type === 'MovePly') {
-        //return Types.MovePly.of(ply);
-      //} else if (ply.type === 'DrawPly') {
-        //return Types.DrawPly.of(ply);
-      //} else if (ply.type === 'AbilityPly') {
-        //return Types.AbilityPly.of(ply);
-      //} else if (ply.type === 'UseCardPly') {
-        //return Types.UseCardPly.of(ply);
-      //} else {
-        //return ply;
-      //}
-    //}),
-  }, game));
-  return R.reduce(makePly, R.assoc('plys', [], baseGame), baseGame.plys);
+  var baseGame = instantiateGame(game);
+  return Chess.getGameFromPlys(
+    Types.Game.of(R.assoc('plys', [], baseGame)),
+    baseGame.plys);
 }
 
 var getBaseGame = function(game) {
@@ -120,9 +48,6 @@ var getBaseGame = function(game) {
     })),
   }, game));
 }
-
-//  getGameFromPlys :: (Game, [Ply]) -> Game
-var getGameFromPlys = R.reduce(makePly);
 
 //  encode :: (Game) -> String(JSON)
 var encode = R.compose(JSON.stringify, compressGame);
@@ -149,9 +74,8 @@ module.exports = {
   getBaseGame: function(data) {
     return getBaseGame(JSON.parse(data));
   },
-  instantiateObjects: instantiateObjects,
-  makePly: makePly,
+  instantiateGame: instantiateGame,
 //decode :: (String(JSON)) -> Game
   //decode: R.compose(instantiateObjects, JSON.parse)
-  decode: R.compose(uncompressGame, JSON.parse)
+  decode: R.compose(uncompressGame, JSON.parse),
 }

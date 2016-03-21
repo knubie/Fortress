@@ -32,6 +32,7 @@ var Home = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
+        console.log('didFindMatch');
         // data.match {
         //   matchID: String
         //   yourTurn: Boolean
@@ -140,6 +141,7 @@ var Home = React.createClass({
     subscription.remove();
   },
   loadMatch: function(game, baseGame, yourName, theirName) {
+    console.log('load match');
     var method = 'push';
     if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
       method = 'push';
@@ -148,16 +150,16 @@ var Home = React.createClass({
       method = 'replace';
     }
     if (game.plys.length < 2 && yourTurn) {
-    this.props.navigator.push({
-      component: DeckBuilder,
-      title: 'My Collection',
-      passProps: ({
-        game,
-        yourTurn,
-        decks: this.state.decks,
-        route: 'DeckBuilder'
-      }),
-    });
+      this.props.navigator.push({
+        component: DeckBuilder,
+        title: 'My Collection',
+        passProps: ({
+          game,
+          yourTurn,
+          decks: this.state.decks,
+          route: 'DeckBuilder'
+        }),
+      });
     } else {
       this.props.navigator[method]({
         component: PlayView,

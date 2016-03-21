@@ -48,7 +48,7 @@ var PlayView = React.createClass({
           baseGame: this.state.game.plys.length < 2 ?
             GameCenter.getBaseGame(data.match.matchData) :
             this.state.baseGame,
-          latestGame: GameCenter.instantiateObjects(JSON.parse(data.match.matchData))
+          latestGame: GameCenter.instantiateGame(JSON.parse(data.match.matchData))
         });
 
         // Load next game state if applicable
@@ -63,7 +63,7 @@ var PlayView = React.createClass({
     if (this.state.game.plys.length < R.path(['latestGame', 'plys', 'length'], this.state)) {
       var nextGameState = this.state.game.plys.length < 2 ?
         this.state.latestGame :
-        GameCenter.makePly(
+        Chess.makePly(
           this.state.game,
           this.state.latestGame.plys[this.state.game.plys.length]
         );
@@ -160,6 +160,7 @@ var PlayView = React.createClass({
           nextGameState
         )
       );
+
       // Set the Game state.
       this.setState({
         possibleMoves: [],
@@ -198,8 +199,14 @@ var PlayView = React.createClass({
   },
   getInitialState: function() {
     return {
+      // The base game that the ply list will be played on top of to get
+      // the current game state.
       baseGame: this.props.baseGame,
+      // The current game state.
       game: this.props.game,
+      // The latest game state from the server that hasn't been loaded into
+      // the current game state yet.
+      latestGame: null,
       playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
                    this.props.game.turn === 'black' && !this.props.yourTurn ?
                                                                     'white' :
@@ -210,7 +217,7 @@ var PlayView = React.createClass({
       selectedCard: null,
     }
   },
-//getCurrentGame :: (Game) -> [Game]
+  //getCurrentGame :: (Game) -> [Game]
   getCurrentGame: function(initialGame) {
     // TODO: ignore first two plys
     //return R.reduce((game, ply) => {
@@ -522,17 +529,6 @@ var styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  turnMessage: {
-    color: '#c4c4c4',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  navigation: {
-    fontFamily: 'Anonymous Pro',
-    fontSize: 45,
-    color: '#c4c4c4',
-    fontWeight: 'bold',
   },
   scrollViewContainer: {
     height: cardHeight + 8,

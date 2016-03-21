@@ -472,4 +472,54 @@ describe('Game', function() {
     expect(newGame2.message).toBe("You must wait until the next turn to use this piece.");
     expect(equals(newGame, dissoc('message', newGame2))).toBe(true);
   });
+  it("makePly should replicate a game exactly from base conditions.", function() {
+    var game = Game.of({
+      turn: 'white',
+      board: Board.of({
+        size: 8,
+        pieces: [
+          Piece.of({
+            name: 'king',
+            color: 'white',
+            asleep: false,
+            position: Position.of({x: 4, y: 0})
+          }),
+          Piece.of({
+            name: 'king',
+            color: 'black',
+            asleep: false,
+            position: Position.of({x: 4, y: 7})
+          })
+        ]
+      }),
+      resources: [5, 4],
+      decks: [['bishop', 'pawn'], ['rook']],
+      hands: [['pawn'], ['knight']],
+    }); // game
+
+    // White's turn
+    var newGame = Chess.movePly(game.board.pieces[0], 
+                                Position.of({x: 4, y: 1}),
+                                game);
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [new Position({x: 3, y: 0})]
+    }, newGame);
+
+    // Black's turn
+    var newGame = Chess.abilityPly(game.board.pieces[1], newGame);
+    var newGame = Chess.useCardPly('black', 0, {
+      positions: [new Position({x: 3, y: 6})]
+    }, newGame);
+
+    // White's turn
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [new Position({x: 5, y: 0})]
+    }, newGame);
+
+    var expectedGame = Chess.getGameFromPlys(game, newGame.plys);
+
+    expect(equals(newGame, expectedGame)).toBe(true);
+
+  });
 });

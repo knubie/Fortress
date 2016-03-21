@@ -355,6 +355,7 @@ var pieceCallbacks = {
   perception: {
     use: curry(function(game) {
       var color = game.turn;
+      // TODO: replace with integer
       var playerIndex = colorToIndex(color);
       var newGame = drawCard(color, game);
       if (!newGame.message) {
@@ -370,6 +371,7 @@ var pieceCallbacks = {
     // use :: Game -> Game
     use: curry(function(game) {
       var color = game.turn;
+      // TODO: replace with integer
       var playerIndex = colorToIndex(color);
       var oppIndex = playerIndex === 0 ? 1 : 0;
       var STEAL_PER_THIEF = 2
@@ -622,6 +624,7 @@ var endTurn = curry(function(ply, game) {
 //  drawCardPly :: (String, Game) -> Game
 var drawCardPly = curry(function(color, game) {
   check(arguments, [String, Game]);
+  // TODO: replace with integer
   var playerIndex = color === 'white' ? 0 : 1;
   var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
   if (not(equals(color, game.turn))) {
@@ -662,6 +665,7 @@ var movePly = curry(function(piece, position, game) {
 
 // (Number)
 var useCardPly = curry(function(color, card, params, game) {
+  // TODO: replace with integer
   var playerIndex = game.turn === 'white' ? 0 : 1;
   var {positions, pieces, cards} = params;
   if (not(equals(color, game.turn))) {
@@ -818,6 +822,7 @@ var draftPiece = curry(function(piece, game) {
 
 // draftPiece :: (String, Game) -> Game
 var drawCard = curry(function(color, game) {
+  // TODO: change to integer
   var playerIndex = color === 'white' ? 0 : 1;
   if (game.decks[playerIndex].length < 1) {
     return message('Your deck is empty!', game);
@@ -828,6 +833,37 @@ var drawCard = curry(function(color, game) {
     }, game));
   }
 });
+
+//  makePly :: (Game, Ply) -> Game
+var makePly = function(game, ply) {
+  check(arguments, [Game]);
+  if (ply.type === 'MovePly') {
+    return movePly(
+      Piece.of(R.evolve({position: Position.of}, ply.piece)),
+      Position.of(ply.position),
+      game);
+  } else if (ply.type === 'DrawPly') {
+    return drawCardPly(game.turn, game);
+  } else if (ply.type === 'AbilityPly') {
+    return abilityPly(
+      Piece.of(R.evolve({position: Position.of}, ply.piece)),
+      game);
+  } else if (ply.type === 'UseCardPly') {
+    return useCardPly(game.turn, ply.card, {
+      positions: R.map(Position.of, ply.params.positions || [])
+    }, game);
+  } else { // draft
+    return Game.of(R.evolve({
+      // TODO: change to integer.
+      turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
+      plys: R.append('draft'),
+    }, game));
+    //return game;
+  }
+}
+
+//  getGameFromPlys :: (Game, [Ply]) -> Game
+var getGameFromPlys = R.reduce(makePly);
 
 module.exports = {
   movePiece,
@@ -847,4 +883,6 @@ module.exports = {
   abilityPly,
   shuffle,
   getCardUsePositions,
+  makePly,
+  getGameFromPlys,
 };

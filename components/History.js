@@ -35,7 +35,7 @@ var History = React.createClass({
     this.messageList = [];
     R.reduce((gameList, ply) => {
       var prevGame = R.last(gameList);
-      var nextGame = GameCenter.makePly(prevGame, ply);
+      var nextGame = Chess.makePly(prevGame, ply);
 
       var yourTurnMessage = null;
       var theirName = this.props.currentPlayer === prevGame.turn ? 'You' : 'They';
