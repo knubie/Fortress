@@ -13,5 +13,6 @@
 @interface GameCenterManager : UIViewController <RCTBridgeModule, GKLocalPlayerListener, GKTurnBasedMatchmakerViewControllerDelegate>
 
 @property GKTurnBasedMatch *currentMatch;
+@property BOOL GKMatchmakerViewControllerActive;
 
 @end

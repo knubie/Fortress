@@ -108,10 +108,12 @@ RCT_EXPORT_METHOD(newMatch)
 //  mmvc.showExistingMatches = NO;
   
   [rootController presentViewController:mmvc animated:YES completion:nil];
+  self.GKMatchmakerViewControllerActive = YES;
 }
 
 RCT_EXPORT_METHOD(clearMatch)
 {
+  NSLog(@"Clear match");
   self.currentMatch = nil;
 }
 
@@ -187,7 +189,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   }
 }
 
-// Called when loading a match from GKTurnBasedMatchMaker
+// Called when loading a match from GKTurnBasedMatchMaker - did become active
 // Called when the app is open, and the other player updates the match - did not become active
 // Called when the app is opened from notification - did become active
 - (void)player:(GKPlayer *)player receivedTurnEventForMatch:(GKTurnBasedMatch *)match didBecomeActive:(BOOL)didBecomeActive
@@ -200,7 +202,13 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
     NSLog(@"received turn event - did become active");
     // Launch the playView from didfindmatch
     self.currentMatch = match;
-    [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
+    // TODO: Add event for loading match from notification
+    if (self.GKMatchmakerViewControllerActive) {
+      [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
+      UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
+                                                              [[UIApplication sharedApplication]delegate] window] rootViewController];
+      [rootController dismissViewControllerAnimated:YES completion:nil];
+    }
     if (match.matchData.length != 0) {
       [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
     }
@@ -276,6 +284,10 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event];
 
   [rootController dismissViewControllerAnimated:YES completion:nil];
+  
+  self.GKMatchmakerViewControllerActive = NO;
+  
+  NSLog(@"End of didFindMatch");
   
 //  [match removeWithCompletionHandler:^(NSError *error) {
 //    
