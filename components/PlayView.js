@@ -115,11 +115,28 @@ var PlayView = React.createClass({
           this.setState({
             cardPlayed: null
           });
-          yourTurnMessage = (
-            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-              It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
-            </Text>
+          var movedPiece = R.last(nextGameState.plys).piece;
+          var capturedPiece = Chess.getPieceAtPosition(
+            this.state.game.board,
+            // TODO: use integer instead.
+            this.state.playerColor,
+            R.last(nextGameState.plys).position
           );
+          if (capturedPiece) {
+            // Capture
+            yourTurnMessage = (
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                <Text style={{fontWeight: 'bold'}}>{theirName}</Text>'s <Text style={{fontWeight: 'bold'}}>{PieceDisplay[movedPiece.name]['displayName']}</Text> captured your <Text style={{fontWeight: 'bold'}}>{PieceDisplay[capturedPiece.name]['displayName']}</Text>! 
+              </Text>
+            );
+          } else {
+            // Move
+            yourTurnMessage = (
+              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+                <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved their <Text style={{fontWeight: 'bold'}}>{PieceDisplay[movedPiece.name]['displayName']}</Text>.
+              </Text>
+            );
+          }
           break;
 
         default:
