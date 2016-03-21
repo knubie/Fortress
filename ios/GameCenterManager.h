@@ -14,5 +14,6 @@
 
 @property GKTurnBasedMatch *currentMatch;
 @property BOOL GKMatchmakerViewControllerActive;
+@property BOOL didFindMatch;
 
 @end

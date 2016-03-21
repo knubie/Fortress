@@ -203,8 +203,13 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
     // Launch the playView from didfindmatch
     self.currentMatch = match;
     // TODO: Add event for loading match from notification
-    if (self.GKMatchmakerViewControllerActive) {
+    if (!self.didFindMatch) {
+      self.didFindMatch = YES;
       [_bridge.eventDispatcher sendAppEventWithName:@"didFindMatch" body:event]; // Home event
+    } else {
+      self.didFindMatch = NO;
+    }
+    if (self.GKMatchmakerViewControllerActive) {
       UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
                                                               [[UIApplication sharedApplication]delegate] window] rootViewController];
       [rootController dismissViewControllerAnimated:YES completion:nil];
@@ -274,6 +279,8 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 - (void)turnBasedMatchmakerViewController:(GKTurnBasedMatchmakerViewController *)viewController didFindMatch:(GKTurnBasedMatch *)match
 {
   NSLog(@"didFindMatch");
+  
+  self.didFindMatch = YES;
   
   UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
                                                           [[UIApplication sharedApplication]delegate] window] rootViewController];
