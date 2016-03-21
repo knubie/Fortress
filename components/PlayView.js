@@ -42,10 +42,13 @@ var PlayView = React.createClass({
       'updateMatchData',
       data => {
         // Load up-to-date Game data into state.
+        // TODO: merge this into the 'loadNextGameState' setState method.
         this.setState({
-          // TODO: Only need to set this once. From Home.js?
-          baseGame: GameCenter.getBaseGame(data.match.matchData),
-          latestGame: GameCenter.decode(data.match.matchData)
+          // Get new baseGame if the next ply is a draft.
+          baseGame: this.state.game.plys.length < 2 ?
+            GameCenter.getBaseGame(data.match.matchData) :
+            this.state.baseGame,
+          latestGame: GameCenter.instantiateObjects(JSON.parse(data.match.matchData))
         });
 
         // Load next game state if applicable
@@ -58,12 +61,12 @@ var PlayView = React.createClass({
   loadNextGameState: function() {
     // If latest game is newer than current game, load it.
     if (this.state.game.plys.length < R.path(['latestGame', 'plys', 'length'], this.state)) {
-      // Get the next ply.
-      var nextGameState = R.reduce(
-        GameCenter.makePly,
-        this.state.baseGame,
-        R.take(this.state.game.plys.length + 1, this.state.latestGame.plys)
-      );
+      var nextGameState = this.state.game.plys.length < 2 ?
+        this.state.latestGame :
+        GameCenter.makePly(
+          this.state.game,
+          this.state.latestGame.plys[this.state.game.plys.length]
+        );
       var yourTurnMessage = "";
       var theirName = this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent';
 
@@ -118,6 +121,18 @@ var PlayView = React.createClass({
             </Text>
           );
           break;
+
+        default:
+          this.setState({
+            cardPlayed: null
+          });
+          yourTurnMessage = (
+            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> joined the game!
+            </Text>
+          );
+          break;
+
       }
 
       // Set the Game message.
