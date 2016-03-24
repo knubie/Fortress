@@ -441,6 +441,29 @@ describe('Pieces', function() {
     var actualBoard = Chess.movePiece(board.pieces[1].position, board.pieces[0].position, game).board;
     expect(actualBoard.pieces[0].parlett[0].distance).toBe('2');
   });
+  it('Bloodlust should be able to capture friendly pieces.', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        Piece.of({
+          name: 'rook',
+          color: 'white',
+          position: new Position({x: 4, y: 4})
+        }),
+        Piece.of({
+          name: 'bloodlust',
+          color: 'white',
+          position: Position.of({x: 3, y: 4})
+        })
+      ],
+    });
+    var game = new Game({
+      turn: 'white',
+      board: board
+    });
+    var actualBoard = Chess.movePiece(board.pieces[1].position, board.pieces[0].position, game).board;
+    expect(actualBoard.pieces[0].parlett[0].distance).toBe('2');
+  });
   it('Thief should gain 1 less gold than it\'s captured piece\'s worth', function() {
     var board = new Board({
       size: 8,
@@ -839,23 +862,3 @@ describe('Pieces', function() {
     expect(actualGame.resources[0]).toBe(14);
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

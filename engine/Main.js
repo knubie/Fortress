@@ -563,7 +563,34 @@ var customMovement = {
       return (not(p) || (not(equals(p, piece)) &&
               prop('color', p || {color: null}) === piece.color));
     }, positions);
-  }
+  },
+  'bloodlust': function(board, piece) {
+    var oppositeColor = piece.color === 'white' ? 'black' : 'white';
+    // Change all piece colors to oppositeColor so we can capture friendly pieces.
+    var newBoard = Board.of(evolve({
+      pieces: map(function(piece) {
+        return Piece.of(evolve({
+          color: always(oppositeColor)
+        }, piece));
+      })
+    }, board));
+    var initial = function(p) {
+      return contains('i', or(p.conditions, [])) && parseInt(piece.moves) > 0;
+    };
+
+    return uniq(flatten(map(function(p) {
+      var d = map(parseInt, p.movement.match(/(\d)\/(\d)/));
+      var direction = p.direction || 'any';
+      var results = move(d[1], d[2], p.distance, direction, newBoard, piece);
+      if (contains('c', or(p.conditions, []))) {
+        return filter(getPieceAtPosition(newBoard, oppositeColor), results);
+      } else if (contains('o', or(p.conditions, []))) {
+        return reject(getPieceAtPosition(newBoard, oppositeColor), results);
+      } else {
+        return results;
+      }
+    }, reject(initial, piece.parlett))));
+  },
 }
 
 //  endTurn :: (PlyType, Game) -> Game
