@@ -4,6 +4,7 @@ var Board = require('./Board');
 var Modal = require('./Modal');
 var History = require('./History');
 var Chess = require('../engine/Main');
+var Util = require('../engine/Util');
 var Types = require('../engine/Types');
 var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
@@ -116,7 +117,7 @@ var PlayView = React.createClass({
             cardPlayed: null
           });
           var movedPiece = R.last(nextGameState.plys).piece;
-          var capturedPiece = Chess.getPieceAtPosition(
+          var capturedPiece = Util.getPieceAtPosition(
             this.state.game.board,
             // TODO: use integer instead.
             this.state.playerColor,

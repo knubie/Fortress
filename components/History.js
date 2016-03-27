@@ -1,6 +1,7 @@
 var R = require('ramda');
 var React = require('react-native');
 var Chess = require('../engine/Main');
+var Util = require('../engine/Util');
 var Types = require('../engine/Types');
 var PieceDisplay = require('../lib/piece-display');
 var Modal = require('./Modal');
@@ -70,7 +71,7 @@ var History = React.createClass({
 
         case 'UseCardPly':
           var card = ply.card;
-          var cardName = prevGame.hands[Chess.colorToIndex(prevGame.turn)][card];
+          var cardName = prevGame.hands[Util.colorToIndex(prevGame.turn)][card];
           yourTurnMessage = (
             <Text
               onPress={() => {

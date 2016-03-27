@@ -1,5 +1,6 @@
 var R        = require('ramda');
 var check    = require('./lib/type-checker').checkAll;
+var Util     = require('./Util');
 var Cards    = require('./Cards');
 var Types    = require('./Types');
 var Pieces   = require('./Pieces');
@@ -11,6 +12,10 @@ var Position = Types.Position;
 for (var k in R) {
   var topLevel = typeof global === 'undefined' ? window : global;
   topLevel[k] = R[k];
+}
+for (var k in Util) {
+  var topLevel = typeof global === 'undefined' ? window : global;
+  topLevel[k] = Util[k];
 }
 
 var PLYS_PER_TURN = 2;
@@ -27,11 +32,7 @@ var shuffle = function(arr) {
   }
   return array;
 }
-//  colorToIndex :: (String) -> Number
-var colorToIndex = curry(function(color) {
-  return color === 'white' ? 0 : 1;
 
-});
 //  between :: (Number, Number) -> [Number]
 var between = curry(function(start, end) {
   check(arguments, [Number, Number]);
@@ -106,24 +107,6 @@ var move = curry(function(distance1, distance2, numMoves, direction, board, piec
   )));
 });
 
-var castling = curry(function(board, piece) {
-
-});
-
-//  getPieceAtPosition :: (Board, String, Position) -> Maybe Piece
-var getPieceAtPosition = curry(function(board, color, position) {
-  check(arguments, [Board, String, Position]);
-  var positionAndColor = both(propEq('position', position), propEq('color', color));
-  return find(positionAndColor, board.pieces);
-});
-
-//  getAnyPieceAtPosition :: (Board, Position) -> Maybe Piece
-var getAnyPieceAtPosition = curry(function(board, position) {
-  check(arguments, [Board, Position]);
-  return getPieceAtPosition(board, 'white', position) ||
-         getPieceAtPosition(board, 'black', position);
-});
-
 //  legalPosition :: (Board, Position) -> Boolean
 var legalPosition = curry(function(board, position) {
   check(arguments, [Board, Position]);
@@ -132,6 +115,7 @@ var legalPosition = curry(function(board, position) {
 
 //  getCardUsePositions :: (Board, String, String) -> [Position]
 var getCardUsePositions = curry(function(board, card, color) {
+  // TODO: use this to check UseCardPly params
   if (Pieces[card]) {
     // TODO: rewrite this, baking into the Pieces.js
     var moves = [];
@@ -176,6 +160,27 @@ var getCardUsePositions = curry(function(board, card, color) {
     }
   }
 });
+
+//unoccupied(firstRow(board))
+
+//unoccupied = reject(getAnyPieceAtPosition(board));
+
+//firstRow = (board) => {
+  //var y = color === 'white' ? 0 : board.size;
+  //return map(function(x) {
+    //return Position.of({x: x, y: y});
+  //}, range(0, board.size));
+//}
+
+//firstTwoRows = (board) => {
+  //var yRange = color === 'white' ? range(0, 2) : range(board.size - 2, board.size);
+  //return flatten(map(function(y) {
+    //return map(function(x) {
+      //return Position.of({x: x, y: y});
+    //}, range(0, board.size));
+  //}, yRange));
+//}
+
 
 //  getMoves :: (Board, Piece) -> [Position]
 var getMoves = curry(function(board, piece) {
@@ -328,6 +333,11 @@ var pieceCallbacks = {
         }))
       }, game));
     }),
+    //requiredInput: [piece(sameColor)]
+    //piece: map(prop('position')),
+    //sameColor: filter(propEq('color', color), board.pieces), 
+    //oppositeColor: filter(not(propEq('color', color)), board.pieces), 
+    //allPieces: board.pieces,
     useagePositions: curry(function(color, board) {
       return map(prop('position'), filter(propEq('color', color), board.pieces));
     })
@@ -483,13 +493,6 @@ var pieceCallbacks = {
                  })
                )
       }, game));
-      //return Board.of(evolve({
-        //pieces: reject(
-                  //compose(
-                    //any(__, surroundingSquares),
-                    //equals,
-                    //prop('position')))
-      //}, board));
     }),
     onCaptured: curry(function(piece, board) {
       // Removes any piece on the square of the captured piece.
@@ -504,7 +507,7 @@ var pieceCallbacks = {
     // TAX
     // Add one resource per pawn, or one
     ability: curry(function(piece, game) {
-      var index = piece.color === 'white' ? 0 : 1;
+      var index = colorToIndex(piece.color);
       var amount = filter(where({
         color: equals(piece.color),
       }), game.board.pieces).length;
@@ -535,18 +538,6 @@ var pieceCallbacks = {
     })
   },
 };
-
-//  addResources :: (Game, Number, Number) -> Game
-var addResources = curry(function(game, playerIndex, amount) {
-  return Game.of(evolve({
-    resources: adjust(
-      compose(
-        min(game.maxResources[playerIndex]),
-        add(amount)
-      ),
-      playerIndex)
-  }, game));
-});
 
 var customMovement = {
   'teleporter': function(board, piece) {
@@ -809,14 +800,6 @@ var addPiece = curry(function(pieces, piece) {
   return append(piece, reject(propEq('position', piece.position), pieces));
 });
 
-//  addPieceToBoard :: (Piece, Board) -> Board
-var addPieceToBoard = curry(function(piece, board) {
-  check(arguments, [Piece, Board]);
-  return Board.of(evolve({
-    pieces: addPiece(__, piece)
-  }, board));
-});
-
 // draftPiece :: (Piece, Game) -> Maybe Game
 var draftPiece = curry(function(piece, game) {
   check(arguments, [Piece, Game]);
@@ -844,20 +827,6 @@ var draftPiece = curry(function(piece, game) {
   } else {
     // TODO return message.
     return null;
-  }
-});
-
-// draftPiece :: (String, Game) -> Game
-var drawCard = curry(function(color, game) {
-  // TODO: change to integer
-  var playerIndex = color === 'white' ? 0 : 1;
-  if (game.decks[playerIndex].length < 1) {
-    return message('Your deck is empty!', game);
-  } else {
-    return Game.of(evolve({
-      decks: adjust(remove(0, 1), playerIndex),
-      hands: adjust(prepend(game.decks[playerIndex][0]), playerIndex)
-    }, game));
   }
 });
 

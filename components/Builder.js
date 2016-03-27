@@ -8,6 +8,7 @@ var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var PieceDisplay = require('../lib/piece-display');
 var Chess = require('../engine/Main');
+var Util = require('../engine/Util');
 var Pieces = require('../engine/Pieces');
 var Types = require('../engine/Types');
 
@@ -49,7 +50,7 @@ var Builder = React.createClass({
   },
   onDrop: function(x, y, piece) {
     this.setState({
-      pieces: Chess.addPiece(
+      pieces: Util.addPiece(
         // If moving a piece already on the board, remove it.
         reject(propEq('position', piece.position), this.state.pieces),
         Types.Piece.of({
@@ -94,7 +95,7 @@ var Builder = React.createClass({
     var piece = this.state.selectedPiece;
     if (this.state.selectedPiece) {
       this.setState({
-        pieces: Chess.addPiece(
+        pieces: Util.addPiece(
           // If moving a piece already on the board, remove it.
           reject(propEq('position', piece.position), this.state.pieces),
           Types.Piece.of({
