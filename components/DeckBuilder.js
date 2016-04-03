@@ -186,9 +186,13 @@ var DeckBuilder = React.createClass({
             decks: R.dissoc(this.state.selectedDeck, this.state.decks),
             selectedDeck: 'New Deck',
           });
-          AsyncStorage.setItem('decks', JSON.stringify(this.state.decks), function(error) {
-            console.log(error);
-          });
+          AsyncStorage.setItem(
+            'decks',
+            JSON.stringify(R.map(R.map(R.prop('name')), this.state.decks)),
+            function(error) {
+              console.log(error);
+            }
+          );
         }}
       ]
     );
