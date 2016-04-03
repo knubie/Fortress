@@ -88,6 +88,9 @@ function Game(opts) {
   // The number of plys remaining for the current turn.
   this.plysLeft = this.plysLeft || [2, 2];
   //this.plysLeft = this.plysLeft || PLYS_PER_TURN;
+  //
+  // Array of functions that get called after EVERY turn.
+  // [Game -> Game]
   this.afterTurn = this.afterTurn || [];
 }
 Game.of = function(x) { return new Game(x); };
