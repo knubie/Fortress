@@ -8,6 +8,7 @@ var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var PieceDisplay = require('../lib/piece-display');
 var Chess = require('../engine/Main');
+var Util = require('../engine/Util');
 var Cards = require('../engine/Cards');
 var Types = require('../engine/Types');
 var PieceDisplay = require('../lib/piece-display');
@@ -105,7 +106,7 @@ var DeckBuilder = React.createClass({
       var drawHand = function drawHand(game) {
         // HAND_SIZE + colorIndex -> give black an extra card.
         if (game.hands[colorIndex].length < HAND_SIZE + colorIndex) {
-          return drawHand(Chess.drawCard(game.turn, game));
+          return drawHand(Util.drawCard(game.turn, game));
         } else {
           return game;
         }
@@ -170,7 +171,8 @@ var DeckBuilder = React.createClass({
         JSON.stringify(R.map(R.map(R.prop('name')), this.state.decks)),
         function(error) {
           console.log(error);
-      });
+        }
+      );
     });
   },
   deleteDeck: function() {
