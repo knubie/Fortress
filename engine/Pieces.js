@@ -4,6 +4,11 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
+  'library': {
+    parlett: [ ],
+    types: ['structure'],
+    points: 4
+  },
   'pawn': {
     parlett: [
       {
@@ -185,22 +190,13 @@ module.exports = {
     }
   },
   'wall': {
-    parlett: [
-      {
-        movement: '0/0',
-        distance: '0'
-      }
-    ],
+    parlett: [],
     points: 4,
     types: ['invincible']
   },
   'mine': {
-    parlett: [
-      {
-        movement: '0/0',
-        distance: '0'
-      }
-    ],
+    parlett: [ ],
+    types: ['structure'],
     points: 5
   },
   'thief': {
@@ -269,9 +265,9 @@ module.exports = {
   'ferz': {
     parlett: [{
       movement: '1/1',
-      types: ['pious'],
       distance: '1'
     }],
+    types: ['pious'],
     points: 1
   },
   'archbishop': {

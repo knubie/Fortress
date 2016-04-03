@@ -49,6 +49,98 @@ var playersPieces = converge(
 
 
 module.exports = {
+  'library': {
+    points: 4,
+  },
+  'labor': {
+    points: 4,
+    use: function(game) {
+      var turnIndex = colorToIndex(game.turn);
+      //var fn = game.plysLeft[turnIndex] === game.plysPerTurn[turnIndex] ?
+        //adjust(add(1), turnIndex) :
+        //identity;
+
+      return Game.of(evolve({
+        plysLeft: adjust(add(2), turnIndex)
+      }, game));
+    },
+  },
+  'demolition': {
+    points: 1,
+    use: function(game, positions) {
+      var cardIndex = indexOf(positions[0], map(prop('position'), game.board.pieces));
+      var playerIndex = colorToIndex(game.turn);
+      return Game.of(evolve({
+        resources: adjust(
+          // TODO: extract to Util
+          compose(
+           min(game.maxResources[playerIndex]),
+           add(3)
+          ),
+          playerIndex
+        ),
+        board: compose(Board.of, evolve({
+          pieces: remove(cardIndex, 1),
+        }))
+      }, game));
+    },
+  },
+  //'refund': {
+    //points: 0,
+    //use: function(game, params) {
+      //// params[0]: Card in-hand to trash for gold.
+      //var playerIndex = colorToIndex(game.turn);
+      //var card = params[0]
+      //return Game.of(evolve({
+        //hands: adjust(remove(card, 1), playerIndex),
+        //resources: adjust(
+          //// TODO: extract to Util
+          //compose(
+           //min(game.maxResources[playerIndex]),
+           //add(game.hands[playerIndex][card].points)
+          //),
+          //playerIndex
+        //)
+      //}, game));
+    //},
+    //requiredInput: ['card'],
+    //// (Board, Color) -> [Integer]
+    ////params: 
+  //},
+  'investment': {
+    points: 5,
+    use: function(game) {
+      // TODO: use integer
+      var playerIndex = colorToIndex(game.turn);
+      return Game.of(evolve({
+        resources: adjust(
+          // TODO: extract to Util
+          compose(
+           min(game.maxResources[playerIndex]),
+           add(9)
+          ),
+          playerIndex
+        )
+      }, game));
+    },
+  },
+  'foreign aid': {
+    points: 0,
+    use: function(game) {
+      // TODO: use integer
+      var playerIndex = colorToIndex(game.turn);
+      return Game.of(evolve({
+        resources: adjust(
+                       // TODO: extract to Util
+          compose(
+           min(game.maxResources[playerIndex]),
+           add(3)
+          ),
+          playerIndex
+        )
+      }, game));
+    },
+  },
   'coffer upgrade': {
     points: 2,
     use: function(game, positions) {
@@ -58,7 +150,7 @@ module.exports = {
     },
   },
   'influence': {
-    points: 4,
+    points: 0,
     use: function(game, positions) {
       var count = 0;
       var turnIndex = colorToIndex(game.turn);
@@ -129,7 +221,7 @@ module.exports = {
     params: compose(positionsOfPieces, notRoyal, opponentsPieces),
   },
   'fortify': {
-    points: 4,
+    points: 2,
     use: curry(function(game, positions) {
       var index = indexOf(positions[0], map(prop('position'), game.board.pieces));
       return Game.of(evolve({
@@ -187,7 +279,7 @@ module.exports = {
     }),
   },
   'perception': {
-    points: 1,
+    points: 0,
     use: curry(function(game) {
       var color = game.turn;
       // TODO: replace with integer
@@ -251,11 +343,11 @@ module.exports = {
     points: 9
   },
   'king': {
-    points: 5,
+    points: 7,
   },
   ///////// Custom pieces //////////
   'warlord': {
-    points: 8,
+    points: 12,
   },
   'cannon': {
     points: 9,
@@ -264,7 +356,7 @@ module.exports = {
     points: 3,
   },
   'bloodlust': {
-    points: 2,
+    points: 3,
     // onCapture :: (Piece, Piece, Piece, Game) -> Game
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
       check(arguments, [Piece, Piece, Piece, Game]);
@@ -332,7 +424,7 @@ module.exports = {
     },
   },
   'thief': {
-    points: 4
+    points: 4,
     // onCapture :: (Piece, Piece, Game) -> Game
     onCapture: curry(function(oldPiece, piece, capturedPiece, game) {
       var index = piece.color === 'white' ? 0 : 1;
@@ -364,7 +456,7 @@ module.exports = {
     points: 2
   },
   'wazir': {
-    points: 1
+    points: 2
   },
   'ferz': {
     points: 1
@@ -376,6 +468,6 @@ module.exports = {
     points: 8
   },
   'nightrider': {
-    points: 9
+    points: 6
   },
 };

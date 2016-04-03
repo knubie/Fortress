@@ -255,15 +255,27 @@ var pieceCallbacks = {
       }, board));
     })
   },
+  library: {
+    // TAX
+    // Add one resource per pawn, or one
+    ability: curry(function(piece, game) {
+      var index = colorToIndex(piece.color);
+      return compose(
+        addResources(__, index, 1),
+        drawCard(game.turn)
+      )(game)
+    }),
+  },
   king: {
     // TAX
     // Add one resource per pawn, or one
     ability: curry(function(piece, game) {
       var index = colorToIndex(piece.color);
-      var amount = filter(where({
-        color: equals(piece.color),
-      }), game.board.pieces).length;
-      return addResources(game, index, amount);
+      //var amount = filter(where({
+        //color: equals(piece.color),
+        //name: equals('mine'),
+      //}), game.board.pieces).length * 2;
+      return addResources(game, index, 1);
     }),
   },
   mine: {
@@ -274,7 +286,8 @@ var pieceCallbacks = {
       }, game));
     }),
     afterEveryPly: curry(function(game, piece) {
-      var index = piece.color === 'white' ? 0 : 1;
+      //TODO: use integer
+      var index = colorToIndex(piece.color);
       return Game.of(evolve({
         resources: adjust(compose(min(game.maxResources[index]), add(1)), index) // Add one to resources of same color as piece.
       }, game));
@@ -338,6 +351,7 @@ var endTurn = curry(function(ply, game) {
           if (typeof piece.afterTurn === 'function' && game.plysLeft[turnIndex] === 1) {
             return piece.afterTurn(Piece.of(assoc('asleep', false, piece)));
           } else {
+            // Put Piece to sleep.
             if (game.plysLeft[turnIndex] === 1 && piece.asleep) {
               return Piece.of(assoc('asleep', false, piece));
             } else {
@@ -376,6 +390,14 @@ var endTurn = curry(function(ply, game) {
     plys: append(ply)
   }, game));
   if (newGame.turn !== game.turn) {
+    //newGame = drawCard(newGame.turn, newGame);
+    newGame = reduce(function(game, piece) {
+      if (piece.color === game.turn && typeof Cards[piece.name].continuingEffect === 'function') {
+        return Cards[piece.name].continuingEffect(game);
+      } else {
+        return game;
+      }
+    }, newGame, newGame.board.pieces);
     return reduce(flip(call), newGame, newGame.afterTurn);
   } else {
     return newGame;
