@@ -14,15 +14,20 @@ var {
   TouchableNativeFeedback,
 } = React;
 
-var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
+var boardSize = 6;
+var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((boardSize - 1) * 2))) / boardSize);
 var Square = React.createClass({
+  shouldComponentUpdate: function(nextProps, nextState) {
+    return R.not(R.and(R.equals(nextProps, this.props),
+            R.equals(nextState, this.state)))
+  },
   getInitialState: function() {
     return {
       backgroundColor: new Animated.Value(0),
       scale: new Animated.Value(1),
     }
   },
-  componentWillReceiveProps: function(nextProps) {
+  componentWillUpdate: function(nextProps) {
     if (nextProps.highlight) {
       this.state.scale.setValue(0.95);
       Animated.timing(                          // Base: spring, decay, timing

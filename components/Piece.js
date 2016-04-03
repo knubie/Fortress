@@ -180,7 +180,8 @@ var Piece = React.createClass({
   }
 });
 
-var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((7 - 1) * 2))) / 7);
+var boardSize = 6;
+var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((boardSize - 1) * 2))) / boardSize);
 var styles = StyleSheet.create({
   tile: {
     position: 'absolute',

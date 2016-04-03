@@ -25,10 +25,10 @@ var {
 var player = {};
 var yourTurn = null;
 var subscription;
+var boardSize = 6;
 
 var Home = React.createClass({
   componentDidMount: function() {
-    var boardSize = 7;
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
@@ -189,7 +189,7 @@ var Home = React.createClass({
     game = Types.Game.of({
       turn: 'white',
       board: Types.Board.of({
-        size: 8,
+        size: boardSize,
         pieces: [
           Types.Piece.of({
             name: 'king',
