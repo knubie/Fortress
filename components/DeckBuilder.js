@@ -37,7 +37,7 @@ var cardHeight = cardWidth * 1.5;
 
 var boardSize = 8;
 
-var MAX_DECK_SIZE = 20;
+var MAX_DECK_SIZE = 30;
 var HAND_SIZE = 4;
 var DeckBuilder = React.createClass({
   getInitialState: function() {
