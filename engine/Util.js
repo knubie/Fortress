@@ -1,6 +1,5 @@
 var R        = require('ramda');
 var check    = require('./lib/type-checker').checkAll;
-var Cards    = require('./Cards');
 var Types    = require('./Types');
 var Pieces   = require('./Pieces');
 var Game     = Types.Game;
@@ -17,6 +16,11 @@ for (var k in R) {
 var colorToIndex = curry(function(color) {
   return color === 'white' ? 0 : 1;
 });
+
+//  oppositeColor :: (String) -> String
+var oppositeColor = function(color) {
+  return color === 'white' ? 'black' : 'white';
+};
 
 //  message :: (String, Game) -> Game
 var message = curry(function(message, game) {
@@ -81,6 +85,7 @@ var getAnyPieceAtPosition = curry(function(board, position) {
 
 module.exports = {
   colorToIndex,
+  oppositeColor,
   message,
   drawCard,
   addPiece,
