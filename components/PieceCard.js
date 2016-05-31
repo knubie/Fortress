@@ -164,6 +164,7 @@ var PieceCard = React.createClass({
     //this.isDragging = false;
   },
   render: function() {
+    console.log(this.props.card);
     var borderStyle = styles.unselected;
     //if (R.contains('royal', this.props.piece.types)) {
       //borderStyle = styles.borderRoyal;
@@ -201,8 +202,9 @@ var PieceCard = React.createClass({
             source={isAction ? PieceDisplay[this.props.card].image['black'] : PieceDisplay[this.props.card].image['white']}
             style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
           />
-          <View style={[styles.points, isAction ? styles.pointsLight : styles.pointsDark]}>
-            <Text style={styles.pointText}>{Cards[this.props.card].points}</Text>
+          <View style={{flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', marginTop: 4,}}>
+            <View style={styles.goldLabel}/>
+            <Text style={isAction ? styles.pointTextLight : styles.pointTextDark}>{Cards[this.props.card].points}</Text>
           </View>
         </Animated.View>
         <View
@@ -284,8 +286,25 @@ var styles = StyleSheet.create({
   pointsLight: {
     backgroundColor: '#A6A6A6',
   },
-  pointText: {
+  goldLabel: {
+    marginRight: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#DAB900',
+    shadowColor: 'black',
+    shadowOffset: {width: 1, height: 1},
+    shadowOpacity: 0.3,
+    shadowRadius: 0,
+  },
+  pointTextLight: {
     color: '#555555',
+    fontSize: 10,
+    fontFamily: 'Helvetica Neue',
+    fontWeight: '700',
+  },
+  pointTextDark: {
+    color: '#777777',
     fontSize: 10,
     fontFamily: 'Helvetica Neue',
     fontWeight: '700',
