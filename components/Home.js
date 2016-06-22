@@ -16,10 +16,12 @@ var {
   StyleSheet,
   Text,
   View,
+  Image,
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
   NativeAppEventEmitter,
+  Dimensions,
 } = React;
 
 var player = {};
@@ -29,6 +31,13 @@ var boardSize = 6;
 
 var Home = React.createClass({
   componentDidMount: function() {
+    subscription = NativeAppEventEmitter.addListener(
+      'listMatches',
+      data => {
+        console.log('listMatches');
+        console.log(data);
+      }
+    );
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
@@ -99,10 +108,16 @@ var Home = React.createClass({
         var decks = {
           'New Deck': [],
           'Starter Deck': [
-            'pawn',
-            'pawn',
-            'pawn',
-            'pawn',
+            'pin',
+            'peasant labor',
+            'investment',
+            'investment',
+            'foreign aid',
+            'foreign aid',
+            'demotion',
+            'fortify',
+            'perception',
+            'perception',
             'pawn',
             'pawn',
             'bishop',
@@ -119,6 +134,10 @@ var Home = React.createClass({
             'bomber',
             'ranger',
             'archbishop',
+            'bank',
+            'bank',
+            'library',
+            'factory',
           ]
         };
         AsyncStorage.setItem('decks', JSON.stringify(decks), (error) => {
@@ -222,14 +241,15 @@ var Home = React.createClass({
     return (
       <View style={styles.containerContainer}>
         <View style={styles.container}>
+          <Image style={styles.logo} source={require('../assets/logo.png')} />
           <TouchableElement style={styles.button} onPress={this.newGame}>
-            <Text style={styles.buttonText}>Play the Game</Text>
+            <Text style={styles.buttonText}>PLAY THE GAME</Text>
           </TouchableElement>
           <TouchableElement style={styles.button} onPress={this.buildDeck}>
-            <Text style={styles.buttonText}>My Collection</Text>
+            <Text style={styles.buttonText}>MY COLLECTION</Text>
           </TouchableElement>
           <TouchableElement style={styles.button} onPress={this.howToPlay}>
-            <Text style={styles.buttonText}>How to Play</Text>
+            <Text style={styles.buttonText}>HOW TO PLAY</Text>
           </TouchableElement>
         </View>
       </View>
@@ -242,20 +262,34 @@ var styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#212121',
   },
+  logo: {
+    transform: [
+      {scale: 0.5}
+    ]
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 60,
   },
   button: {
-    padding: 15,
-    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#c4c4c4',
-    marginBottom: 10
+    //borderColor: '#c4c4c4',
+    //borderColor: '#212121',
+    //backgroundColor: '#c4c4c4',
+    borderColor: '#191919',
+    backgroundColor: '#191919',
+    marginBottom: 20
   },
   buttonText: {
+    fontFamily: 'Source Code Pro',
+    fontWeight: '700',
+    //color: '#212121',
     color: '#c4c4c4',
   }
 });

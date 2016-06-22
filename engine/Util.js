@@ -32,6 +32,7 @@ var message = curry(function(message, game) {
 var drawCard = curry(function(color, game) {
   // TODO: change to integer
   var playerIndex = colorToIndex(color);
+  // TODO: handle the message somewhere else, use Maybe Game
   if (game.decks[playerIndex].length < 1) {
     return message('Your deck is empty!', game);
   } else {

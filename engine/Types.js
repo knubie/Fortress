@@ -77,6 +77,7 @@ function Game(opts) {
   // resources[1] = black
   this.resources = this.resources || [10, 10];
   this.maxResources = this.maxResources || [10, 10];
+  this.maxHandSize = this.maxHandSize || [10, 10];
   // decks[0] = white
   // decks[1] = black
   this.decks = this.decks || [[], []];
@@ -147,7 +148,12 @@ function Piece(opts) {
   this.captures = this.captures || 0;
   this.onCapture = pieces[opts.name].onCapture || identity;
   this.additionalEffects = this.additionalEffects || [];
+
+  // Function. Get's called after the piece is moved.
   this.afterTurn = this.afterTurn || null;
+
+  // Function. Get's called after the piece is moved.
+  this.afterMove = this.afterMove || null;
   this.asleep = this.asleep != null ? this.asleep : true;
 }
 

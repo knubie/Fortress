@@ -102,9 +102,8 @@ var PieceCard = React.createClass({
     this.startDragTime = e.nativeEvent.timestamp;
     // TODO: eventually take this exist check out
     if (this.props.onStartShouldSetResponder != null) {
-      this.props.onStartShouldSetResponder(e, this.props.card);
-    }
-    return true;
+      return this.props.onStartShouldSetResponder(e, this.props.card);
+    } else { return false; }
   },
   onResponderGrant: function(e, gestureState) {
       //this.props.onResponderGrant(e, this.props.card);
@@ -175,6 +174,12 @@ var PieceCard = React.createClass({
     var isAction = Pieces[this.props.card] == null;
     var cardType = isAction ? styles.cardAction : styles.cardPiece;
     var cardStyle = this.props.disabled ? [styles.card, styles.disabled] : styles.card;
+    var count = this.props.count != null ? (
+      <View style={styles.count}>
+        <Text style={styles.countLabel}>x{this.props.count}</Text>
+      </View>
+    ) : null;
+
     return (
       <Animated.View
         style={[{
@@ -193,7 +198,7 @@ var PieceCard = React.createClass({
             cardType,
             borderStyle,
             {
-              opacity: this.props.invisible ? 0 : 1,
+              opacity: this.props.invisible ? 0 : (this.props.count === 0 ? 0.2 : 1),
               transform: [{scale: this.state.scale}],
               //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#DAB900' : '#D8D8D8',
             }
@@ -217,6 +222,7 @@ var PieceCard = React.createClass({
           onResponderTerminationRequest={this.onResponderTerminationRequest}
           onResponderTerminate={this.onResponderTerminate}
         ></View>
+        {count}
       </Animated.View>
     );
   }
@@ -226,6 +232,19 @@ var PieceCard = React.createClass({
 
 var cardMarginRight = 10;
 var styles = StyleSheet.create({
+  count: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  countLabel: {
+    color: '#606060',
+    fontSize: 10,
+    paddingHorizontal: 4,
+    backgroundColor: '#181818',
+    borderRadius: 4,
+  },
   card: {
     width: cardWidth,
     height: cardHeight,

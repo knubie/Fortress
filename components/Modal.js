@@ -16,6 +16,7 @@ var {
 } = React;
 
 var CARD_WIDTH = 180;
+var CARD_HEIGHT = 253;
 
 var Modal = React.createClass({
   PropTypes: {
@@ -32,6 +33,7 @@ var Modal = React.createClass({
     };
   },
   componentDidMount: function() {
+    // BackgroundOpacity
     Animated.timing(
       this.state.backgroundOpacity,
       {
@@ -41,6 +43,7 @@ var Modal = React.createClass({
         easing: Easing.out(Easing.ease),
       }
     ).start();
+    this.state.cardOpacity.setValue(0);
     Animated.timing(
       this.state.cardOpacity,
       {
@@ -50,6 +53,7 @@ var Modal = React.createClass({
         easing: Easing.out(Easing.ease),
       }
     ).start();
+    // Message top
     this.state.messageTop.setValue(-25);
     Animated.timing(
       this.state.messageTop,
@@ -60,20 +64,23 @@ var Modal = React.createClass({
         easing: Easing.out(Easing.ease),
       }
     ).start();
-    //this.state.boxTop.setValue(-100);
-    //Animated.spring(                          // Base: spring, decay, timing
-      //this.state.boxTop,                 // Animate `bounceValue`
-      //{
-        //toValue: ((Dimensions.get('window').height)/2) - 50,
+    // Card top
+    this.state.boxTop.setValue(100);
+    Animated.timing(                          // Base: spring, decay, timing
+      this.state.boxTop,                 // Animate `bounceValue`
+      {
+        toValue: 0,
         //friction: 7,
         //tension: 50,
-        ////duration: 150, // milliseconds
-        ////delay: 0, // milliseconds
-        ////easing: Easing.out(Easing.ease),
-      //}
-    //).start();
+        duration: 150, // milliseconds
+        delay: 0, // milliseconds
+        easing: Easing.out(Easing.ease),
+      }
+    ).start();
   },
+  // Dismiss.
   onPress: function(direction) {
+    // Animate background
     Animated.timing(
       this.state.backgroundOpacity,
       {
@@ -92,6 +99,7 @@ var Modal = React.createClass({
         easing: Easing.out(Easing.ease),
       }
     ).start();
+    // Animate card swiping off the screen
     if (direction === 'right') {
       Animated.timing(
         this.state.draggedCardX,
@@ -112,7 +120,28 @@ var Modal = React.createClass({
           easing: Easing.out(Easing.ease),
         }
       ).start();
+    } else if (direction === 'up') {
+      Animated.timing(
+        this.state.draggedCardY,
+        {
+          toValue: 0 - ((Dimensions.get('window').height / 2) + (CARD_HEIGHT / 2)),
+          duration: 150,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
+    } else if (direction === 'down') {
+      Animated.timing(
+        this.state.draggedCardY,
+        {
+          toValue: (Dimensions.get('window').height / 2) + (CARD_HEIGHT / 2),
+          duration: 150,
+          delay: 0,
+          easing: Easing.out(Easing.ease),
+        }
+      ).start();
     }
+    // Message top
     Animated.timing(
       this.state.messageTop,
       {
@@ -128,7 +157,7 @@ var Modal = React.createClass({
     //Animated.timing(                          // Base: spring, decay, timing
       //this.state.boxTop,                 // Animate `bounceValue`
       //{
-        //toValue: Dimensions.get('window').height,
+        //toValue: 0,
         //duration: 250, // milliseconds
         //delay: 0, // milliseconds
         //easing: Easing.in(Easing.ease),
@@ -150,16 +179,17 @@ var Modal = React.createClass({
   onResponderMove: function(e) {
     var dx = e.nativeEvent.pageX - this.startDragX;
     var dy = e.nativeEvent.pageY - this.startDragY;
-    this.state.draggedCardX.setValue(dx);
+    //this.state.draggedCardX.setValue(dx);
     this.state.draggedCardY.setValue(dy);
   },
   onResponderRelease: function(e) {
-    var dx = this.startDragX - e.nativeEvent.pageX;
+    //var dx = this.startDragX - e.nativeEvent.pageX;
+    var dy = this.startDragY - e.nativeEvent.pageY;
     //var dy = Math.abs(this.startDragY - e.nativeEvent.pageY;
-    if (dx > 60) {
-      this.onPress('left');
-    } else if (dx < -60) {
-      this.onPress('right');
+    if (dy > 60) {
+      this.onPress('up');
+    } else if (dy < -60) {
+      this.onPress('down');
     }
   },
   onResponderTerminationRequest: function(e) {
@@ -248,8 +278,6 @@ var styles = StyleSheet.create({
     justifyContent: 'center',
   },
   message: {
-    fontSize: 12,
-    color: '#D8D8D8',
     marginBottom: 10,
   },
   modalText: {
@@ -261,7 +289,7 @@ var styles = StyleSheet.create({
     marginTop: 20,
   },
   box: {
-    padding: 10,
+    padding: 5,
     borderRadius: 8,
     width: CARD_WIDTH,
     height: 253,

@@ -49,7 +49,6 @@ var styles = StyleSheet.create({
   title: {
     justifyContent: 'flex-start',
     flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 5,
   },
   name: {
@@ -91,11 +90,15 @@ var styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 13,
+    paddingHorizontal: 10,
+    borderRadius: 15,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#c4c4c4',
+    //borderColor: '#c4c4c4',
+    //borderColor: '#212121',
+    //backgroundColor: '#c4c4c4',
+    borderColor: '#191919',
+    backgroundColor: '#191919',
   },
   buttonContainer: {
     justifyContent: 'flex-start',

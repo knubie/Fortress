@@ -2,11 +2,13 @@ var R = require('ramda');
 var React = require('react-native');
 var Board = require('./Board');
 var Modal = require('./Modal');
+var CardModal = require('./CardModal');
 var History = require('./History');
 var Chess = require('../engine/Main');
 var Util = require('../engine/Util');
 var Types = require('../engine/Types');
 var Pieces = require('../engine/Pieces');
+var Cards = require('../engine/Cards');
 var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var TitleBar = require('./TitleBar.js');
@@ -38,6 +40,29 @@ var subscription;
 
 
 var PlayView = React.createClass({
+  getInitialState: function() {
+    return {
+      // The base game that the ply list will be played on top of to get
+      // the current game state.
+      baseGame: this.props.baseGame,
+      // The current game state.
+      game: this.props.game,
+      // The latest game state from the server that hasn't been loaded into
+      // the current game state yet.
+      latestGame: null,
+      playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
+                   this.props.game.turn === 'black' && !this.props.yourTurn ?
+                                                                    'white' :
+                                                                    'black',
+      possibleMoves: [ ],
+      possibleCaptures: [ ],
+      selectedPiece: null,
+      selectedCard: null,
+
+      // The index of the card that will be focused when the CardModal is displayed.
+      inspectedCard: null,
+    }
+  },
   componentDidMount: function() {
     subscription = NativeAppEventEmitter.addListener(
       'updateMatchData',
@@ -51,7 +76,6 @@ var PlayView = React.createClass({
             this.state.baseGame,
           latestGame: GameCenter.instantiateGame(JSON.parse(data.match.matchData))
         });
-
         // Load next game state if applicable
         if (!this.state.game.message) {
           this.loadNextGameState();
@@ -101,7 +125,7 @@ var PlayView = React.createClass({
 
         case 'UseCardPly':
           var card = R.last(nextGameState.plys).card;
-          var cardName = this.state.game.hands[this.colorToIndex(this.state.game.turn)][card];
+          var cardName = this.state.game.hands[Util.colorToIndex(this.state.game.turn)][card];
           // TODO fix this
           this.setState({
             cardPlayed: cardName
@@ -198,40 +222,7 @@ var PlayView = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
-  getInitialState: function() {
-    return {
-      // The base game that the ply list will be played on top of to get
-      // the current game state.
-      baseGame: this.props.baseGame,
-      // The current game state.
-      game: this.props.game,
-      // The latest game state from the server that hasn't been loaded into
-      // the current game state yet.
-      latestGame: null,
-      playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
-                   this.props.game.turn === 'black' && !this.props.yourTurn ?
-                                                                    'white' :
-                                                                    'black',
-      possibleMoves: [ ],
-      possibleCaptures: [ ],
-      selectedPiece: null,
-      selectedCard: null,
-    }
-  },
-  //getCurrentGame :: (Game) -> [Game]
-  getCurrentGame: function(initialGame) {
-    // TODO: ignore first two plys
-    //return R.reduce((game, ply) => {
-      //// FIXME: don't hardcode plyType argument
-      //return Chess.makePly('move', game, {
-                             //startingPosition: ply[0],
-                             //targetPosition: ply[1]});
-    //}, initialGame, initialGame.plys);
-  },
   // TODO: move this to the engine.
-  colorToIndex: function(color) {
-    return color === 'white' ? 0 : 1;
-  },
   yourTurn: function() {
     return this.state.game.turn === this.state.playerColor;
   },
@@ -252,7 +243,16 @@ var PlayView = React.createClass({
     }
   },
   clickCard: function(card, index) {
-    this.selectCard(index);
+    if (R.equals(this.state.inspectedCard, index)) {
+      this.setState({
+        inspectedCard: null
+      });
+    } else {
+      this.setState({
+        inspectedCard: index
+      });
+    }
+    //this.selectCard(index);
   },
   selectCard: function(card) {
     if (R.equals(this.state.selectedCard, card)) {
@@ -261,6 +261,7 @@ var PlayView = React.createClass({
         possibleCaptures: [],
         selectedPiece: null,
         selectedCard: null,
+        inspectedCard: null,
       });
     } else {
       this.setState({
@@ -270,6 +271,7 @@ var PlayView = React.createClass({
         possibleCaptures: [],
         selectedPiece: null,
         selectedCard: card,
+        inspectedCard: null,
       });
     }
   },
@@ -290,6 +292,7 @@ var PlayView = React.createClass({
     }
   },
   clickSquare: function(x, y) {
+    console.log('click square');
     var position = Types.Position.of({ x: x, y: y });
     var selectedPiece = this.state.selectedPiece;
     var selectedCard = this.state.selectedCard;
@@ -305,6 +308,7 @@ var PlayView = React.createClass({
     } else if (selectedPiece != null) {
       this.makePly(Chess.movePly(this.state.selectedPiece, position, this.state.game));
     } else if (selectedCard != null) {
+      console.log('use card here');
       this.makePly(Chess.useCardPly(this.state.playerColor, selectedCard, {
         positions: [position],
       }, this.state.game));
@@ -313,27 +317,56 @@ var PlayView = React.createClass({
   onAbility: function(piece) {
     this.makePly(Chess.abilityPly(piece, this.state.game));
   },
-  useCard: function() {
-    //var newGame = Chess.drawCardPly(this.state.playerColor, this.state.game);
-    var newGame = Chess.useCardPly(this.state.playerColor, this.state.selectedCard, { }, this.state.game);
-    if (newGame.message) {
-      this.setState({game: newGame});
+  useCard: function(card) {
+    if (Cards[this.playersHand()[card]].params == null) {
+      this.setState({
+        inspectedCard: null,
+        game: Chess.useCardPly(
+          this.state.playerColor,
+          card,
+          { },
+          this.state.game
+        )
+      });
+      // TODO: generalize this somehow. e.g. clickSquare, etc updates turn
+      // data as well, so we're duplicating code there by calling this.
+      if (R.not(this.yourTurn())) {
+        GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
+      }
     } else {
-        // TODO: Abstract this into modal?
-      AlertIOS.alert(
-        'Confirm',
-        'Are you sure you want to use this card?',
-        [
-          {text: 'No Wait...', onPress: () => {return;} },
-          {text: 'Yep!', onPress: () => {
-            this.setState({ game: newGame });
-            if (R.not(this.yourTurn())) {
-              //GameCenter.endTurnWithNextParticipants(this.state.game);
-              GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
-            }
-          }}
-        ]
+      this.selectCard(card);
+    }
+  },
+  _useCard: function() {
+    //var newGame = Chess.drawCardPly(this.state.playerColor, this.state.game);
+    if (Cards[this.playersHand()[this.state.selectedCard]].requiredInput == null) {
+      var currentPlayer = Util.colorToIndex(this.state.game.turn);
+      var newGame = Chess.useCardPly(
+        this.state.playerColor,
+        this.state.selectedCard,
+        { },
+        this.state.game
       );
+      if (newGame.message) {
+      //|| newGame.decks[currentPlayer].length !== this.state.game.decks[currentPlayer]) {
+        this.setState({game: newGame});
+      } else {
+          // TODO: Abstract this into modal?
+        AlertIOS.alert(
+          'Confirm',
+          'Are you sure you want to use this card?',
+          [
+            {text: 'No Wait...', onPress: () => {return;} },
+            {text: 'Yep!', onPress: () => {
+              this.setState({ game: newGame });
+              if (R.not(this.yourTurn())) {
+                //GameCenter.endTurnWithNextParticipants(this.state.game);
+                GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
+              }
+            }}
+          ]
+        );
+      }
     }
     //this.makePly(Chess.useCardPly(this.state.playerColor, this.state.selectedCard, { }, this.state.game));
     //this.makePly(Chess.abilityPly(piece, this.state.game));
@@ -367,7 +400,6 @@ var PlayView = React.createClass({
         ]
       );
     }
-
   },
   drawCard: function() {
     var newGame = Chess.drawCardPly(this.state.playerColor, this.state.game);
@@ -392,10 +424,10 @@ var PlayView = React.createClass({
     }
   },
   playersDeck: function() {
-    return this.state.game.decks[this.colorToIndex(this.state.playerColor)];
+    return this.state.game.decks[Util.colorToIndex(this.state.playerColor)];
   },
   playersHand: function() {
-    return this.state.game.hands[this.colorToIndex(this.state.playerColor)];
+    return this.state.game.hands[Util.colorToIndex(this.state.playerColor)];
   },
   dummy: function() {
     alert('foo');
@@ -412,7 +444,7 @@ var PlayView = React.createClass({
 
     var message = null;
 
-    if (this.state.game.message) {
+    if (this.state.game.message || this.state.cardPlayed) {
       message = (<Modal
         onPress={this.clearMessage}
         card={this.state.cardPlayed}
@@ -420,6 +452,7 @@ var PlayView = React.createClass({
       >
       </Modal>);
     }
+
       //message = (<Modal
         //onPress={this.clearMessage}
         //card={'fortify'}
@@ -450,45 +483,59 @@ var PlayView = React.createClass({
         <View style={{marginTop: 7, marginHorizontal: 20, justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
           <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
             <Text style={{fontFamily: 'Source Code Pro', marginRight: 10, fontWeight: 'bold', fontSize: 10, color: '#DAB900',}}>
-              <Text style={{fontWeight: '400'}}>GOLD</Text> {this.state.game.resources[this.colorToIndex(this.state.playerColor)]}
+              <Text style={{fontWeight: '400'}}>GOLD</Text> {this.state.game.resources[Util.colorToIndex(this.state.playerColor)]}
             </Text>
               {R.map((i) => {
-                if (this.state.game.resources[this.colorToIndex(this.state.playerColor)] >= i) {
+                if (this.state.game.resources[Util.colorToIndex(this.state.playerColor)] >= i) {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#DAB900'}}/>);
                 } else {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
                 }
-              }, R.range(1, this.state.game.maxResources[this.colorToIndex(this.state.playerColor)] + 1))}
+              }, R.range(1, this.state.game.maxResources[Util.colorToIndex(this.state.playerColor)] + 1))}
           </View>
           <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',}}>
             <Text style={{fontFamily: 'Source Code Pro', marginRight: 10, fontWeight: 'bold', fontSize: 10, color: '#C4C4C4',}}>
-              <Text style={{fontWeight: '400'}}>ACTIONS</Text> {this.state.game.plysLeft[this.colorToIndex(this.state.game.turn)]}
+              <Text style={{fontWeight: '400'}}>ACTIONS</Text> {this.state.game.plysLeft[Util.colorToIndex(this.state.game.turn)]}
             </Text>
               {R.map((i) => {
-                if (this.state.game.plysLeft[this.colorToIndex(this.state.game.turn)] >= i) {
+                if (this.state.game.plysLeft[Util.colorToIndex(this.state.game.turn)] >= i) {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#C4C4C4'}}/>);
                 } else {
                   return (<View style={{marginRight: 2, width: 6, height: 6, borderRadius: 3, backgroundColor: '#353535'}}/>);
                 }
-              }, [1,2])}
+              }, R.range(
+                    1,
+                    R.max(
+                      this.state.game.plysLeft[
+                        Util.colorToIndex(this.state.game.turn)
+                      ],
+                      this.state.game.plysPerTurn[
+                        Util.colorToIndex(this.state.game.turn)
+                      ]
+                    ) + 1
+                  ))}
             </View>
         </View>
         <View style={styles.scrollViewContainer}>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.scrollView}>
+                      contentContainerStyle={styles.scrollView}
+                      onMoveShouldSetResponder={this.handMoveShouldSetResponder}
+                      onResponderMove={this.handResponderMove}
+                      onResponderRelease={this.handResponderRelease}
+          >
             <View style={styles.addCardBottom}/>
             <TouchableHighlight style={styles.addCard} onPress={this.drawCard}>
               <View style={styles.addCardInner}>
                 <Image style={styles.cardBack} source={require('../assets/card-back-1.png')}/>
                 <Text style={styles.addCardText}>
-                  {this.state.game.decks[this.colorToIndex(this.state.playerColor)].length}
+                  {this.state.game.decks[Util.colorToIndex(this.state.playerColor)].length}
                 </Text>
               </View>
             </TouchableHighlight>
             <View style={{
-              width: (cardWidth + 10) * this.state.game.hands[this.colorToIndex(this.state.playerColor)].length
+              width: (cardWidth + 10) * this.state.game.hands[Util.colorToIndex(this.state.playerColor)].length
             }}/>
             {R.values(R.mapObjIndexed((card, i, deck) => {
               var index = parseInt(i);
@@ -502,18 +549,25 @@ var PlayView = React.createClass({
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
                 selected={R.equals(this.state.selectedCard, index)}
                 onPress={this.clickCard}/>
-            )}, this.state.game.hands[this.colorToIndex(this.state.playerColor)]))}
+            )}, this.state.game.hands[Util.colorToIndex(this.state.playerColor)]))}
           </ScrollView>
         </View>
         <View style={{marginLeft: 10, width: Dimensions.get('window').width - 20,}}>
           <PieceInfo
-            card={this.state.selectedPiece || this.playersHand()[this.state.selectedCard]}
+            card={this.state.selectedPiece}
             onAbility={this.onAbility}
             abilityButton={true}
             useCard={this.useCard}
           ></PieceInfo>
         </View>
         {message}
+        <CardModal
+          onDismiss={() => { this.setState({inspectedCard: null}); }}
+          hidden={this.state.inspectedCard == null}
+          onUse={this.useCard}
+          scrollOffset={this.state.inspectedCard}
+          cards={this.state.game.hands[Util.colorToIndex(this.state.playerColor)]}
+        ></CardModal>
       </View>
     );
   }

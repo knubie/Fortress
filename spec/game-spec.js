@@ -517,7 +517,7 @@ describe('Game', function() {
       positions: [new Position({x: 5, y: 0})]
     }, newGame);
 
-    var expectedGame = Chess.getGameFromPlys(game, newGame.plys);
+    var expectedGame = Chess.getGameFromPlys(game, JSON.parse(JSON.stringify(newGame.plys)));
 
     expect(equals(newGame, expectedGame)).toBe(true);
 

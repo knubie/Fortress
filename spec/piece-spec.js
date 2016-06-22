@@ -709,12 +709,14 @@ describe('Pieces', function() {
       plysLeft: [1, 2],
     });
 
+    // Use Fortify card
     var newGame = Chess.useCardPly('white', 0, {
       positions: [Position.of({x: 4, y: 4})]
     }, game);
 
 
 
+    // Check Types array and additionalEffects array on piece.
     expect(R.contains(
       'Invincible until the end of the next turn.',
       newGame.board.pieces[0].additionalEffects
@@ -725,6 +727,7 @@ describe('Pieces', function() {
     )).toBe(true);
 
 
+    // Black takes their turn.
     var newGame = Chess.movePly(
       newGame.board.pieces[2],
       Position.of({x: 5, y: 6}),
@@ -732,6 +735,7 @@ describe('Pieces', function() {
     );
     var newGame = Chess.useCardPly('black', 0, {}, newGame);
 
+    // White's piece should no longer be fortified.
     expect(R.not(R.contains(
       'Invincible until the end of the next turn.',
       newGame.board.pieces[0].additionalEffects
@@ -740,6 +744,77 @@ describe('Pieces', function() {
       'invincible',
       newGame.board.pieces[0].types
     ))).toBe(true);
+
+    var expectedGame = Chess.getGameFromPlys(game, JSON.parse(JSON.stringify(newGame.plys)));
+
+    expect(R.not(R.contains(
+      'Invincible until the end of the next turn.',
+      expectedGame.board.pieces[0].additionalEffects
+    ))).toBe(true);
+    expect(R.not(R.contains(
+      'invincible',
+      expectedGame.board.pieces[0].types
+    ))).toBe(true);
+
+
+
+  });
+  it('Pin should penalize a piece of moving.', function() {
+    var board = new Board({
+      size: 8,
+      pieces: [
+        new Piece({
+          name: 'bishop',
+          color: 'black',
+          position: new Position({x: 4, y: 4})
+        }),
+      ],
+    });
+
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      resources: [4, 1],
+      hands: [['pin'], ['perception']],
+      decks: [['pawn', 'pawn', 'pawn', 'pawn', 'pawn'],['pawn', 'pawn', 'pawn', 'pawn']],
+      plysLeft: [1, 2],
+    });
+
+    var newGame = Chess.useCardPly('white', 0, {
+      positions: [Position.of({x: 4, y: 4})]
+    }, game);
+
+    expect(R.contains('pinned', newGame.board.pieces[0].types)).toBe(true);
+
+    var newGame = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 5, y: 5}),
+                                newGame);
+
+    var newGame = Chess.drawCardPly('black', newGame);
+
+    // Effect should trigger after moving the piece.
+    expect(newGame.hands[0].length).toBe(3);
+    expect(newGame.resources[0]).toBe(6);
+    expect(R.contains('pinned', newGame.board.pieces[0].types)).toBe(false);
+
+    var expectedGame = Chess.getGameFromPlys(game, newGame.plys);
+
+    var newGame = Chess.drawCardPly('white', newGame);
+    var newGame = Chess.drawCardPly('white', newGame);
+
+    var newGame = Chess.movePly(newGame.board.pieces[0], 
+                                Position.of({x: 4, y: 4}),
+                                newGame);
+
+    // Effect should not trigger again when the piece is moved again.
+    expect(newGame.hands[0].length).toBe(5);
+    expect(newGame.resources[0]).toBe(6);
+
+    var expectedGame = Chess.getGameFromPlys(game, JSON.parse(JSON.stringify(newGame.plys)));
+
+    expect(expectedGame.hands[0].length).toBe(5);
+    expect(expectedGame.resources[0]).toBe(6);
+
   });
   it("Mind Control should allow a player to take control of an opponent's piece.", function() {
     var board = new Board({

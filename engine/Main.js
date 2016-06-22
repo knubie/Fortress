@@ -256,8 +256,17 @@ var pieceCallbacks = {
     })
   },
   library: {
-    // TAX
-    // Add one resource per pawn, or one
+    // +2 cards
+    ability: curry(function(piece, game) {
+      var index = colorToIndex(piece.color);
+      return compose(
+        drawCard(game.turn),
+        drawCard(game.turn)
+      )(game)
+    }),
+  },
+  factory: {
+    // +1 card, +1 gold
     ability: curry(function(piece, game) {
       var index = colorToIndex(piece.color);
       return compose(
@@ -423,6 +432,7 @@ var drawCardPly = curry(function(color, game) {
 //  movePly :: (Piece, Position, Game) -> Game
 var movePly = curry(function(piece, position, game) {
   check(arguments, [Piece, Position, Game]);
+  var piece = find(eqProps('position', piece), game.board.pieces);
   if (equals(piece.position, position) ||
       // movePiece() already makes this check, any way we can prevent
       // calling it again?
@@ -435,7 +445,11 @@ var movePly = curry(function(piece, position, game) {
   } else if (piece.asleep) {
     return message("You must wait until the next turn to use this piece.", game);
   } else {
-    var newGame = movePiece(piece.position, position, game);
+    var newGame = game;
+    if (typeof piece.afterMove === 'function') {
+      newGame = piece.afterMove(piece, game);
+    }
+    var newGame = movePiece(piece.position, position, newGame);
     if (newGame) {
       return endTurn(
           Types.MovePly.of({piece, position}),

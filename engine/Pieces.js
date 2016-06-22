@@ -4,10 +4,15 @@ for (var k in R) {
   topLevel[k] = R[k];
 }
 module.exports = {
-  'library': {
+  'factory': {
     parlett: [ ],
     types: ['structure'],
     points: 4
+  },
+  'library': {
+    parlett: [ ],
+    types: ['structure'],
+    points: 2
   },
   'pawn': {
     parlett: [

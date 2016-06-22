@@ -41,11 +41,17 @@ var MAX_DECK_SIZE = 30;
 var HAND_SIZE = 4;
 var DeckBuilder = React.createClass({
   getInitialState: function() {
+    // The amount of the deck's scrollView offset. Used to calculate where
+    // to place a card when it's dropped.
     this.deckScrollOffset = 0;
+
+
     this.startDragY = 0;
     this.startDragX = 0;
     this.draggedCardTop = 0;
     this.draggedCardLeft = 0;
+    this.deckDropZoneLayout = {x:0, y:0, width:0, height:0};
+
     return {
       pieces: [ ],
       points: 0,
@@ -63,13 +69,16 @@ var DeckBuilder = React.createClass({
       selectedDeck: 'New Deck',
       enableCollectionScroll: true,
       enableDeckScroll: true,
+
+      // The index of the card that's currently being dragged (so as to make
+      // it 'invisible' ie. an empty slot, while it's dragging.
       invisibleCard: -1,
+
+      // The name of the card that's currently being dragged.
       draggedCard: 'pawn',
-      showDraggedCard: false,
       draggedCardTop: -100,
       draggedCardLeft: -100,
-      draggedCardY: new Animated.Value(0),
-      draggedCardX: new Animated.Value(0),
+      draggedCardXY: new Animated.ValueXY(),
       deckWidth: new Animated.Value(0),
       cardHover: false,
     }
@@ -166,6 +175,7 @@ var DeckBuilder = React.createClass({
         decks: R.assoc('New Deck', [], R.assoc(name, this.selectedDeck(), this.state.decks)),
         selectedDeck: name
       });
+      console.log(R.map(R.map(R.prop('name')), this.state.decks)),
       AsyncStorage.setItem(
         'decks',
         JSON.stringify(R.map(R.map(R.prop('name')), this.state.decks)),
@@ -198,15 +208,9 @@ var DeckBuilder = React.createClass({
     );
   },
   onCollectionCardStartShouldSetResponder: function(e, card) {
-    this.startDragY = e.nativeEvent.pageY;
-    this.startDragX = e.nativeEvent.pageX;
-    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
-    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
-    this.state.draggedCardX.setValue(0);
-    this.state.draggedCardY.setValue(0);
-    this.setState({
-      draggedCard: card,
-    });
+    if (R.filter(R.equals(card), R.map(R.prop('name'), this.selectedDeck())).length < 2) {
+      return this.onDeckCardStartShouldSetResponder(e, card);
+    } else { return false; }
   },
   onDeckCardResponderGrant: function(e, card, index, isDragging) {
     if (isDragging) {
@@ -255,6 +259,17 @@ var DeckBuilder = React.createClass({
       });
     }
   },
+  onDeckCardStartShouldSetResponder: function(e, card) {
+    this.startDragY = e.nativeEvent.pageY;
+    this.startDragX = e.nativeEvent.pageX;
+    this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+    this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+    this.state.draggedCardXY.setValue({x:0, y:0});
+    this.setState({
+      draggedCard: card,
+    });
+    return true;
+  },
   // ScrollView should become responder in case Card is removed.
   onDeckMoveShouldSetResponder: function() {
     if (this.state.draggedCardTop > -100) {
@@ -278,29 +293,30 @@ var DeckBuilder = React.createClass({
   onCardResponderRelease: function(e, card) {
     var e = e;
     var dragIndex = this.getDragIndex(e);
-    if (e.nativeEvent.pageY < 170 && this.state.draggedCardTop > -100 && dragIndex > -1) {
+
+    // At which point along the y axis the card has crossed over to the
+    // deck scrollView.
+    //var verticalThreshold = 170;
+    var verticalThreshold = this.deckDropZoneLayout.y + this.deckDropZoneLayout.height;
+    console.log(verticalThreshold);
+
+    // Where the card will be placed when it's released.
+    var yPlacement = this.deckDropZoneLayout.y + 14;
+    //var yPlacement = 78.5;
+    if (e.nativeEvent.pageY < verticalThreshold && this.state.draggedCardTop > -100 && dragIndex > -1) {
       var left = -24 + this.deckScrollOffset;
       this.setState({
         cardHover: false,
       });
-      Animated.timing(
-        this.state.draggedCardX,
-        {
-          toValue: ((dragIndex * (cardWidth + 10)) - left) - this.state.draggedCardLeft,
-          duration: 100,
-          delay: 0,
-          easing: Easing.out(Easing.ease),
-        }
-      ).start();
-      Animated.timing(
-        this.state.draggedCardY,
-        {
-          toValue: 78.5 - this.state.draggedCardTop,
-          duration: 100,
-          delay: 0,
-          easing: Easing.out(Easing.ease),
-        }
-      ).start((result) => {
+      Animated.timing(this.state.draggedCardXY, {
+        toValue: {
+          x: ((dragIndex * (cardWidth + 10)) - left) - this.state.draggedCardLeft,
+          y: yPlacement - this.state.draggedCardTop,
+        },
+        duration: 100,
+        delay: 0,
+        easing: Easing.out(Easing.ease),
+      }).start((result) => {
         var filteredDeck = R.filter(R.identity, this.selectedDeck());
         // Delay the remove over the draggedCard to avoid flickering.
         requestAnimationFrame(() => {
@@ -330,8 +346,7 @@ var DeckBuilder = React.createClass({
         });
       });
     } else {
-      this.state.draggedCardX.setValue(0);
-      this.state.draggedCardY.setValue(0);
+      this.state.draggedCardXY.setValue({x:0, y:0});
       this.setState({
         cardHover: false,
         enableCollectionScroll: true,
@@ -381,23 +396,15 @@ var DeckBuilder = React.createClass({
   },
   updateDraggedCard: function(e) {
     Animated.timing(
-      this.state.draggedCardX,
-      {
-        toValue: e.nativeEvent.pageX - this.startDragX,
-        duration: 100,
-        delay: 0,
-        easing: Easing.out(Easing.ease),
-      }
-    ).start();
-    Animated.timing(
-      this.state.draggedCardY,
-      {
-        toValue: e.nativeEvent.pageY - this.startDragY,
-        duration: 100,
-        delay: 0,
-        easing: Easing.out(Easing.ease),
-      }
-    ).start();
+      this.state.draggedCardXY, {
+      toValue: {
+        x: e.nativeEvent.pageX - this.startDragX,
+        y: e.nativeEvent.pageY - this.startDragY,
+      },
+      duration: 100,
+      delay: 0,
+      easing: Easing.out(Easing.ease),
+    }).start();
   },
   onCardResponderMove: function(e, card) {
     this.updateDraggedCard(e);
@@ -420,6 +427,9 @@ var DeckBuilder = React.createClass({
     } else {
       return null;
     }
+  },
+  numberOfCardsInDeck: function(card) {
+    return 2 - R.filter(R.equals(card), R.map(R.prop('name'), this.selectedDeck())).length;
   },
   render: function() {
     var TouchableElement = TouchableHighlight;
@@ -446,6 +456,7 @@ var DeckBuilder = React.createClass({
         <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
       </TouchableElement>);
     
+    // This is the card that gets dragged around the screen.
     var draggedCard = (
       <Animated.View
         style={[
@@ -453,10 +464,7 @@ var DeckBuilder = React.createClass({
           {
             'left': this.state.draggedCardLeft,
             'top': this.state.draggedCardTop,
-            'transform': [
-              {translateX: this.state.draggedCardX},
-              {translateY: this.state.draggedCardY},
-            ],
+            'transform': this.state.draggedCardXY.getTranslateTransform()
           }
         ]}
       >
@@ -483,7 +491,12 @@ var DeckBuilder = React.createClass({
         <View style={styles.deckList}>
           {decks}
         </View>
-        <View style={[styles.scrollViewContainer, styles.deck]}>
+        <View
+          style={[styles.scrollViewContainer, styles.deck]}
+          onLayout={(e) => {
+            this.deckDropZoneLayout = e.nativeEvent.layout;
+          }}
+        >
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
                       onScroll={this.onDeckScroll}
@@ -504,7 +517,7 @@ var DeckBuilder = React.createClass({
                 selected={R.equals(this.state.selectedCardInDeck, parseInt(i))}
                 left={(cardWidth + 10) * parseInt(i)}
                 //disabled={this.state.game.resources[this.colorToIndex(this.state.playerColor)] < piece.points}
-                onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
+                onStartShouldSetResponder={this.onDeckCardStartShouldSetResponder}
                 onResponderGrant={this.onDeckCardResponderGrant}
                 onResponderMove={this.onCardResponderMove}
                 onResponderRelease={this.onCardResponderRelease}
@@ -531,6 +544,7 @@ var DeckBuilder = React.createClass({
                 index={parseInt(i)}
                 key={parseInt(card.key)}
                 left={(cardWidth + 10) * parseInt(i)}
+                count={this.numberOfCardsInDeck(card.name)}
                 selected={R.equals(this.state.selectedCardInCollection, parseInt(i))}
                 onStartShouldSetResponder={this.onCollectionCardStartShouldSetResponder}
                 onResponderGrant={this.onCollectionCardResponderGrant}
@@ -585,7 +599,7 @@ var styles = StyleSheet.create({
     color: '#c4c4c4',
   },
   scrollViewContainer: {
-    height: cardHeight + 8,
+    height: cardHeight + 20,
     margin: 20,
     marginBottom: 20 - 8,
   },

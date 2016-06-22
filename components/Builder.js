@@ -70,9 +70,9 @@ var Builder = React.createClass({
         return acc + piece.points;
       }, 0, this.state.pieces) > 45
     ) {
-      alert('You\'ve not enough resources');
+      alert('Maximum deck size exceeded.');
     } else if (R.filter(R.compose(contains('royal'), R.prop('types')), this.state.pieces).length < 1 ) {
-      alert('You need at least one royal piece');
+      alert('You need at least one royal piece. (this will change)');
     } else {
       var game = Types.Game.of(R.evolve({
         turn: oppositeColor,
