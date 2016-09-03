@@ -170,7 +170,13 @@ var Piece = React.createClass({
         >
           <View style={[movedLastStyles, {borderRadius: 4, width: squareSize, height: squareSize - 3, position: 'absolute', top: 0, left: 0}]}/>
           <Image source={PieceDisplay[this.props.piece.name].image[this.props.color || this.props.piece.color]}
-            style={[this.getDragStyle(), styles.touchable]}
+            style={[
+              this.getDragStyle(),
+              styles.touchable,
+              {
+                opacity: this.props.piece.asleep ? 0.5 : 1
+              }
+            ]}
           >
             {type}
           </Image>

@@ -2,18 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>superscript.TTF</string>
-		<string>Anonymous Pro B.ttf</string>
-		<string>SourceCodePro-Regular.ttf</string>
-		<string>SourceCodePro-Semibold.ttf</string>
-		<string>SourceCodePro-Medium.ttf</string>
-		<string>SourceCodePro-Light.ttf</string>
-		<string>SourceCodePro-ExtraLight.ttf</string>
-		<string>SourceCodePro-Bold.ttf</string>
-		<string>SourceCodePro-Black.ttf</string>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -27,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -41,6 +29,18 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>superscript.TTF</string>
+		<string>Anonymous Pro B.ttf</string>
+		<string>SourceCodePro-Regular.ttf</string>
+		<string>SourceCodePro-Semibold.ttf</string>
+		<string>SourceCodePro-Medium.ttf</string>
+		<string>SourceCodePro-Light.ttf</string>
+		<string>SourceCodePro-ExtraLight.ttf</string>
+		<string>SourceCodePro-Bold.ttf</string>
+		<string>SourceCodePro-Black.ttf</string>
+	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

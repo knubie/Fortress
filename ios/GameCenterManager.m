@@ -44,6 +44,19 @@ RCT_EXPORT_MODULE();
       NSLog(@"Player is authenticated");
       [[GKLocalPlayer localPlayer] unregisterAllListeners];
       [[GKLocalPlayer localPlayer] registerListener:self];
+//      [GKTurnBasedMatch loadMatchesWithCompletionHandler:^(NSArray *matches, NSError *error)
+//       {
+//         if (error)
+//         {
+//           NSLog(@"Load matches error: %@", error.description);
+//           // more error processing here
+//           return;
+//         }
+//         
+//         NSDictionary *event = @{ @"matches": matches };
+//         
+//         [_bridge.eventDispatcher sendAppEventWithName:@"listMatches" body:event];
+//       }];
     }
     else
     {
@@ -138,6 +151,27 @@ RCT_EXPORT_METHOD(endMatchInTurnWithMatchData:(NSString *)game)
   }];
 }
 
+RCT_EXPORT_METHOD(endMatchInTurnWithMatchDataAsALoss:(NSString *)game)
+{
+  NSLog(@"End turn with next participants");
+  if (self.currentMatch.participants[0].player.playerID == self.currentMatch.currentParticipant.player.playerID)
+  {
+    self.currentMatch.participants[0].matchOutcome = 3; // Won
+    self.currentMatch.participants[1].matchOutcome = 2; // Lost
+  } else {
+    self.currentMatch.participants[1].matchOutcome = 3; // Won
+    self.currentMatch.participants[0].matchOutcome = 2; // Lost
+  }
+  
+  NSData * updatedMatchData = [game dataUsingEncoding:NSUTF8StringEncoding]; //Data
+  [self.currentMatch endMatchInTurnWithMatchData:updatedMatchData completionHandler:^(NSError *error) {
+    if (error)
+    {
+      // Handle the error.
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 {
   NSLog(@"End turn with next participants");
@@ -213,6 +247,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
       UIViewController *rootController = (UIViewController*)[[(AppDelegate*)
                                                               [[UIApplication sharedApplication]delegate] window] rootViewController];
       [rootController dismissViewControllerAnimated:YES completion:nil];
+      self.GKMatchmakerViewControllerActive = NO;
     }
     if (match.matchData.length != 0) {
       [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event]; // PlayView event
@@ -343,7 +378,29 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   NSString *nameOne = match.participants[0].player.displayName;
   NSString *nameTwo = match.participants[1].player.displayName;
   NSString *theirName = nameOne == yourName ? nameTwo : nameOne;
+  BOOL gameOver = match.status == GKTurnBasedMatchStatusEnded ? true : false;
+  int matchOutcome = 0;
   theirName = theirName.length == 0 ? @"" : theirName;
+  
+  NSLog(@"End turn with next participants");
+  if (gameOver) {
+    if (nameOne == yourName)
+    {
+      if (match.participants[0].matchOutcome == GKTurnBasedMatchOutcomeWon)
+      {
+        matchOutcome = GKTurnBasedMatchOutcomeWon;
+      } else {
+        matchOutcome = GKTurnBasedMatchOutcomeLost;
+      }
+    } else {
+      if (match.participants[1].matchOutcome == GKTurnBasedMatchOutcomeWon)
+      {
+        matchOutcome = GKTurnBasedMatchOutcomeWon;
+      } else {
+        matchOutcome = GKTurnBasedMatchOutcomeLost;
+      }
+    }
+  }
   
   NSDictionary *event = @{
                           @"match": @{
@@ -353,7 +410,9 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
                               @"newMatch": match.matchData.length == 0 ? @(YES) : @(NO),
                               @"matchData": matchData,
                               @"yourName": yourName,
-                              @"theirName": theirName
+                              @"theirName": theirName,
+                              @"gameOver": @(gameOver),
+                              @"matchOutcome": @(matchOutcome)
                               //      @"message": match.message,
                               //      @"currentParticipant": match.currentParticipant.player.playerID,
                               }

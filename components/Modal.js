@@ -1,6 +1,8 @@
+var R = require('ramda');
 var React = require('react-native');
 var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
+var Confetti = require('./Confetti.js');
 var PieceDisplay = require('../lib/piece-display');
 
 var {
@@ -204,6 +206,10 @@ var Modal = React.createClass({
   },
   render: function() {
     var isAction = Pieces[this.props.card] == null;
+    var confetti = this.props.youWin ?
+      R.map(() => {
+        return (<Confetti />);
+      }, R.range(1, 75)) : null;
     var children = this.props.card ? 
         (<Animated.View
           style={[
@@ -261,6 +267,7 @@ var Modal = React.createClass({
           {this.props.message}
         </Animated.View>
         {children}
+        {confetti}
       </View>
     );
   }

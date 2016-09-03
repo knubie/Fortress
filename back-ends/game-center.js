@@ -71,6 +71,12 @@ module.exports = {
           JSON.stringify(
             compressGame(R.assoc('plys', plys, baseGame))));
   },
+  endMatchInTurnWithMatchDataAsALoss: function(baseGame, plys) {
+    GameCenterManager.
+      endMatchInTurnWithMatchDataAsALoss(
+          JSON.stringify(
+            compressGame(R.assoc('plys', plys, baseGame))));
+  },
   getBaseGame: function(data) {
     return getBaseGame(JSON.parse(data));
   },

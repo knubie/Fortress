@@ -69,7 +69,7 @@ var PieceCard = React.createClass({
     }
   },
   onPress: function() {
-    //this.props.onPress(this.props.card, this.props.index);
+    this.props.onPress(this.props.card, this.props.index);
   },
   onPressIn: function() {
     Animated.timing(                          // Base: spring, decay, timing
@@ -102,8 +102,9 @@ var PieceCard = React.createClass({
     this.startDragTime = e.nativeEvent.timestamp;
     // TODO: eventually take this exist check out
     if (this.props.onStartShouldSetResponder != null) {
-      return this.props.onStartShouldSetResponder(e, this.props.card);
-    } else { return false; }
+      this.props.onStartShouldSetResponder(e, this.props.card);
+    }
+    return true;
   },
   onResponderGrant: function(e, gestureState) {
       //this.props.onResponderGrant(e, this.props.card);
@@ -190,7 +191,7 @@ var PieceCard = React.createClass({
         }, this.props.style]}
         //onPressIn={this.onPressIn}
         //onPressOut={this.onPressOut}
-        //onPress={this.onPress}
+        onPress={this.onPress}
       >
         <Animated.View
           style={[
@@ -233,17 +234,22 @@ var PieceCard = React.createClass({
 var cardMarginRight = 10;
 var styles = StyleSheet.create({
   count: {
-    flexDirection: 'row',
+    flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 5,
+    marginTop: 7,
+    width: cardWidth,
   },
   countLabel: {
     color: '#606060',
-    fontSize: 10,
+    fontSize: 11,
     paddingHorizontal: 4,
+    paddingVertical: 1,
     backgroundColor: '#181818',
     borderRadius: 4,
+    alignSelf: 'center',
+    fontWeight: '600',
+    fontFamily: 'Source Code Pro',
   },
   card: {
     width: cardWidth,

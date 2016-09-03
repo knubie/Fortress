@@ -39,7 +39,7 @@ var History = React.createClass({
       var nextGame = Chess.makePly(prevGame, ply);
 
       var yourTurnMessage = null;
-      var theirName = this.props.currentPlayer === prevGame.turn ? 'You' : 'They';
+      var theirName = this.props.currentPlayer === prevGame.turn ? 'You' : this.props.theirName;
 
       var textStyle = {
         backgroundColor: '#353535',

@@ -4,6 +4,7 @@ var PlayView = require('./PlayView');
 var Builder = require('./Builder');
 var DeckBuilder = require('./DeckBuilder');
 var HowToPlay = require('./HowToPlay');
+var Credits = require('./Credits');
 var Types = require('../engine/Types');
 var GameCenterManager = React.NativeModules.GameCenterManager;
 var GameCenterViewController = React.NativeModules.GameCenterViewController;
@@ -97,7 +98,8 @@ var Home = React.createClass({
         if (data.match.yourTurn) {
           player.color = game.turn;
         }
-        this.loadMatch(game, baseGame, data.match.yourName, data.match.theirName);
+        console.log(data);
+        this.loadMatch(game, baseGame, data.match.yourName, data.match.theirName, data.match.matchOutcome);
       }
     );
     GameCenterManager.clearMatch();
@@ -109,7 +111,7 @@ var Home = React.createClass({
           'New Deck': [],
           'Starter Deck': [
             'pin',
-            'peasant labor',
+            'labor',
             'investment',
             'investment',
             'foreign aid',
@@ -134,8 +136,8 @@ var Home = React.createClass({
             'bomber',
             'ranger',
             'archbishop',
-            'bank',
-            'bank',
+            'mine',
+            'mine',
             'library',
             'factory',
           ]
@@ -159,8 +161,7 @@ var Home = React.createClass({
   componentWillUnmount: function() {
     subscription.remove();
   },
-  loadMatch: function(game, baseGame, yourName, theirName) {
-    console.log('load match');
+  loadMatch: function(game, baseGame, yourName, theirName, matchOutcome) {
     var method = 'push';
     if (this.props.navigator.navigationContext._currentRoute.component.displayName === 'Home') {
       method = 'push';
@@ -168,6 +169,7 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
+    console.log('matchOutcome: ' + matchOutcome);
     if (game.plys.length < 2 && yourTurn) {
       this.props.navigator.push({
         component: DeckBuilder,
@@ -189,6 +191,7 @@ var Home = React.createClass({
           yourTurn,
           yourName,
           theirName,
+          matchOutcome,
           decks: this.state.decks,
           route: 'PlayView'
         }),
@@ -202,6 +205,12 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: HowToPlay,
       title: 'How to play'
+    });
+  },
+  credits: function() {
+    this.props.navigator.push({
+      component: Credits,
+      title: 'Credits'
     });
   },
   buildDeck: function() {
@@ -230,7 +239,7 @@ var Home = React.createClass({
     this.props.navigator.push({
       component: DeckBuilder,
       title: 'My Collection',
-      passProps: ({game, decks: this.state.decks}),
+      passProps: ({game, decks: this.state.decks, myCollection: true}),
     });
   },
   render: function() {
@@ -251,6 +260,9 @@ var Home = React.createClass({
           <TouchableElement style={styles.button} onPress={this.howToPlay}>
             <Text style={styles.buttonText}>HOW TO PLAY</Text>
           </TouchableElement>
+          <TouchableElement style={styles.button} onPress={this.credits}>
+            <Text style={styles.buttonText}>CREDITS</Text>
+          </TouchableElement>
         </View>
       </View>
     );
@@ -265,7 +277,8 @@ var styles = StyleSheet.create({
   logo: {
     transform: [
       {scale: 0.5}
-    ]
+    ],
+    marginBottom: 20,
   },
   container: {
     flex: 1,

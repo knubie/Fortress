@@ -8,6 +8,7 @@ var Fortress = React.createClass({
       <NavigatorIOS
         style={styles.navigator}
         navigationBarHidden={true}
+        interactivePopGestureEnabled={true}
         itemWrapperStyle={styles.wrapper}
         initialRoute={{
           component: Home,

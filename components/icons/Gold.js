@@ -11,6 +11,7 @@ var GoldIcon = React.createClass({
           width: 13, height: 12,
           position: 'relative',
           top: 1,
+          marginLeft: 3,
         }}
         source={require('../../assets/gold-icon.png')}
       >

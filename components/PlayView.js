@@ -41,6 +41,7 @@ var subscription;
 
 var PlayView = React.createClass({
   getInitialState: function() {
+    console.log(this.props.game);
     return {
       // The base game that the ply list will be played on top of to get
       // the current game state.
@@ -54,6 +55,7 @@ var PlayView = React.createClass({
                    this.props.game.turn === 'black' && !this.props.yourTurn ?
                                                                     'white' :
                                                                     'black',
+      matchOutcome: this.props.matchOutcome,
       possibleMoves: [ ],
       possibleCaptures: [ ],
       selectedPiece: null,
@@ -69,6 +71,8 @@ var PlayView = React.createClass({
       data => {
         // Load up-to-date Game data into state.
         // TODO: merge this into the 'loadNextGameState' setState method.
+        console.log('update match data');
+        console.log(data);
         this.setState({
           // Get new baseGame if the next ply is a draft.
           baseGame: this.state.game.plys.length < 2 ?
@@ -214,6 +218,7 @@ var PlayView = React.createClass({
         baseGame: this.state.baseGame,
         plys: this.state.game.plys,
         currentPlayer: this.state.playerColor,
+        theirName: this.props.theirName ? this.props.theirName.split(' ')[0] : 'Your Opponent',
       }),
     });
   },
@@ -372,6 +377,7 @@ var PlayView = React.createClass({
     //this.makePly(Chess.abilityPly(piece, this.state.game));
   },
   makePly: function(newGame) {
+    // TODO: this won't work for library, as it draws a card.
     var oldGame = this.state.game;
     this.setState({
       possibleMoves: [],
@@ -387,11 +393,19 @@ var PlayView = React.createClass({
         [
           {text: 'Cancel', onPress: () => this.setState({game: oldGame}) },
           {text: 'OK', onPress: () => {
-            if (!this.yourTurn()) {
-              if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
-                alert('You win!');
-                GameCenter.endMatchInTurnWithMatchData(this.state.baseGame, this.state.plys);
-              } else {
+            if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
+              this.setState({
+                game: Types.Game.of(assoc('message', 'You win!', this.state.game))
+              });
+              GameCenter.endMatchInTurnWithMatchData(this.state.baseGame, this.state.game.plys);
+              // If you somehow capture your own king.
+            } else if (Chess.isGameOver(this.state.game.board, this.state.playerColor)) {
+              this.setState({
+                game: Types.Game.of(assoc('message', 'You lost!', this.state.game))
+              });
+              GameCenter.endMatchInTurnWithMatchDataAsALoss(this.state.baseGame, this.state.game.plys);
+            } else {
+              if (!this.yourTurn()) {
                 //GameCenter.endTurnWithNextParticipants(this.state.game);
                 GameCenter.endTurnWithPlys(this.state.baseGame, this.state.game.plys);
               }
@@ -448,6 +462,7 @@ var PlayView = React.createClass({
       message = (<Modal
         onPress={this.clearMessage}
         card={this.state.cardPlayed}
+        youWin={this.state.game.message === 'You win!'}
         message={typeof this.state.game.message === "string" ? (<Text style={{color: Colors.foreground}}>{this.state.game.message}</Text>) : this.state.game.message}
       >
       </Modal>);
@@ -467,7 +482,11 @@ var PlayView = React.createClass({
           onCenterPress={() => { return; }}
           onRightPress={this.history}
           leftText={'‹'}
-          centerText={this.yourTurn() ? 'Your Turn' : 'Their Turn'}
+          centerText={
+            this.state.matchOutcome ?
+              (this.state.matchOutcome === 2 ? 'You Win!' : 'You Lose!') :
+              (this.yourTurn() ? 'Your Turn' : 'Their Turn')
+          }
           rightText={'Log'}
         />
         <Board

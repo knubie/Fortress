@@ -498,7 +498,7 @@ var useCardPly = curry(function(color, card, params, game) {
         return endTurn(Types.UseCardPly.of({card, params}), newGame);
       }
     } else {
-      return message('Not enough resources!', game);
+      return message('Not enough gold!', game);
     }
   }
 });

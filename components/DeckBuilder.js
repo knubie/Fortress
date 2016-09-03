@@ -14,6 +14,7 @@ var Types = require('../engine/Types');
 var PieceDisplay = require('../lib/piece-display');
 var GameCenter = require('../back-ends/game-center')
 var TitleBar = require('./TitleBar.js');
+var CardIcon = require('./icons/Card');
 
 var {
   Animated,
@@ -168,11 +169,15 @@ var DeckBuilder = React.createClass({
     });
   },
   saveDeck: function() {
-    // TODO: prevent saving as 'New Deck'
-    AlertIOS.prompt('Save Deck', 'What do you want to call this deck?', (name) => {
-      name = name || 'Untitled Deck';
+    var save = (name) => {
+      name = !name || name === 'New Deck' ? 'Untitled Deck' : name;
+      //name = name || 'Untitled Deck';
       this.setState({
-        decks: R.assoc('New Deck', [], R.assoc(name, this.selectedDeck(), this.state.decks)),
+        decks: R.assoc(
+          'New Deck',
+          [],
+          R.assoc(name, this.selectedDeck(), this.state.decks)
+        ),
         selectedDeck: name
       });
       console.log(R.map(R.map(R.prop('name')), this.state.decks)),
@@ -183,7 +188,12 @@ var DeckBuilder = React.createClass({
           console.log(error);
         }
       );
-    });
+    }
+    if (this.state.selectedDeck === 'New Deck') {
+      AlertIOS.prompt('Save Deck', 'What do you want to call this deck?', save);
+    } else {
+      save(this.state.selectedDeck);
+    }
   },
   deleteDeck: function() {
     AlertIOS.alert(
@@ -208,9 +218,9 @@ var DeckBuilder = React.createClass({
     );
   },
   onCollectionCardStartShouldSetResponder: function(e, card) {
-    if (R.filter(R.equals(card), R.map(R.prop('name'), this.selectedDeck())).length < 2) {
-      return this.onDeckCardStartShouldSetResponder(e, card);
-    } else { return false; }
+    if ((2 - this.numberOfCardsInDeck(card)) < 2) {
+      this.onDeckCardStartShouldSetResponder(e, card);
+    }
   },
   onDeckCardResponderGrant: function(e, card, index, isDragging) {
     if (isDragging) {
@@ -243,16 +253,18 @@ var DeckBuilder = React.createClass({
   },
   onCollectionCardResponderGrant: function(e, card, index, isDragging) {
     if (isDragging) {
-      this.startDragX = e.nativeEvent.pageX;
-      this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
-      this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
-      this.setState({
-        selectedCardInCollection: null,
-        selectedCardInDeck: null,
-        draggedCardTop: this.draggedCardTop,
-        draggedCardLeft: this.draggedCardLeft,
-        cardHover: true,
-      });
+      if ((2 - this.numberOfCardsInDeck(card)) < 2) {
+        this.startDragX = e.nativeEvent.pageX;
+        this.draggedCardTop = e.nativeEvent.pageY - e.nativeEvent.locationY;
+        this.draggedCardLeft = e.nativeEvent.pageX - e.nativeEvent.locationX;
+        this.setState({
+          selectedCardInCollection: null,
+          selectedCardInDeck: null,
+          draggedCardTop: this.draggedCardTop,
+          draggedCardLeft: this.draggedCardLeft,
+          cardHover: true,
+        });
+      }
     } else {
       this.setState({
         enableCollectionScroll: false,
@@ -407,13 +419,15 @@ var DeckBuilder = React.createClass({
     }).start();
   },
   onCardResponderMove: function(e, card) {
-    this.updateDraggedCard(e);
-    // If dragging inside the mat
-    if (e.nativeEvent.pageY < 170) {
-      this.insertPlaceholderCard(this.getDragIndex(e));
-    // If dragging outside the mat.
-    } else {
-      this.removePlaceholderCard();
+    if (card == null || (2 - this.numberOfCardsInDeck(card)) < 2) {
+      this.updateDraggedCard(e);
+      // If dragging inside the mat
+      if (e.nativeEvent.pageY < 170) {
+        this.insertPlaceholderCard(this.getDragIndex(e));
+      // If dragging outside the mat.
+      } else {
+        this.removePlaceholderCard();
+      }
     }
   },
   onDeckScroll: function(e) {
@@ -429,7 +443,7 @@ var DeckBuilder = React.createClass({
     }
   },
   numberOfCardsInDeck: function(card) {
-    return 2 - R.filter(R.equals(card), R.map(R.prop('name'), this.selectedDeck())).length;
+    return 2 - R.filter(R.equals(card), R.map(R.prop('name'), R.filter(R.identity, this.selectedDeck()))).length;
   },
   render: function() {
     var TouchableElement = TouchableHighlight;
@@ -440,9 +454,22 @@ var DeckBuilder = React.createClass({
     var decks = R.map(deck => {
       var deckClass = deck === this.state.selectedDeck ? styles.deckSelected : null;
       return (
-        <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass]}>
+        <View style={[{
+          flexWrap: 'wrap',
+          flexDirection: 'row',
+          paddingHorizontal: 10,
+          paddingTop: 6,
+          paddingBottom: 3,
+          backgroundColor: '#181818',
+          borderRadius: 7,
+          marginRight: 10,
+          marginBottom: 10,
+        }]}>
+          <CardIcon number={''}/>
+          <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass, {marginLeft: 5}]}>
           {deck}
-        </Text>
+          </Text>
+        </View>
       );
     }, R.keys(this.state.decks));
 
@@ -451,10 +478,16 @@ var DeckBuilder = React.createClass({
         onPress={this.saveDeck}>
         <Text style={styles.buttonText}>Save Deck</Text>
       </TouchableElement>) :
-      (<TouchableElement style={[styles.button, styles.buttonRed]}
-        onPress={this.deleteDeck}>
-        <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
-      </TouchableElement>);
+      (<View style={{flexWrap: 'wrap', flexDirection: 'row',}}>
+        <TouchableElement style={styles.button}
+          onPress={this.saveDeck}>
+          <Text style={styles.buttonText}>Save Deck</Text>
+        </TouchableElement>
+        <TouchableElement style={[styles.button, styles.buttonRed]}
+          onPress={this.deleteDeck}>
+          <Text style={[styles.buttonText, styles.buttonTextRed]}>Delete Deck</Text>
+        </TouchableElement>
+      </View>);
     
     // This is the card that gets dragged around the screen.
     var draggedCard = (
@@ -486,7 +519,7 @@ var DeckBuilder = React.createClass({
           onRightPress={this.next}
           leftText={'‹'}
           centerText={'Deck: ' + this.selectedDeck().length + ' / ' + MAX_DECK_SIZE}
-          rightText={'Next'}
+          rightText={this.props.myCollection ? '' : 'Next'}
         />
         <View style={styles.deckList}>
           {decks}
@@ -591,15 +624,14 @@ var styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   deckSelect: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#646464',
-    marginRight: 10,
   },
   deckSelected: {
     color: '#c4c4c4',
   },
   scrollViewContainer: {
-    height: cardHeight + 20,
+    height: cardHeight + 30,
     margin: 20,
     marginBottom: 20 - 8,
   },
@@ -615,6 +647,7 @@ var styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#c4c4c4',
     marginBottom: 10,
+    marginHorizontal: 5,
   },
   buttonRed: {
     borderColor: '#E5403F',
