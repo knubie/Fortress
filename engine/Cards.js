@@ -365,7 +365,7 @@ module.exports = {
     params: [],
   },
   'labor': {
-    points: 4,
+    points: 2,
     use: function(game) {
       var turnIndex = colorToIndex(game.turn);
       //var fn = game.plysLeft[turnIndex] === game.plysPerTurn[turnIndex] ?

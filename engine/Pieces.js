@@ -71,7 +71,7 @@ module.exports = {
         distance: 'n'
       }
     ],
-    points: 9
+    points: 8
   },
   'king': {
     parlett: [
