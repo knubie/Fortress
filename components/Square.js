@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 
 var {
   Easing,
@@ -12,7 +13,7 @@ var {
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
-} = React;
+} = ReactNative;
 
 var boardSize = 6;
 var squareSize = Math.floor((Dimensions.get('window').width - (40 + ((boardSize - 1) * 2))) / boardSize);
@@ -97,7 +98,11 @@ var Square = React.createClass({
       {borderWidth: 2, borderColor: '#4A4A4A'} : null;
 
     return (
-      <TouchableHighlight onPress={this.onClick}>
+      <TouchableHighlight onPress={this.onClick} style={{
+        width: squareSize,
+        height: squareSize,
+        margin: 1
+      }}>
         <Animated.View
           style={[
             {transform: [{scale: this.state.scale}] },

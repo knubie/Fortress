@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Pieces = require('../engine/Pieces');
 var PieceInfo = require('./PieceInfo.js');
 var PieceDisplay = require('../lib/piece-display');
@@ -11,10 +12,12 @@ var {
   Animated,
   Dimensions,
   View,
-  PropTypes,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
+} = ReactNative;
+var {
+  PropTypes,
 } = React;
 
 var CARD_WIDTH = 180;

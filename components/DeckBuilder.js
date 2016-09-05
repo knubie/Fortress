@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Board = require('./Board');
 var PlayView = require('./PlayView');
 var Piece = require('./Piece');
@@ -31,7 +32,7 @@ var {
   TouchableNativeFeedback,
   TouchableWithoutFeedback,
   ScrollView,
-} = React;
+} = ReactNative;
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
@@ -453,21 +454,18 @@ var DeckBuilder = React.createClass({
 
     var decks = R.map(deck => {
       var deckClass = deck === this.state.selectedDeck ? styles.deckSelected : null;
+      var cardIconStyle = deck === this.state.selectedDeck ? null : {opacity: 0.4};
       return (
         <View style={[{
-          flexWrap: 'wrap',
-          flexDirection: 'row',
-          paddingHorizontal: 10,
-          paddingTop: 6,
-          paddingBottom: 3,
+          paddingHorizontal: 9,
           backgroundColor: '#181818',
           borderRadius: 7,
+          height: 27,
           marginRight: 10,
-          marginBottom: 10,
+          marginBottom: 7,
         }]}>
-          <CardIcon number={''}/>
-          <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass, {marginLeft: 5}]}>
-          {deck}
+          <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass]}>
+          <CardIcon number={''} customStyle={cardIconStyle}/>  {deck}
           </Text>
         </View>
       );
@@ -624,14 +622,15 @@ var styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   deckSelect: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#646464',
   },
   deckSelected: {
+    fontSize: 12,
     color: '#c4c4c4',
   },
   scrollViewContainer: {
-    height: cardHeight + 30,
+    height: cardHeight + 34,
     margin: 20,
     marginBottom: 20 - 8,
   },

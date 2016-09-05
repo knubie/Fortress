@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Board = require('./Board');
 var Modal = require('./Modal');
 var CardModal = require('./CardModal');
@@ -30,7 +31,7 @@ var {
   ScrollView,
   NativeAppEventEmitter,
   Image,
-} = React;
+} = ReactNative;
 
 var oppositeColor = function(color) {
   return color === 'white' ? 'black' : 'white';
@@ -71,8 +72,6 @@ var PlayView = React.createClass({
       data => {
         // Load up-to-date Game data into state.
         // TODO: merge this into the 'loadNextGameState' setState method.
-        console.log('update match data');
-        console.log(data);
         this.setState({
           // Get new baseGame if the next ply is a draft.
           baseGame: this.state.game.plys.length < 2 ?

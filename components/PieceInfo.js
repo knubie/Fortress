@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Tag = require('./Tag');
 var MovementTag = require('./MovementTag');
 var PieceDisplay = require('../lib/piece-display');
@@ -17,7 +18,7 @@ var {
   Image,
   Text,
   View,
-} = React;
+} = ReactNative;
 
 var PieceInfo = React.createClass({
   ability: function() {

@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Board = require('./Board');
 var PlayView = require('./PlayView');
 var Piece = require('./Piece');
@@ -27,7 +28,7 @@ var {
   TouchableWithoutFeedback,
   ProgressViewIOS,
   ScrollView,
-} = React;
+} = ReactNative;
 
 var boardSize = 8;
 

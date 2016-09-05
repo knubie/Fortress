@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Piece = require('./Piece');
 var Square = require('./Square');
 var Chess = require('../engine/Main');
@@ -14,7 +15,7 @@ var {
   TouchableNativeFeedback,
   ProgressViewIOS,
   ScrollView,
-} = React;
+} = ReactNative;
 
 var Board = React.createClass({
   getInitialState: function() {

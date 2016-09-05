@@ -1,10 +1,11 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 
 var {
   PropTypes,
   StyleSheet,
   Text,
-} = React;
+} = ReactNative;
 
 var Tag = React.createClass({
   PropTypes: {

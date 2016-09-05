@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 
 var {
   StyleSheet,
@@ -7,7 +8,7 @@ var {
   View,
   TouchableHighlight,
   TouchableNativeFeedback,
-} = React;
+} = ReactNative;
 
 var TitleBar = React.createClass({
   render: function() {

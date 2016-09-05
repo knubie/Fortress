@@ -1,4 +1,5 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Colors = require('../lib/colors');
 var TitleBar = require('./TitleBar.js');
 
@@ -13,7 +14,7 @@ var {
   TouchableHighlight,
   TouchableNativeFeedback,
   Dimensions,
-} = React;
+} = ReactNative;
 
 var Credits = React.createClass({
   back: function() {

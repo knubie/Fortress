@@ -1,4 +1,5 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Colors = require('../lib/colors');
 var TitleBar = require('./TitleBar.js');
 
@@ -12,7 +13,7 @@ var {
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
-} = React;
+} = ReactNative;
 
 var tutorialImage = [
   require('../assets/how-to-play/movement-frames/frame1.png'),

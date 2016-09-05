@@ -1,6 +1,7 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Home = require('./components/Home');
-var { AppRegistry, NavigatorIOS, StyleSheet, } = React;
+var { AppRegistry, NavigatorIOS, StyleSheet, } = ReactNative;
 
 var Fortress = React.createClass({
   render: function() {

@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Types = require('../engine/Types');
 
 var PieceDisplay = require('../lib/piece-display');
@@ -13,10 +14,13 @@ var {
   Text,
   View,
   Platform,
-  PropTypes,
   TouchableHighlight,
   TouchableWithoutFeedback,
   TouchableNativeFeedback,
+} = ReactNative;
+
+var {
+  PropTypes,
 } = React;
 
 var Piece = React.createClass({

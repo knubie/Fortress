@@ -1,12 +1,13 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 
 var {
   StyleSheet,
   Image,
   Text,
   View,
-} = React;
+} = ReactNative;
 
 var MovementTag = React.createClass({
   render: function() {
@@ -17,14 +18,16 @@ var MovementTag = React.createClass({
     movement = this.props.parlett.movement.split('/');
     var movementDivider = this.props.parlett.conditions ? (<View style={styles.movementDivider}/>) : null;
     return (
-      <View style={styles.movement}>
-        <Text style={[styles.movementText, styles.movementOuterText]}>{direction + ' ' + conditions}</Text>
-        {movementDivider}
-        <Text style={[styles.movementText, styles.movementOuterText, distanceSize]}>{distance}</Text>
-        <View style={styles.movementInner}>
-          <Text style={[styles.movementText, styles.movementInnerText]}>{movement[0]}</Text>
-          <View style={styles.movementInnerDivider}/>
-          <Text style={[styles.movementText, styles.movementInnerText]}>{movement[1]}</Text>
+      <View style={[this.props.customStyle]}>
+        <View style={[styles.movement, this.props.yOffset]}>
+          <Text style={[styles.movementText, styles.movementOuterText]}>{direction + ' ' + conditions}</Text>
+          {movementDivider}
+          <Text style={[styles.movementText, styles.movementOuterText, distanceSize]}>{distance}</Text>
+          <View style={styles.movementInner}>
+            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[0]}</Text>
+            <View style={styles.movementInnerDivider}/>
+            <Text style={[styles.movementText, styles.movementInnerText]}>{movement[1]}</Text>
+          </View>
         </View>
       </View>
     );

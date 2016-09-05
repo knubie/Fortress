@@ -1,4 +1,5 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Colors = require('../lib/colors');
 
 var {
@@ -10,7 +11,7 @@ var {
   Platform,
   TouchableHighlight,
   TouchableNativeFeedback,
-} = React;
+} = ReactNative;
 
 var SlideOne = React.createClass({
   render: function() {

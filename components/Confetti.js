@@ -1,4 +1,5 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 
 var {
   Easing,
@@ -10,7 +11,7 @@ var {
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
-} = React;
+} = ReactNative;
 
 var CARD_WIDTH = 180;
 var CARD_HEIGHT = 253;
@@ -37,12 +38,15 @@ var Confetti = React.createClass({
   },
   startSwinging: function() {
     var start, end;
+    var delta = Math.random() * (100 - 50) + 50
+    // Pick a random number, 0 or 1, if 0, swing from right to left.
     if (Math.floor(Math.random() * 2) == 0) {
-      start = this.state.left._value + 75; 
-      end = this.state.left._value - 75; 
+      start = this.state.left._value + delta; 
+      end = this.state.left._value - delta; 
+    // Otherwise swing left to right.
     } else {
-      end = this.state.left._value + 75; 
-      start = this.state.left._value - 75; 
+      end = this.state.left._value + delta; 
+      start = this.state.left._value - delta; 
     }
     Animated.timing(
       this.state.left,
@@ -50,7 +54,7 @@ var Confetti = React.createClass({
         toValue: start,
         duration: 3000,
         delay: 0,
-        easing: Easing.cubic(Easing.inOut),
+        //easing: Easing.cubic(Easing.inOut),
       }
     ).start(() => {
       Animated.timing(
@@ -59,7 +63,7 @@ var Confetti = React.createClass({
           toValue: end,
           duration: 3000,
           delay: 0,
-          easing: Easing.cubic(Easing.inOut),
+          //easing: Easing.cubic(Easing.inOut),
         }
       ).start(() => {
         this.startSwinging();
@@ -100,7 +104,7 @@ var Confetti = React.createClass({
     });
   },
   startFalling: function() {
-    var dim = Math.floor(Math.random() * 7) + 3;
+    var dim = Math.floor(Math.random() * 7) + 4;
     this.state.top.setValue(0);
     this.state.left.setValue(Math.floor(Math.random() * Dimensions.get('window').width) - 50);
     this.state.width.setValue(dim);

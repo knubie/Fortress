@@ -1,4 +1,5 @@
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var R = require('ramda');
 var PlayView = require('./PlayView');
 var Builder = require('./Builder');
@@ -6,9 +7,8 @@ var DeckBuilder = require('./DeckBuilder');
 var HowToPlay = require('./HowToPlay');
 var Credits = require('./Credits');
 var Types = require('../engine/Types');
-var GameCenterManager = React.NativeModules.GameCenterManager;
-var GameCenterViewController = React.NativeModules.GameCenterViewController;
-var { NativeAppEventEmitter } = require('react-native');
+var GameCenterManager = ReactNative.NativeModules.GameCenterManager;
+var GameCenterViewController = ReactNative.NativeModules.GameCenterViewController;
 
 var GameCenter = require('../back-ends/game-center')
 
@@ -23,7 +23,7 @@ var {
   TouchableNativeFeedback,
   NativeAppEventEmitter,
   Dimensions,
-} = React;
+} = ReactNative;
 
 var player = {};
 var yourTurn = null;

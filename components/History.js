@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var Chess = require('../engine/Main');
 var Util = require('../engine/Util');
 var Types = require('../engine/Types');
@@ -24,7 +25,7 @@ var {
   ScrollView,
   NativeAppEventEmitter,
   Image,
-} = React;
+} = ReactNative;
 
 var History = React.createClass({
   propTypes: {

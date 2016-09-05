@@ -1,5 +1,6 @@
 var R = require('ramda');
-var React = require('react-native');
+var React = require('react');
+var ReactNative = require('react-native');
 var PieceDisplay = require('../lib/piece-display');
 var Types = require('../engine/Types');
 var Cards = require('../engine/Cards');
@@ -15,7 +16,7 @@ var {
   Image,
   Text,
   View,
-} = React;
+} = ReactNative;
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
@@ -181,6 +182,7 @@ var PieceCard = React.createClass({
       </View>
     ) : null;
 
+    console.log(this.props.card);
     return (
       <Animated.View
         style={[{
