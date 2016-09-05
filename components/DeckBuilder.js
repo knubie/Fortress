@@ -36,6 +36,8 @@ var {
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
+//console.log('cardWidth: ' + cardWidth);
+//console.log('cardHeight: ' + cardHeight);
 
 var boardSize = 8;
 
@@ -630,7 +632,7 @@ var styles = StyleSheet.create({
     color: '#c4c4c4',
   },
   scrollViewContainer: {
-    height: cardHeight + 34,
+    height: cardHeight + 30,
     margin: 20,
     marginBottom: 20 - 8,
   },

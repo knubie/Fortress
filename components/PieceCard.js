@@ -20,6 +20,8 @@ var {
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
+console.log('cardWidth: ' + cardWidth);
+console.log('cardHeight: ' + cardHeight);
 var PieceCard = React.createClass({
   shouldComponentUpdate: function(nextProps, nextState) {
     return R.not(R.and(R.equals(nextProps, this.props),
@@ -187,6 +189,8 @@ var PieceCard = React.createClass({
       <Animated.View
         style={[{
           position: 'absolute',
+          height: cardHeight,
+          width: cardWidth,
           top: 0,
           left: this.state.left || 0,
           backgroundColor: 'rgba(0,0,0,0)',
