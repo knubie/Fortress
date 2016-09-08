@@ -78,6 +78,7 @@ function Game(opts) {
   this.resources = this.resources || [10, 10];
   this.maxResources = this.maxResources || [10, 10];
   this.maxHandSize = this.maxHandSize || [10, 10];
+  this.winner = this.winner || null;
   // decks[0] = white
   // decks[1] = black
   this.decks = this.decks || [[], []];

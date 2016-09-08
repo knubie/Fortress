@@ -42,7 +42,15 @@ var subscription;
 
 var PlayView = React.createClass({
   getInitialState: function() {
-    console.log(this.props.game);
+    var playerColor = null;
+    if (this.props.matchOutcome) {
+      console.log('winner: ' + this.props.game.winner);
+      if (this.props.matchOutcome === 2) {
+        playerColor = this.props.game.winner;
+      } else if (this.props.matchOutcome === 3) {
+        playerColor = oppositeColor(this.props.game.winner);
+      }
+    }
     return {
       // The base game that the ply list will be played on top of to get
       // the current game state.
@@ -52,10 +60,11 @@ var PlayView = React.createClass({
       // The latest game state from the server that hasn't been loaded into
       // the current game state yet.
       latestGame: null,
-      playerColor: this.props.game.turn === 'white' && this.props.yourTurn ||
+      playerColor: playerColor ? playerColor :
+                   (this.props.game.turn === 'white' && this.props.yourTurn ||
                    this.props.game.turn === 'black' && !this.props.yourTurn ?
                                                                     'white' :
-                                                                    'black',
+                                                                    'black'),
       matchOutcome: this.props.matchOutcome,
       possibleMoves: [ ],
       possibleCaptures: [ ],
@@ -394,13 +403,22 @@ var PlayView = React.createClass({
           {text: 'OK', onPress: () => {
             if (Chess.isGameOver(this.state.game.board, oppositeColor(this.state.playerColor))) {
               this.setState({
-                game: Types.Game.of(assoc('message', 'You win!', this.state.game))
+                game: Types.Game.of(R.merge(this.state.game, {
+                  message: 'You win!',
+                  winner: this.state.playerColor,
+                })),
+                baseGame: Types.Game.of(R.merge(this.state.baseGame, {
+                  winner: this.state.playerColor,
+                })),
+                matchOutcome: 2,
               });
+              console.log(this.state.game);
               GameCenter.endMatchInTurnWithMatchData(this.state.baseGame, this.state.game.plys);
               // If you somehow capture your own king.
             } else if (Chess.isGameOver(this.state.game.board, this.state.playerColor)) {
               this.setState({
-                game: Types.Game.of(assoc('message', 'You lost!', this.state.game))
+                game: Types.Game.of(assoc('message', 'You lost!', this.state.game)),
+                matchOutcome: 3,
               });
               GameCenter.endMatchInTurnWithMatchDataAsALoss(this.state.baseGame, this.state.game.plys);
             } else {
