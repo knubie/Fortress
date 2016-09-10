@@ -210,17 +210,19 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 - (void)player:(GKPlayer *)player matchEnded:(GKTurnBasedMatch *)match
 {
   NSLog(@"match ended");
-  int playerIndex;
-  if ([GKLocalPlayer localPlayer].playerID == match.participants[0].player.playerID) {
-    playerIndex = 0;
-  } else {
-    playerIndex = 1;
-  }
-  if (match.participants[playerIndex].matchOutcome == 2) {
-    // send win message
-  } else if (match.participants[playerIndex].matchOutcome == 3) {
-    // send lost message
-  }
+  NSDictionary *event = [self createEventFromMatch:match andMatchData:match.matchData];
+  [_bridge.eventDispatcher sendAppEventWithName:@"updateMatchData" body:event];
+//  int playerIndex;
+//  if ([GKLocalPlayer localPlayer].playerID == match.participants[0].player.playerID) {
+//    playerIndex = 0;
+//  } else {
+//    playerIndex = 1;
+//  }
+//  if (match.participants[playerIndex].matchOutcome == 2) {
+//    // send win message
+//  } else if (match.participants[playerIndex].matchOutcome == 3) {
+//    // send lost message
+//  }
 }
 
 // Called when loading a match from GKTurnBasedMatchMaker - did become active
@@ -378,6 +380,7 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
   NSString *nameOne = match.participants[0].player.displayName;
   NSString *nameTwo = match.participants[1].player.displayName;
   NSString *theirName = nameOne == yourName ? nameTwo : nameOne;
+  NSString *message = @"";
   BOOL gameOver = match.status == GKTurnBasedMatchStatusEnded ? true : false;
   int matchOutcome = 0;
   theirName = theirName.length == 0 ? @"" : theirName;
@@ -389,15 +392,19 @@ RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
       if (match.participants[0].matchOutcome == GKTurnBasedMatchOutcomeWon)
       {
         matchOutcome = GKTurnBasedMatchOutcomeWon;
+        message = @"You won!";
       } else {
         matchOutcome = GKTurnBasedMatchOutcomeLost;
+        message = @"You lost!";
       }
     } else {
       if (match.participants[1].matchOutcome == GKTurnBasedMatchOutcomeWon)
       {
         matchOutcome = GKTurnBasedMatchOutcomeWon;
+        message = @"You won!";
       } else {
         matchOutcome = GKTurnBasedMatchOutcomeLost;
+        message = @"You lost!";
       }
     }
   }
