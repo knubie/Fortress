@@ -270,11 +270,11 @@ var styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
-    shadowOpacity: 0.5,
-    shadowRadius: 0,
+    shadowOpacity: 0.4,
+    shadowRadius: 2,
     shadowOffset: {
-      width: 3,
-      height: 3,
+      width: 1,
+      height: 1,
     },
   },
   cardPiece: {

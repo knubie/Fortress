@@ -654,11 +654,12 @@ var styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 2,
-    shadowOpacity: 0.5,
-    shadowRadius: 0,
+    shadowColor: '#000000',
+    shadowOpacity: 0.7,
+    shadowRadius: 2,
     shadowOffset: {
-      width: 3,
-      height: 3,
+      width: 2,
+      height: 2,
     },
   },
   addCardInner: {
