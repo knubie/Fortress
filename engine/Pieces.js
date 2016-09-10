@@ -196,7 +196,7 @@ module.exports = {
   },
   'wall': {
     parlett: [],
-    points: 4,
+    points: 2,
     types: ['invincible']
   },
   'mine': {
