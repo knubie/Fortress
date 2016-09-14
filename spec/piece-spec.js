@@ -70,12 +70,14 @@ describe('Pieces', function() {
         new Piece({
           name: 'bomber',
           color: 'white',
-          position: new Position({x: 4, y: 4})
+          position: new Position({x: 4, y: 4}),
+          asleep: false,
         }),
         new Piece({
           name: 'teleporter',
           color: 'white',
-          position: new Position({x: 3, y: 3})
+          position: new Position({x: 3, y: 3}),
+          asleep: false,
         })
       ],
     });
@@ -90,12 +92,14 @@ describe('Pieces', function() {
           name: 'teleporter',
           color: 'white',
           position: new Position({x: 4, y: 4}),
-          moves: 1
+          moves: 1,
+          asleep: true,
         }),
         new Piece({
           name: 'bomber',
           color: 'white',
-          position: new Position({x: 3, y: 3})
+          position: new Position({x: 3, y: 3}),
+          asleep: true,
         })
       ],
     });
@@ -103,6 +107,7 @@ describe('Pieces', function() {
       Position.of({x: 3, y: 3}), Position.of({x: 4, y: 4}),
       game).board;
     expect(equals(expectedBoard, actualBoard)).toBe(true);
+    expect(actualBoard.pieces[1].asleep).toBe(true);
   });
   it('Bomber should remove any piece at it\s position when captured.', function() {
     var board = new Board({

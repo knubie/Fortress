@@ -329,7 +329,8 @@ module.exports = {
       check(arguments, [Piece, Piece, Piece, Game]);
       return Game.of(evolve({
         board: addPieceToBoard(Piece.of(evolve({
-                 position: always(oldPiece.position)
+                 position: always(oldPiece.position),
+                 asleep: always(true)
                }, capturedPiece)))
       }, game));
     }),
