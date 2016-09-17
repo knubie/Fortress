@@ -629,8 +629,7 @@ var styles = StyleSheet.create({
     color: '#646464',
   },
   deckSelected: {
-    fontSize: 12,
-    color: '#c4c4c4',
+    // FIXME: changing this causes a rendering bug.
   },
   scrollViewContainer: {
     height: cardHeight + 30,
