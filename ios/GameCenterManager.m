@@ -172,6 +172,22 @@ RCT_EXPORT_METHOD(endMatchInTurnWithMatchDataAsALoss:(NSString *)game)
   }];
 }
 
+RCT_EXPORT_METHOD(endTurnWithSameParticipants:(NSString *)game)
+{
+  NSArray* nextPlayer;
+  nextPlayer = @[self.currentMatch.currentParticipant];
+  
+  NSData * updatedMatchData = [game dataUsingEncoding:NSUTF8StringEncoding]; //Data
+  //NSArray* sortedPlayerOrder = [[self.currentMatch.participants reverseObjectEnumerator] allObjects];
+  [self.currentMatch endTurnWithNextParticipants:nextPlayer turnTimeout:GKTurnTimeoutDefault matchData:updatedMatchData completionHandler: ^(NSError *error) {
+    if (error)
+    {
+      NSLog(@"end turn error");
+      NSLog(@"%@", error);
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(endTurnWithNextParticipants:(NSString *)game)
 {
   NSLog(@"End turn with next participants");

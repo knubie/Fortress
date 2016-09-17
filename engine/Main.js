@@ -377,14 +377,14 @@ var endTurn = curry(function(ply, game) {
       })
     ),
     turn: (turn) => {
-      if (game.plysLeft[turnIndex] === 1) {
+      if (ply.type === 'MulliganPly' || game.plysLeft[turnIndex] === 1) {
         return turn === 'white' ? 'black' : 'white';
       } else {
         return turn;
       }
     },
     plysLeft: (plysLeft) => {
-      if (plysLeft[turnIndex] === 1) {
+      if (ply.type === 'MulliganPly' || plysLeft[turnIndex] === 1) {
         return adjust(
           always(game.plysPerTurn[turnIndex]),
           turnIndex,
@@ -413,12 +413,50 @@ var endTurn = curry(function(ply, game) {
   }
 });
 
+//  mulliganPly :: ([Index], Player, Game) -> Game
+var mulliganPly = curry(function(cards, game) {
+  check(arguments, [Array, Game]);
+
+  var player = Util.colorToIndex(game.turn);
+
+  //  removeCards :: Array -> Array
+  var removeCards = R.compose(
+    R.filter(R.identity),
+    R.values,
+    R.mapObjIndexed(function(val, i, obj) {
+      if (R.contains(parseInt(i), cards)) {
+        return null;
+      } else {
+        return val;
+      }
+    })
+  );
+
+  var newGame = Game.of(evolve({
+    hands: adjust(
+      compose(
+        flatten,
+        append(take(cards.length, game.decks[player])),
+        removeCards
+      )
+    , player),
+    decks: adjust(
+      compose(
+        shuffle,
+        flatten,
+        append(R.map(R.nth(R.__, game.hands[player]), cards)),
+        remove(0, cards.length)
+      )
+    , player)
+  }, game));
+  return endTurn(Types.MulliganPly.of({cards}), newGame);
+});
+
 //  drawCardPly :: (String, Game) -> Game
 var drawCardPly = curry(function(color, game) {
   check(arguments, [String, Game]);
   // TODO: replace with integer
   var playerIndex = color === 'white' ? 0 : 1;
-  var randomIndex = Math.floor(Math.random() * game.decks[playerIndex].length);
   if (not(equals(color, game.turn))) {
     return message('It\'s not your turn!', game);
   } else {
@@ -624,11 +662,15 @@ var makePly = function(game, ply) {
     return useCardPly(game.turn, ply.card, {
       positions: R.map(Position.of, ply.params.positions || [])
     }, game);
-  } else { // draft
+  } else if (ply.type === 'MulliganPly') {
     return Game.of(R.evolve({
       // TODO: change to integer.
-      turn: (turn) => { return turn === 'white' ? 'black' : 'white'; },
-      plys: R.append('draft'),
+      turn: Util.oppositeColor,
+      plys: R.append(ply),
+    }, game));
+  } else { // draft
+    return Game.of(R.evolve({
+      plys: R.append(ply),
     }, game));
     //return game;
   }
@@ -652,6 +694,7 @@ module.exports = {
   useCardPly,
   movePly,
   abilityPly,
+  mulliganPly,
   shuffle,
   getCardUsePositions,
   makePly,

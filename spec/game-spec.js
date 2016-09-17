@@ -517,9 +517,79 @@ describe('Game', function() {
       positions: [new Position({x: 5, y: 0})]
     }, newGame);
 
-    var expectedGame = Chess.getGameFromPlys(game, JSON.parse(JSON.stringify(newGame.plys)));
+    var expectedGame = Chess.getGameFromPlys(
+      game, JSON.parse(JSON.stringify(newGame.plys)));
 
     expect(equals(newGame, expectedGame)).toBe(true);
-
+  });
+  it("MulliganPly should exchange cards", function() {
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      decks: [
+        [
+          'pawn',
+          'wall',
+          'priest',
+          'king',
+          'mine',
+        ],
+        [ ]
+      ],
+      hands: [
+        [
+          'bomb',
+          'bloodlust',
+          'knight',
+          'rook',
+          'queen',
+        ],
+        [ ]
+      ],
+    });
+    var newGame2 = Chess.mulliganPly([1, 2, 3], game)
+    expect(newGame2.decks[0]).toContain('bloodlust');
+    expect(newGame2.decks[0]).toContain('knight');
+    expect(newGame2.decks[0]).toContain('rook');
+    expect(newGame2.decks[0]).not.toContain('pawn');
+    expect(newGame2.decks[0]).not.toContain('wall');
+    expect(newGame2.decks[0]).not.toContain('priest');
+    expect(newGame2.hands[0]).toContain('pawn');
+    expect(newGame2.hands[0]).toContain('wall');
+    expect(newGame2.hands[0]).toContain('priest');
+    expect(newGame2.turn).toEqual('black');
+  });
+  it("MulliganPly should exchange cards", function() {
+    var game = new Game({
+      turn: 'white',
+      board: board,
+      decks: [
+        [
+          'pawn',
+          'wall',
+          'priest',
+          'king',
+          'mine',
+        ],
+        [ ]
+      ],
+      hands: [
+        [
+          'bomb',
+          'bloodlust',
+          'knight',
+          'knight',
+          'queen',
+        ],
+        [ ]
+      ],
+    });
+    var newGame2 = Chess.mulliganPly([2, 3], game)
+    expect(R.filter(R.equals('knight'), newGame2.decks[0]).length).toEqual(2)
+    expect(newGame2.decks[0]).not.toContain('pawn');
+    expect(newGame2.decks[0]).not.toContain('wall');
+    expect(newGame2.hands[0]).toContain('pawn');
+    expect(newGame2.hands[0]).toContain('wall');
+    expect(newGame2.turn).toEqual('black');
   });
 });

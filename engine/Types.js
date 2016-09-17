@@ -13,6 +13,18 @@ for (var k in R) {
 
 var PLYS_PER_TURN = 2;
 
+function MulliganPly(opts) {
+  check([opts,   opts.cards],
+        [Object, Array]);
+  for (k in opts) {
+    if (opts.hasOwnProperty(k)) {
+      this[k] = opts[k];
+    }
+  };
+  this.type = 'MulliganPly';
+}
+MulliganPly.of = function(x) { return new MulliganPly(x); };
+
 // MovePly { piece :: Piece, position :: Position }
 function MovePly(opts) {
   check([opts,   opts.piece, opts.position],
@@ -184,6 +196,7 @@ module.exports = {
   Piece,
   Position,
   DrawPly,
+  MulliganPly,
   MovePly,
   UseCardPly,
   AbilityPly,

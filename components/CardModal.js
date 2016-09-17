@@ -34,7 +34,6 @@ var CardModal = React.createClass({
     scrollOffset: React.PropTypes.number.isRequired,
   },
   getInitialState: function() {
-
     // The scrollOffset of the scrollView.
     this.scrollOffset = this.props.scrollOffset * (CARD_WIDTH + 30);
 
@@ -56,6 +55,7 @@ var CardModal = React.createClass({
 
       // Whether or not to lock the scrolLView when dragging cards vertically
       scrollEnabled: true,
+      mulliganedCards: [],
     };
   },
   shouldComponentUpdate: function(nextProps, nextState) {
@@ -155,18 +155,36 @@ var CardModal = React.createClass({
       }
     }
     if (this.dragDirection === 'vertical') {
-      this.state.dy.setValue(dy);
+      if (!this.props.mulligan) {
+        this.state.dy.setValue(dy);
+      }
     }
   },
   onResponderRelease: function(e) {
     var dy = this.startDragY - e.nativeEvent.pageY;
     if (this.dragDirection === 'vertical') {
-      if (dy > 60) {
-        this.onDismiss('up');
-      } else if (dy < -60) {
-        this.onDismiss('down');
-      } else {
-        this.snapBack();
+      if (!this.props.mulligan) {
+        if (dy > 60) {
+          this.onDismiss('up');
+        } else if (dy < -60) {
+          this.onDismiss('down');
+        } else {
+          this.snapBack();
+        }
+      }
+    }
+    if (this.dragDirection !== 'horizontal') {
+      if (this.props.mulligan) {
+        this.props.onMulligan(this.state.focusedCard);
+        if (R.contains(this.state.focusedCard, this.state.mulliganedCards)) {
+          this.setState({
+            mulliganedCards: R.reject(R.equals(this.state.focusedCard), this.state.mulliganedCards),
+          });
+        } else {
+          this.setState({
+            mulliganedCards: R.append(this.state.focusedCard, this.state.mulliganedCards),
+          });
+        }
       }
     }
     this.setState({
@@ -181,9 +199,26 @@ var CardModal = React.createClass({
   onModalResponderRelease: function(e) {
     this.onDismiss();
   },
+  onClick: function() {
+    console.log('onclick');
+    if (this.props.mulligan) {
+      if (R.contains(this.state.focusedCard, this.state.mulliganedCards)) {
+        console.log('is mulliganed card, un-mulliganing');
+        this.setState({
+          mulliganedCards: R.reject(R.equals(this.state.focusedCard), this.state.mulliganedCards),
+        });
+      } else {
+        this.setState({
+          mulliganedCards: R.append(this.sate.focusedCard, this.state.mulliganedCards),
+        });
+        console.log('is not, mulliganed card, mulliganing');
+      }
+    }
+  },
   render: function() {
 
     var cardIndex = 0;
+    var title = this.props.mulligan ? "Select cards from your hand to exchange" : "↑ SWIPE UP TO USE ↑";
 
     return (
       <View style={[
@@ -235,7 +270,7 @@ var CardModal = React.createClass({
             ],
           }
         ]}>
-          <Text style={styles.swipeText}>↑ SWIPE UP TO USE ↑</Text>
+          <Text style={styles.swipeText}>{title}</Text>
           <ScrollView automaticallyAdjustContentInsets={false}
                       horizontal={true}
                       onScroll={this.handleScroll}
@@ -253,6 +288,13 @@ var CardModal = React.createClass({
               R.map((card) => {
                 var isAction = Pieces[card] == null;
                 var isFocusedCard = cardIndex === this.state.focusedCard;
+                var isMulliganed = R.contains(cardIndex, this.state.mulliganedCards);
+                var X = isMulliganed ? (
+                    <View style={{position: 'absolute', top: 0, left: 0}}>
+                      <View style={styles.exLeft} />
+                      <View style={styles.exRight} />
+                    </View>
+                    ) : null;
                 cardIndex = cardIndex + 1;
                 return (
                   <Animated.View
@@ -294,6 +336,7 @@ var CardModal = React.createClass({
                     onResponderRelease={this.onResponderRelease}
                     onResponderTerminationRequest={this.onResponderTerminationRequest}
                     onResponderTerminate={this.onResponderTerminate}
+                    onClick={this.onClick}
                   >
                     <Image
                       source={PieceDisplay[card].image[isAction ? 'black' : 'white']}
@@ -305,6 +348,7 @@ var CardModal = React.createClass({
                       onAbility={this.onAbility}
                       useCard={this.useCard}
                     ></PieceInfo>
+                    {X}
                   </Animated.View>
                 );
               }, this.props.cards)
@@ -383,6 +427,9 @@ var styles = StyleSheet.create({
   boxLight: {
     backgroundColor: '#D8D8D8',
   },
+  boxMulliganed: {
+    borderColor: 'red',
+  },
   modal: {
     position: 'absolute',
     top: 0,
@@ -390,6 +437,28 @@ var styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
     backgroundColor: 'black',
+  },
+  exLeft: {
+    width: 3,
+    height: CARD_HEIGHT * 1.28,
+    backgroundColor: '#A71515',
+    position: 'absolute',
+    top: 0 - (((CARD_HEIGHT * 1.28) - CARD_HEIGHT) / 2),
+    left: (CARD_WIDTH / 2),
+    transform: [
+      {rotate: '34deg',}
+    ],
+  },
+  exRight: {
+    width: 3,
+    height: CARD_HEIGHT * 1.28,
+    backgroundColor: '#A71515',
+    position: 'absolute',
+    top: 0 - (((CARD_HEIGHT * 1.28) - CARD_HEIGHT) / 2),
+    left: (CARD_WIDTH / 2),
+    transform: [
+      {rotate: '-34deg',}
+    ],
   },
 });
 

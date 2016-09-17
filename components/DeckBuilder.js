@@ -8,6 +8,7 @@ var Square = require('./Square');
 var PieceInfo = require('./PieceInfo.js');
 var PieceCard = require('./PieceCard.js');
 var PieceDisplay = require('../lib/piece-display');
+var Colors = require('../lib/colors');
 var Chess = require('../engine/Main');
 var Util = require('../engine/Util');
 var Cards = require('../engine/Cards');
@@ -16,6 +17,7 @@ var PieceDisplay = require('../lib/piece-display');
 var GameCenter = require('../back-ends/game-center')
 var TitleBar = require('./TitleBar.js');
 var CardIcon = require('./icons/Card');
+var MulliganView = require('./MulliganView');
 
 var {
   Animated,
@@ -36,8 +38,6 @@ var {
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
-//console.log('cardWidth: ' + cardWidth);
-//console.log('cardHeight: ' + cardHeight);
 
 var boardSize = 8;
 
@@ -113,9 +113,7 @@ var DeckBuilder = React.createClass({
     if (this.selectedDeck().length > MAX_DECK_SIZE) {
       alert('You have too many cards.');
     } else {
-      // TODO move this into the engine.
-      //var colorIndex = Chess.colorToIndex(this.state.game.turn);
-      var colorIndex = this.state.game.turn === 'white' ? 0 : 1;
+      var colorIndex = Util.colorToIndex(this.state.game.turn);
       var drawHand = function drawHand(game) {
         // HAND_SIZE + colorIndex -> give black an extra card.
         if (game.hands[colorIndex].length < HAND_SIZE + colorIndex) {
@@ -125,7 +123,6 @@ var DeckBuilder = React.createClass({
         }
       }
       var game = Types.Game.of(R.evolve({
-        turn: oppositeColor,
         plys: R.append('draft'),
       // Update decks with user's created deck
       }, drawHand(R.assoc(
@@ -142,13 +139,19 @@ var DeckBuilder = React.createClass({
         ),
         this.state.game)
       )));
-      GameCenter.endTurnWithGame(game);
+      GameCenter.endTurnWithGameSamePlayer(game);
       this.props.navigator.replace({
-        component: PlayView,
-        title: 'Play the game',
+        component: MulliganView,
+        title: 'Swap your hand',
         // TODO: add names
-        passProps: ({ game, baseGame: game, yourTurn: false }),
+        passProps: ({ game, yourTurn: true }),
       });
+      //this.props.navigator.replace({
+        //component: PlayView,
+        //title: 'Play the game',
+        //// TODO: add names
+        //passProps: ({ game, baseGame: game, yourTurn: false }),
+      //});
     }
   },
   back: function() {
@@ -183,7 +186,6 @@ var DeckBuilder = React.createClass({
         ),
         selectedDeck: name
       });
-      console.log(R.map(R.map(R.prop('name')), this.state.decks)),
       AsyncStorage.setItem(
         'decks',
         JSON.stringify(R.map(R.map(R.prop('name')), this.state.decks)),
@@ -313,7 +315,6 @@ var DeckBuilder = React.createClass({
     // deck scrollView.
     //var verticalThreshold = 170;
     var verticalThreshold = this.deckDropZoneLayout.y + this.deckDropZoneLayout.height;
-    console.log(verticalThreshold);
 
     // Where the card will be placed when it's released.
     var yPlacement = this.deckDropZoneLayout.y + 14;

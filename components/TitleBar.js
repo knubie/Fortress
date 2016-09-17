@@ -1,5 +1,6 @@
 var R = require('ramda');
 var React = require('react');
+var Colors = require('../lib/colors');
 var ReactNative = require('react-native');
 
 var {
@@ -7,6 +8,7 @@ var {
   Text,
   View,
   TouchableHighlight,
+  Dimensions,
   TouchableNativeFeedback,
 } = ReactNative;
 
@@ -30,21 +32,23 @@ var TitleBar = React.createClass({
 
 var styles = StyleSheet.create({
   titleContainer: {
-    marginHorizontal: 20,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 20,
     height: 40,
     justifyContent: 'space-between',
     flexDirection: 'row',
     alignItems: 'center',
   },
   turnMessage: {
-    color: '#c4c4c4',
+    color: Colors.foreground,
     fontWeight: '600',
     fontSize: 14,
   },
   navigation: {
     fontFamily: 'Anonymous Pro',
     fontSize: 45,
-    color: '#c4c4c4',
+    color: Colors.foreground,
+    backgroundColor: 'rgba(0,0,0,0)',
     fontWeight: 'bold',
   },
 });

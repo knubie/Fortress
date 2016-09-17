@@ -6,6 +6,7 @@ var Builder = require('./Builder');
 var DeckBuilder = require('./DeckBuilder');
 var HowToPlay = require('./HowToPlay');
 var Credits = require('./Credits');
+var MulliganView = require('./MulliganView');
 var Types = require('../engine/Types');
 var GameCenterManager = ReactNative.NativeModules.GameCenterManager;
 var GameCenterViewController = ReactNative.NativeModules.GameCenterViewController;
@@ -42,7 +43,6 @@ var Home = React.createClass({
     subscription = NativeAppEventEmitter.addListener(
       'didFindMatch',
       data => {
-        console.log('didFindMatch');
         // data.match {
         //   matchID: String
         //   yourTurn: Boolean
@@ -98,7 +98,6 @@ var Home = React.createClass({
         if (data.match.yourTurn) {
           player.color = game.turn;
         }
-        console.log(data);
         this.loadMatch(game, baseGame, data.match.yourName, data.match.theirName, data.match.matchOutcome);
       }
     );
@@ -169,8 +168,7 @@ var Home = React.createClass({
       //this.props.navigator.navigationContext._currentRoute.component.prototype.setState({game});
       method = 'replace';
     }
-    console.log('matchOutcome: ' + matchOutcome);
-    if (game.plys.length < 2 && yourTurn) {
+    if ((game.plys.length === 0 && yourTurn) || (game.plys.length === 2 && yourTurn)) {
       this.props.navigator.push({
         component: DeckBuilder,
         title: 'My Collection',
@@ -179,6 +177,17 @@ var Home = React.createClass({
           yourTurn,
           decks: this.state.decks,
           route: 'DeckBuilder'
+        }),
+      });
+    } else if ((game.plys.length === 1 && yourTurn) || (game.plys.length === 3 && yourTurn)) {
+      this.props.navigator[method]({
+        component: MulliganView,
+        title: 'Swap your hand',
+        passProps: ({
+          game,
+          baseGame,
+          yourTurn,
+          route: 'MulliganView'
         }),
       });
     } else {

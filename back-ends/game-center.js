@@ -56,6 +56,9 @@ module.exports = {
   endTurnWithGame: function(game) {
     GameCenterManager.endTurnWithNextParticipants(JSON.stringify(compressGame(game)));
   },
+  endTurnWithGameSamePlayer: function(game) {
+    GameCenterManager.endTurnWithSameParticipants(JSON.stringify(compressGame(game)));
+  },
   endTurnWithPlys: function(baseGame, plys) {
     GameCenterManager.
       endTurnWithNextParticipants(
