@@ -52,11 +52,9 @@ var History = React.createClass({
       switch(ply.type) {
         case 'DrawPly':
           yourTurnMessage = (
-            <View style={[textStyle, {flexWrap: 'wrap', flexDirection: 'row',}]}>
-              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew </Text><CardIcon number={'1'}/><Text style={{fontSize: 12, color: '#D8D8D8',}}> card.
-              </Text>
-            </View>
+            <Text style={[{fontSize: 12, color: '#D8D8D8',}]}>
+              <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew <CardIcon number={'1'}/> card!
+            </Text>
           );
           break;
 
@@ -85,6 +83,7 @@ var History = React.createClass({
           break;
 
         case 'MovePly':
+          var movedPiece = ply.piece;
           yourTurnMessage = (
             <Text style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}>
               <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
@@ -100,7 +99,7 @@ var History = React.createClass({
               <Text style={{fontWeight: 'bold'}}>{theirName}</Text> started a new <Text style={{fontWeight: 'bold'}}>match</Text>.
             </Text>
           );
-        } else if (prevGame.plys.length === 1) {
+        } else if (prevGame.plys.length === 2) {
           yourTurnMessage = (
             <Text style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}>
               <Text style={{fontWeight: 'bold'}}>{theirName}</Text> joined the <Text style={{fontWeight: 'bold'}}>match</Text>.
