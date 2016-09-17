@@ -77,7 +77,6 @@ describe('Pieces', function() {
           name: 'teleporter',
           color: 'white',
           position: new Position({x: 3, y: 3}),
-          asleep: false,
         })
       ],
     });
@@ -93,7 +92,6 @@ describe('Pieces', function() {
           color: 'white',
           position: new Position({x: 4, y: 4}),
           moves: 1,
-          asleep: true,
         }),
         new Piece({
           name: 'bomber',
@@ -799,7 +797,7 @@ describe('Pieces', function() {
 
     // Effect should trigger after moving the piece.
     expect(newGame.hands[0].length).toBe(3);
-    expect(newGame.resources[0]).toBe(6);
+    expect(newGame.resources[0]).toBe(5);
     expect(R.contains('pinned', newGame.board.pieces[0].types)).toBe(false);
 
     var expectedGame = Chess.getGameFromPlys(game, newGame.plys);
@@ -813,12 +811,12 @@ describe('Pieces', function() {
 
     // Effect should not trigger again when the piece is moved again.
     expect(newGame.hands[0].length).toBe(5);
-    expect(newGame.resources[0]).toBe(6);
+    expect(newGame.resources[0]).toBe(5);
 
     var expectedGame = Chess.getGameFromPlys(game, JSON.parse(JSON.stringify(newGame.plys)));
 
     expect(expectedGame.hands[0].length).toBe(5);
-    expect(expectedGame.resources[0]).toBe(6);
+    expect(expectedGame.resources[0]).toBe(5);
 
   });
   it("Mind Control should allow a player to take control of an opponent's piece.", function() {
@@ -1093,7 +1091,7 @@ describe('Pieces', function() {
     var game = new Game({
       turn: 'white',
       board: board,
-      resources: [10, 1],
+      resources: [12, 1],
       hands: [['coffer upgrade'], []],
       decks: [[],[]],
       plysLeft: 2,
@@ -1102,7 +1100,7 @@ describe('Pieces', function() {
     var newGame = Chess.useCardPly('white', 0, {}, game);
     var actualGame = Chess.abilityPly(board.pieces[0], newGame);
 
-    expect(actualGame.resources[0]).toBe(13);
+    expect(actualGame.resources[0]).toBe(11);
   });
   it("Demolition should remove a building and give 3 gold", function() {
     var board = new Board({
@@ -1181,7 +1179,7 @@ describe('Pieces', function() {
     expect(newGame.resources[0]).toEqual(2);
 
   });
-  it('Library ability should add one gold, draw one card.', function() {
+  it('Library ability should draw two cards.', function() {
     var board = new Board({
       size: 8,
       pieces: [
@@ -1198,11 +1196,10 @@ describe('Pieces', function() {
       board: board,
       resources: [2, 2],
       hands: [[], []],
-      decks: [['pawn'], []],
+      decks: [['pawn', 'wall'], []],
     });
     var actualGame = Chess.abilityPly(board.pieces[0], game);
-    expect(actualGame.resources[0]).toBe(3);
-    expect(actualGame.hands[0]).toEqual(['pawn']);
+    expect(actualGame.hands[0]).toEqual(['wall', 'pawn']);
     expect(actualGame.decks[0]).toEqual([]);
   });
 });
