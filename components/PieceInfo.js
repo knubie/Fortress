@@ -147,6 +147,8 @@ var styles = StyleSheet.create({
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
         } else if (type === 'ranged') {
          return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
+        } else if (type === 'pious') {
+         return (<Image style={styles.icon} source={require('../assets/cross.png')}/>);
         }
        }, this.props.card.types || [])
     } else if (Pieces[this.props.card]) {
@@ -158,6 +160,8 @@ var styles = StyleSheet.create({
          return (<Image style={styles.icon} source={require('../assets/crown.png')}/>);
         } else if (type === 'ranged') {
          return (<Image style={styles.icon} source={require('../assets/bow.png')}/>);
+        } else if (type === 'pious') {
+         return (<Image style={styles.icon} source={require('../assets/cross.png')}/>);
         }
        }, Pieces[this.props.card].types || [])
     }
