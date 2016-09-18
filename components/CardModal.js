@@ -297,6 +297,10 @@ var CardModal = React.createClass({
                     ) : null;
                 cardIndex = cardIndex + 1;
                 return (
+                  <View style={{
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                  }}>
                   <Animated.View
                     style={[
                       isAction ? styles.boxLight : styles.boxDark,
@@ -350,6 +354,28 @@ var CardModal = React.createClass({
                     ></PieceInfo>
                     {X}
                   </Animated.View>
+                  <Animated.View style={[
+                    {
+                      flexWrap: 'wrap',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginTop: 6,
+                    },
+                    {
+                      opacity: this.state.dy.interpolate({
+                        inputRange: [
+                          0 - (Dimensions.get('window').height / 2),
+                          0,
+                          Dimensions.get('window').height / 2
+                        ],
+                        outputRange: [0, 0.8, 0],
+                      }),
+                    },
+                  ]}>
+                    <View style={styles.goldLabel}/>
+                    <Text style={styles.pointText}>{Cards[card].points}</Text>
+                  </Animated.View>
+                </View>
                 );
               }, this.props.cards)
             }
@@ -459,6 +485,23 @@ var styles = StyleSheet.create({
     transform: [
       {rotate: '-34deg',}
     ],
+  },
+  goldLabel: {
+    marginRight: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#DAB900',
+    shadowColor: 'black',
+    shadowOffset: {width: 1, height: 1},
+    shadowOpacity: 0.3,
+    shadowRadius: 0,
+  },
+  pointText: {
+    color: '#777777',
+    fontSize: 15,
+    fontFamily: 'Helvetica Neue',
+    fontWeight: '600',
   },
 });
 
