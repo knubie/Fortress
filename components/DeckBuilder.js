@@ -172,6 +172,8 @@ var DeckBuilder = React.createClass({
   selectDeck: function(deck) {
     this.setState({
       selectedDeck: deck,
+      selectedCardInCollection: null,
+      selectedCardInDeck: null,
     });
   },
   saveDeck: function() {
@@ -457,20 +459,22 @@ var DeckBuilder = React.createClass({
 
     var decks = R.map(deck => {
       var deckClass = deck === this.state.selectedDeck ? styles.deckSelected : null;
-      var cardIconStyle = deck === this.state.selectedDeck ? null : {opacity: 0.4};
+      var cardIconStyle = deck === this.state.selectedDeck ? {bottom: 2} : {opacity: 0.4, bottom: 2};
       return (
-        <View style={[{
-          paddingHorizontal: 9,
-          backgroundColor: '#181818',
-          borderRadius: 7,
-          height: 27,
-          marginRight: 10,
-          marginBottom: 7,
+        <TouchableElement 
+          onPress={this.selectDeck.bind(this, deck)} 
+          style={[{
+            paddingHorizontal: 9,
+            backgroundColor: '#181818',
+            borderRadius: 7,
+            paddingVertical: 8,
+            marginRight: 10,
+            marginBottom: 7,
         }]}>
-          <Text onPress={this.selectDeck.bind(this, deck)} style={[styles.deckSelect, deckClass]}>
+          <Text style={[styles.deckSelect, deckClass]}>
           <CardIcon number={''} customStyle={cardIconStyle}/>  {deck}
           </Text>
-        </View>
+        </TouchableElement>
       );
     }, R.keys(this.state.decks));
 
@@ -610,14 +614,14 @@ var styles = StyleSheet.create({
     marginVertical: 5,
   },
   deck: {
-    backgroundColor: '#3C3C3C',
+    backgroundColor: '#292929',
     borderRadius: 10,
     margin: 10,
     padding: 10,
     height: cardHeight + 28,
     borderTopWidth: 4,
     borderLeftWidth: 4,
-    borderColor: '#302F2F',
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   deckList: {
     flexWrap: 'wrap',
@@ -630,6 +634,7 @@ var styles = StyleSheet.create({
   },
   deckSelected: {
     // FIXME: changing this causes a rendering bug.
+    color: Colors.foreground,
   },
   scrollViewContainer: {
     height: cardHeight + 30,
