@@ -16,6 +16,8 @@ var compressGame = R.evolve({
       return R.assoc('type', 'AbilityPly', ply);
     } else if (R.is(Types.UseCardPly, ply)) {
       return R.assoc('type', 'UseCardPly', ply);
+    } else if (R.is(Types.MulliganPly, ply)) {
+      return R.assoc('type', 'MulliganPly', ply);
     } else {
       return ply;
     }
