@@ -210,6 +210,7 @@ var Modal = React.createClass({
   },
   render: function() {
     var isAction = Pieces[this.props.card] == null;
+    var borderType = isAction ? styles.cardBorderAction : styles.cardBorder;
     var confetti = this.props.youWin ?
       R.map(() => {
         return (<Confetti />);
@@ -217,7 +218,7 @@ var Modal = React.createClass({
     var children = this.props.card ? 
         (<Animated.View
           style={[
-            isAction ? styles.boxLight : styles.boxDark,
+            styles.boxDark,
             styles.box,
             {
               opacity: this.state.cardOpacity,
@@ -236,16 +237,18 @@ var Modal = React.createClass({
           onResponderTerminationRequest={this.onResponderTerminationRequest}
           onResponderTerminate={this.onResponderTerminate}
         >
-          <Image
-            source={PieceDisplay[this.props.card].image[isAction ? 'black' : 'white']}
-            style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
-          />
-          <PieceInfo
-            light={isAction}
-            card={this.props.card}
-            onAbility={this.onAbility}
-            useCard={this.useCard}
-          ></PieceInfo>
+          <View style={borderType}>
+            <Image
+              source={PieceDisplay[this.props.card].image['white']}
+              style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
+            />
+            <PieceInfo
+              light={false}
+              card={this.props.card}
+              onAbility={this.onAbility}
+              useCard={this.useCard}
+            ></PieceInfo>
+          </View>
         </Animated.View>) : null;
 
     return (
@@ -303,11 +306,12 @@ var styles = StyleSheet.create({
     padding: 5,
     borderRadius: 8,
     width: CARD_WIDTH,
-    height: 253,
+    height: CARD_HEIGHT,
     //width: Math.floor(Dimensions.get('window').width * 0.53),
     //height: Math.floor(Dimensions.get('window').width * 0.53 * 1.48),
     alignItems: 'center',
     flexDirection: 'column',
+    justifyContent: 'center',
   },
   boxDark: {
     backgroundColor: '#353535',
@@ -322,6 +326,26 @@ var styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
     backgroundColor: 'black',
+  },
+  cardBorder: {
+    backgroundColor: '#353535',
+    borderColor: '#353535',
+    borderWidth: 2,
+    borderRadius: 6,
+    width: CARD_WIDTH - 2,
+    height: CARD_HEIGHT - 2,
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  cardBorderAction: {
+    backgroundColor: '#353535',
+    borderColor: 'rgba(255,255,255,.15)',
+    borderWidth: 2,
+    borderRadius: 6,
+    width: CARD_WIDTH - 18,
+    height: CARD_HEIGHT - 18,
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 });
 

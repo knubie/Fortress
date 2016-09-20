@@ -56,25 +56,37 @@ var styles = StyleSheet.create({
     fontFamily: 'Source Code Pro',
     fontSize: 12,
     fontWeight: '600',
-    color: this.props.light ? Colors.background : Colors.foreground,
+    color: Colors.foreground,
+    //color: this.props.light ? Colors.background : Colors.foreground,
   },
   cardTypes: {
     fontFamily: 'Source Code Pro',
     fontSize: 9,
-    color: this.props.light ? '#898989' : '#636363',
+    color: this.props.abilityButton ? '#636363' : '#777777',
+    //color: this.props.light ? '#898989' : '#636363',
   },
   divider: {
     width: 70,
     paddingBottom: 7,
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: this.props.light ? '#C3C3C3' : '#3B3B3B',
+    borderBottomColor: this.props.abilityButton ? '#3B3B3B' : '#434343',
+    //borderBottomColor: this.props.light ? '#C3C3C3' : '#3B3B3B',
   },
   description: {
     marginBottom: 10,
     marginHorizontal: 20,
     alignItems: 'center',
     alignSelf: 'stretch',
+  },
+  pieceDescription: {
+    fontFamily: 'Source Code Pro',
+    fontSize: 10,
+    fontWeight: '400',
+    color: '#979797',
+    lineHeight: 15,
+    textAlign: 'center',
+    //color: this.props.light ? '#646464' : '#979797',
   },
   tags: {
     justifyContent: 'center',
@@ -204,6 +216,7 @@ var styles = StyleSheet.create({
             color: this.props.light ? '#646464' : '#979797',
             textAlign: 'center',
           })}
+          {pieceDisplay.description(styles.pieceDescription)}
         </View>
         {ability}
         <View style={styles.tags}>

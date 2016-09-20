@@ -2,6 +2,8 @@ var R = require('ramda');
 var React = require('react');
 var ReactNative = require('react-native');
 var Pieces = require('../engine/Pieces');
+var Cards = require('../engine/Cards');
+var Colors = require('../lib/colors');
 var PieceInfo = require('./PieceInfo.js');
 var PieceDisplay = require('../lib/piece-display');
 
@@ -303,7 +305,7 @@ var CardModal = React.createClass({
                   }}>
                   <Animated.View
                     style={[
-                      isAction ? styles.boxLight : styles.boxDark,
+                      styles.boxDark,
                       styles.box,
                       {
                         opacity: isFocusedCard ? 1 :
@@ -343,11 +345,11 @@ var CardModal = React.createClass({
                     onClick={this.onClick}
                   >
                     <Image
-                      source={PieceDisplay[card].image[isAction ? 'black' : 'white']}
+                      source={PieceDisplay[card].image['white']}
                       style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
                     />
                     <PieceInfo
-                      light={isAction}
+                      light={false}
                       card={card}
                       onAbility={this.onAbility}
                       useCard={this.useCard}

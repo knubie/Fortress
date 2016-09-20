@@ -20,8 +20,6 @@ var {
 
 var cardWidth = (Dimensions.get('window').width - (40 + ((5 - 1) * 10))) / 5;
 var cardHeight = cardWidth * 1.5;
-console.log('cardWidth: ' + cardWidth);
-console.log('cardHeight: ' + cardHeight);
 var PieceCard = React.createClass({
   shouldComponentUpdate: function(nextProps, nextState) {
     return R.not(R.and(R.equals(nextProps, this.props),
@@ -167,7 +165,6 @@ var PieceCard = React.createClass({
     //this.isDragging = false;
   },
   render: function() {
-    console.log(this.props.card);
     var borderStyle = styles.unselected;
     //if (R.contains('royal', this.props.piece.types)) {
       //borderStyle = styles.borderRoyal;
@@ -177,6 +174,7 @@ var PieceCard = React.createClass({
     }
     var isAction = Pieces[this.props.card] == null;
     var cardType = isAction ? styles.cardAction : styles.cardPiece;
+    var borderType = isAction ? styles.cardBorderAction : styles.cardBorder;
     var cardStyle = this.props.disabled ? [styles.card, styles.disabled] : styles.card;
     var count = this.props.count != null ? (
       <View style={styles.count}>
@@ -184,7 +182,6 @@ var PieceCard = React.createClass({
       </View>
     ) : null;
 
-    console.log(this.props.card);
     return (
       <Animated.View
         style={[{
@@ -210,13 +207,15 @@ var PieceCard = React.createClass({
               //backgroundColor: R.contains('royal', R.path([this.props.card, 'types'], Pieces) || []) ? '#DAB900' : '#D8D8D8',
             }
         ]}>
-          <Image
-            source={isAction ? PieceDisplay[this.props.card].image['black'] : PieceDisplay[this.props.card].image['white']}
-            style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
-          />
-          <View style={{flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', marginTop: 4,}}>
-            <View style={styles.goldLabel}/>
-            <Text style={isAction ? styles.pointTextLight : styles.pointTextDark}>{Cards[this.props.card].points}</Text>
+          <View style={borderType}>
+            <Image
+              source={PieceDisplay[this.props.card].image['white']}
+              style={{backgroundColor: 'rgba(0,0,0,0)', width: cardWidth - 10, height: cardWidth - 10}}
+            />
+            <View style={{flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', marginTop: 4,}}>
+              <View style={styles.goldLabel}/>
+              <Text style={styles.pointTextDark}>{Cards[this.props.card].points}</Text>
+            </View>
           </View>
         </Animated.View>
         <View
@@ -251,7 +250,7 @@ var styles = StyleSheet.create({
     fontSize: 11,
     paddingHorizontal: 4,
     paddingVertical: 1,
-    backgroundColor: '#181818',
+    backgroundColor: 'rgba(0,0,0,0)',
     borderRadius: 4,
     alignSelf: 'center',
     fontWeight: '600',
@@ -281,7 +280,31 @@ var styles = StyleSheet.create({
     backgroundColor: '#353535',
     borderColor: '#353535',
   },
+  cardBorder: {
+    backgroundColor: '#353535',
+    borderColor: '#353535',
+    borderWidth: 1,
+    borderRadius: 4,
+    width: cardWidth - 8,
+    height: cardHeight - 8,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBorderAction: {
+    backgroundColor: '#353535',
+    borderColor: 'rgba(255,255,255,.15)',
+    borderWidth: 1,
+    borderRadius: 4,
+    width: cardWidth - 8,
+    height: cardHeight - 8,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cardAction: {
+    backgroundColor: '#353535',
+    borderColor: '#353535',
   },
   disabled: {
     opacity: 0.5,
