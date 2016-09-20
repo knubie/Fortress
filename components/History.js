@@ -63,7 +63,7 @@ var History = React.createClass({
           var abilityName = PieceDisplay[piece.name]['ability'];
           yourTurnMessage = (
             <Text style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}>
-              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the ability <Text style={{fontWeight: 'bold'}}>{abilityName}</Text>.
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the <Text style={{fontWeight: 'bold'}}>{PieceDisplay[piece.name]['displayName']}'s</Text> action.
             </Text>
           );
           break;
@@ -71,6 +71,7 @@ var History = React.createClass({
         case 'UseCardPly':
           var card = ply.card;
           var cardName = prevGame.hands[Util.colorToIndex(prevGame.turn)][card];
+          var displayName = PieceDisplay[cardName]['displayName'] 
           yourTurnMessage = (
             <Text
               onPress={() => {
@@ -78,15 +79,17 @@ var History = React.createClass({
               }}
               style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}
             >
-              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> played the <Text style={{fontWeight: 'bold'}}>{cardName}</Text> card.
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> played the <Text style={{fontWeight: 'bold'}}>{displayName}</Text> card.
             </Text>);
           break;
 
         case 'MovePly':
           var movedPiece = ply.piece;
+          var cardName = prevGame.hands[Util.colorToIndex(prevGame.turn)][card];
+          var displayName = PieceDisplay[cardName]['displayName'] 
           yourTurnMessage = (
             <Text style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}>
-              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved a piece.
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved their <Text style={{fontWeight: 'bold'}}>{displayName}</Text>.
             </Text>
           );
           break;
