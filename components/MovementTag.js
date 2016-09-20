@@ -11,8 +11,20 @@ var {
 
 var MovementTag = React.createClass({
   render: function() {
-    direction = this.props.parlett.direction === 'forwards' ? '↑' : '';
-    conditions = this.props.parlett.conditions ? this.props.parlett.conditions.join('') : '';
+    direction = this.props.parlett.direction === 'forwards' ? (<View style={{width: 12, height: 12,}}><Image style={styles.icon} source={require('../assets/forward.png')}/></View>) : null;
+    //conditions = this.props.parlett.conditions ? this.props.parlett.conditions.join('') : '';
+    var conditions = this.props.parlett.conditions ? this.props.parlett.conditions : [];
+    conditions = R.map((condition) => {
+      if (condition === 'o') {
+        return (<View style={{width: 12, height: 12,}}><Image style={styles.icon} source={require('../assets/non-capturing-light.png')}/></View>);
+      } else if (condition === 'c') {
+        return (<View style={{width: 12, height: 12,}}><Image style={styles.icon} source={require('../assets/capturing-light.png')}/></View>);
+      } else if (condition === 'i') {
+        return (<View style={{width: 12, height: 12,}}><Image style={styles.icon} source={require('../assets/initial.png')}/></View>);
+      } else {
+        return null
+      }
+    }, conditions);
     distance = this.props.parlett.distance === 'n' ? '∞' : this.props.parlett.distance;
     distanceSize = this.props.parlett.distance === 'n' ? styles.distanceInfinite : null;
     movement = this.props.parlett.movement.split('/');
@@ -20,8 +32,7 @@ var MovementTag = React.createClass({
     return (
       <View style={[this.props.customStyle]}>
         <View style={[styles.movement, this.props.yOffset]}>
-          <Text style={[styles.movementText, styles.movementOuterText]}>{direction + ' ' + conditions}</Text>
-          {movementDivider}
+          {direction}{conditions}{movementDivider}
           <Text style={[styles.movementText, styles.movementOuterText, distanceSize]}>{distance}</Text>
           <View style={styles.movementInner}>
             <Text style={[styles.movementText, styles.movementInnerText]}>{movement[0]}</Text>
@@ -90,6 +101,12 @@ var styles = StyleSheet.create({
     justifyContent: 'flex-start',
     flexWrap: 'wrap',
     flexDirection: 'row',
+  },
+  icon: {
+    width: 12,
+    height: 12,
+    position: 'relative',
+    top: 1,
   },
 });
 
