@@ -113,11 +113,9 @@ var PlayView = React.createClass({
             cardPlayed: null
           });
           yourTurnMessage = (
-            <View style={{flexWrap: 'wrap', flexDirection: 'row',}}>
-              <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-                <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew </Text><CardIcon number={'1'}/><Text style={{fontSize: 12, color: '#D8D8D8',}}> card!
-              </Text>
-            </View>
+            <Text style={{fontSize: 12, color: '#D8D8D8',}}>
+              <Text style={{fontWeight: 'bold',}}>{theirName}</Text> drew <CardIcon number={'1'}/> card!
+            </Text>
           );
           break;
 
