@@ -44,7 +44,6 @@ var PlayView = React.createClass({
   getInitialState: function() {
     var playerColor = null;
     if (this.props.matchOutcome) {
-      console.log('winner: ' + this.props.game.winner);
       if (this.props.matchOutcome === 2) {
         playerColor = this.props.game.winner;
       } else if (this.props.matchOutcome === 3) {
@@ -98,7 +97,7 @@ var PlayView = React.createClass({
   loadNextGameState: function() {
     // If latest game is newer than current game, load it.
     if (this.state.game.plys.length < R.path(['latestGame', 'plys', 'length'], this.state)) {
-      var nextGameState = this.state.game.plys.length < 2 ?
+      var nextGameState = this.state.game.plys.length < 4 ?
         this.state.latestGame :
         Chess.makePly(
           this.state.game,
