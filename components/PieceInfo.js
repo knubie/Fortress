@@ -46,11 +46,14 @@ var styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
+    position: 'relative',
+    bottom: 2,
   },
   title: {
     justifyContent: 'flex-start',
     flexDirection: 'row',
     marginBottom: 5,
+    height: 15.5,
   },
   name: {
     fontFamily: 'Source Code Pro',
@@ -74,10 +77,9 @@ var styles = StyleSheet.create({
     //borderBottomColor: this.props.light ? '#C3C3C3' : '#3B3B3B',
   },
   description: {
-    marginBottom: 10,
+    marginBottom: 13,
     marginHorizontal: 20,
     alignItems: 'center',
-    alignSelf: 'stretch',
   },
   pieceDescription: {
     fontFamily: 'Source Code Pro',
@@ -87,6 +89,14 @@ var styles = StyleSheet.create({
     lineHeight: 15,
     textAlign: 'center',
     //color: this.props.light ? '#646464' : '#979797',
+  },
+  abilityDescription: {
+    fontFamily: 'Source Code Pro',
+    fontSize: 10,
+    fontWeight: '400',
+    color: '#979797',
+    lineHeight: 10,
+    textAlign: 'center',
   },
   tags: {
     justifyContent: 'center',
@@ -102,7 +112,7 @@ var styles = StyleSheet.create({
     marginRight: 5,
   },
   button: {
-    paddingVertical: 5,
+    paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 15,
     borderStyle: 'solid',
@@ -112,6 +122,7 @@ var styles = StyleSheet.create({
     //backgroundColor: '#c4c4c4',
     borderColor: '#191919',
     backgroundColor: '#191919',
+    marginBottom: 5,
   },
   buttonContainer: {
     justifyContent: 'flex-start',
@@ -121,7 +132,7 @@ var styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: 'bold',
-    fontSize: 11,
+    fontSize: 8,
     letterSpacing: 1,
     color: '#c4c4c4',
   },
@@ -133,7 +144,7 @@ var styles = StyleSheet.create({
         ability = (
           <View style={styles.buttonContainer}>
             <TouchableElement style={styles.button} onPress={this.ability}>
-              <Text style={styles.buttonText}>{PieceDisplay[this.props.card.name].ability}</Text>
+              <Text style={styles.buttonText}>ACTION</Text>
             </TouchableElement>
           </View>
         );
@@ -195,6 +206,34 @@ var styles = StyleSheet.create({
       PieceDisplay[this.props.card.name] :
       PieceDisplay[this.props.card];
 
+    if (pieceDisplay && pieceDisplay.actions) {
+      var actions = R.map((action) => {
+        if (this.props.abilityButton) {
+          return (
+            <TouchableElement style={styles.button} onPress={this.ability}>
+              <Text style={[styles.abilityDescription, {}]}>
+                <View style={{
+                  width: 6, height: 6,
+                  borderRadius: 3,
+                  backgroundColor: '#C4C4C4'}}
+                /> : {action.text(styles.abilityDescription)}
+              </Text>
+            </TouchableElement>
+          );
+        } else {
+          return (
+            <Text style={[styles.pieceDescription, {}]}>
+              <View style={{
+                width: 6, height: 6,
+                borderRadius: 3,
+                backgroundColor: '#C4C4C4'}}
+              /> : {action.text(styles.pieceDescription)}
+            </Text>
+          );
+        }
+      }, pieceDisplay.actions);
+    }
+
     return !this.props.card ? (<View></View>) : (
       <View style={styles.pieceDisplayContainer}>
         <View style={styles.title}>
@@ -209,13 +248,7 @@ var styles = StyleSheet.create({
         </View>
         <View style={styles.divider}/>
         <View style={styles.description}>
-          {pieceDisplay.description({
-            fontFamily: 'Source Code Pro',
-            fontSize: 10,
-            fontWeight: '400',
-            color: this.props.light ? '#646464' : '#979797',
-            textAlign: 'center',
-          })}
+          {actions}
           {pieceDisplay.description(styles.pieceDescription)}
         </View>
         {ability}

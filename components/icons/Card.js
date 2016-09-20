@@ -6,13 +6,13 @@ var { View, Text, Image, } = ReactNative;
 var CardIcon = React.createClass({
   render: function() {
     return (
-      <View style={{ width: 14, height: 17, }} >
+      <View style={[{ width: 14, height: 10, }, this.props.viewHeight]} >
         <Image
           style={[{
             width: 14,
             height: 17,
             position: 'relative',
-            top: 5,
+            bottom: 1,
           }, this.props.customStyle
           ]}
           source={require('../../assets/card-icon.png')}

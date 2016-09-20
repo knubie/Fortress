@@ -7,12 +7,12 @@ var { View, Text, Image, } = ReactNative;
 var GoldIcon = React.createClass({
   render: function() {
     return (
-      <View style={{ width: 13, height: 12, }} >
+      <View style={{ width: 13, height: 10, }} >
         <Image
           style={{
             width: 13, height: 12,
             position: 'relative',
-            top: 4,
+            top: 1,
           }}
           source={require('../../assets/gold-icon.png')}
         >

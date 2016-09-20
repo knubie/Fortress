@@ -124,13 +124,12 @@ var PlayView = React.createClass({
 
         case 'AbilityPly':
           var piece = R.last(nextGameState.plys).piece;
-          var abilityName = PieceDisplay[piece.name]['ability'];
           this.setState({
             cardPlayed: null
           });
           yourTurnMessage = (
             <Text style={{fontSize: 12, color: '#D8D8D8',}}>
-              It's your turn! <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the ability <Text style={{fontWeight: 'bold'}}>{abilityName}</Text>.
+              <Text style={{fontWeight: 'bold'}}>{theirName}</Text> used the <Text style={{fontWeight: 'bold'}}>{PieceDisplay[piece.name]['displayName']}'s</Text> action.
             </Text>
           );
           break;
