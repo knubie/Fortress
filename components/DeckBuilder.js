@@ -651,10 +651,10 @@ var styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   buttonRed: {
-    borderColor: '#E5403F',
+    borderColor: Colors.red,
   },
   buttonTextRed: {
-    color: '#E5403F',
+    color: Colors.red,
   },
   buttonContainer: {
     justifyContent: 'center',

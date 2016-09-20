@@ -469,7 +469,7 @@ var styles = StyleSheet.create({
   exLeft: {
     width: 3,
     height: CARD_HEIGHT * 1.28,
-    backgroundColor: '#A71515',
+    backgroundColor: Colors.red,
     position: 'absolute',
     top: 0 - (((CARD_HEIGHT * 1.28) - CARD_HEIGHT) / 2),
     left: (CARD_WIDTH / 2),
@@ -480,7 +480,7 @@ var styles = StyleSheet.create({
   exRight: {
     width: 3,
     height: CARD_HEIGHT * 1.28,
-    backgroundColor: '#A71515',
+    backgroundColor: Colors.red,
     position: 'absolute',
     top: 0 - (((CARD_HEIGHT * 1.28) - CARD_HEIGHT) / 2),
     left: (CARD_WIDTH / 2),
