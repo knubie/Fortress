@@ -84,9 +84,7 @@ var History = React.createClass({
           break;
 
         case 'MovePly':
-          var movedPiece = ply.piece;
-          var cardName = prevGame.hands[Util.colorToIndex(prevGame.turn)][card];
-          var displayName = PieceDisplay[cardName]['displayName'] 
+          var displayName = PieceDisplay[ply.piece.name]['displayName'] 
           yourTurnMessage = (
             <Text style={[textStyle, {fontSize: 12, color: '#D8D8D8',}]}>
               <Text style={{fontWeight: 'bold'}}>{theirName}</Text> moved their <Text style={{fontWeight: 'bold'}}>{displayName}</Text>.
