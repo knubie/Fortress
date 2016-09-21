@@ -289,6 +289,7 @@ var CardModal = React.createClass({
             {
               R.map((card) => {
                 var isAction = Pieces[card] == null;
+                var borderType = isAction ? styles.cardBorderAction : styles.cardBorder;
                 var isFocusedCard = cardIndex === this.state.focusedCard;
                 var isMulliganed = R.contains(cardIndex, this.state.mulliganedCards);
                 var X = isMulliganed ? (
@@ -344,16 +345,18 @@ var CardModal = React.createClass({
                     onResponderTerminate={this.onResponderTerminate}
                     onClick={this.onClick}
                   >
-                    <Image
-                      source={PieceDisplay[card].image['white']}
-                      style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
-                    />
-                    <PieceInfo
-                      light={false}
-                      card={card}
-                      onAbility={this.onAbility}
-                      useCard={this.useCard}
-                    ></PieceInfo>
+                    <View style={borderType}>
+                      <Image
+                        source={PieceDisplay[card].image['white']}
+                        style={{marginVertical: 20, backgroundColor: 'rgba(0,0,0,0)', width: 42}}
+                      />
+                      <PieceInfo
+                        light={false}
+                        card={card}
+                        onAbility={this.onAbility}
+                        useCard={this.useCard}
+                      ></PieceInfo>
+                    </View>
                     {X}
                   </Animated.View>
                   <Animated.View style={[
@@ -440,6 +443,7 @@ var styles = StyleSheet.create({
     //width: Math.floor(Dimensions.get('window').width * 0.53),
     //height: Math.floor(Dimensions.get('window').width * 0.53 * 1.48),
     alignItems: 'center',
+    justifyContent: 'center',
     flexDirection: 'column',
     shadowColor: '#000000',
     shadowOpacity: 0.5,
@@ -504,6 +508,26 @@ var styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Helvetica Neue',
     fontWeight: '600',
+  },
+  cardBorder: {
+    backgroundColor: '#353535',
+    borderColor: '#353535',
+    borderWidth: 2,
+    borderRadius: 6,
+    width: CARD_WIDTH - 2,
+    height: CARD_HEIGHT - 2,
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  cardBorderAction: {
+    backgroundColor: '#353535',
+    borderColor: 'rgba(255,255,255,.15)',
+    borderWidth: 2,
+    borderRadius: 6,
+    width: CARD_WIDTH - 18,
+    height: CARD_HEIGHT - 18,
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 });
 
